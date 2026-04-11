@@ -1,8 +1,8 @@
 {
-  "name": "anawyak-ai",
-  "pages_build_output_dir": "/",
+  "name": "anawyak",
+  "main": "cloudflare-worker.js", // هذا السطر يخبره أن هناك كود برمجي
   "compatibility_date": "2026-04-11",
-  "vars": {
-    "DEFAULT_PROXY": "https://anawyak-ai.moh-essa.workers.dev"
+  "observability": {
+    "enabled": true
   }
 }
