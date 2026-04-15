@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>أنا وياك — Ana Wyak</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ana Wyak">
+<meta name="theme-color" content="#C9954A">
+<!-- ═══ iOS SPLASH SCREENS — All 2024-2026 devices ═══ -->
+<!-- iPhone 16 Pro Max (430×932) -->
+<link rel="apple-touch-startup-image" media="screen and (device-width:430px) and (device-height:932px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1290' height='2796'%3E%3Crect width='100%25' height='100%25' fill='%23150D10'/%3E%3Ctext x='645' y='1360' text-anchor='middle' font-size='180' fill='%23C9954A' font-family='serif'%3E%E2%9C%A8%3C/text%3E%3Ctext x='645' y='1520' text-anchor='middle' font-size='72' fill='%23E8849A' font-family='serif'%3E%D8%A3%D9%86%D8%A7 %D9%88%D9%8A%D8%A7%D9%83%3C/text%3E%3C/svg%3E">
+<!-- iPhone 16 Pro (393×852) -->
+<link rel="apple-touch-startup-image" media="screen and (device-width:393px) and (device-height:852px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1179' height='2556'%3E%3Crect width='100%25' height='100%25' fill='%23150D10'/%3E%3Ctext x='590' y='1240' text-anchor='middle' font-size='160' fill='%23C9954A' font-family='serif'%3E%E2%9C%A8%3C/text%3E%3Ctext x='590' y='1390' text-anchor='middle' font-size='66' fill='%23E8849A' font-family='serif'%3E%D8%A3%D9%86%D8%A7 %D9%88%D9%8A%D8%A7%D9%83%3C/text%3E%3C/svg%3E">
+<!-- iPhone 15/14 Pro Max (430×932) -->
+<link rel="apple-touch-startup-image" media="screen and (device-width:430px) and (device-height:932px) and (-webkit-device-pixel-ratio:3)" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1290' height='2796'%3E%3Crect width='100%25' height='100%25' fill='%23150D10'/%3E%3Ctext x='645' y='1360' text-anchor='middle' font-size='180' fill='%23C9954A'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E">
+<!-- iPhone 14/13 (390×844) -->
+<link rel="apple-touch-startup-image" media="screen and (device-width:390px) and (device-height:844px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1170' height='2532'%3E%3Crect width='100%25' height='100%25' fill='%23150D10'/%3E%3Ctext x='585' y='1220' text-anchor='middle' font-size='160' fill='%23C9954A'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E">
+<!-- iPhone SE (375×667) -->
+<link rel="apple-touch-startup-image" media="screen and (device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='750' height='1334'%3E%3Crect width='100%25' height='100%25' fill='%23150D10'/%3E%3Ctext x='375' y='640' text-anchor='middle' font-size='120' fill='%23C9954A'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E">
+<!-- Apple Touch Icon -->
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="description" content="A private luxury world for two. Intimacy engineered for the modern Arab couple.">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Nunito:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════ SPLASH -->
+<div id="splash" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#FFF0F3 0%,#FFE0E8 35%,#FFF5E8 70%,#FFF0F3 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden">
+  <span style="position:absolute;top:-10px;left:12%;font-size:22px;animation:petals 4s linear .3s both">🌸</span>
+  <span style="position:absolute;top:-10px;left:52%;font-size:18px;animation:petals 3.5s linear .8s both">🌺</span>
+  <span style="position:absolute;top:-10px;left:78%;font-size:20px;animation:petals 4.5s linear .1s both">🌸</span>
+  <span style="position:absolute;top:-10px;left:32%;font-size:16px;animation:petals 3.8s linear 1s both">💮</span>
+  <div style="text-align:center;padding:32px;animation:fadeUp .8s ease .3s both;opacity:0">
+    <!-- Interlocking rings logo SVG -->
+    <svg width="120" height="80" viewBox="0 0 200 140" class="lux-pulse" style="margin-bottom:20px;filter:drop-shadow(0 8px 24px rgba(201,149,74,.35))">
+      <defs>
+        <linearGradient id="rg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F0CC70"/><stop offset="100%" stop-color="#C9954A"/></linearGradient>
+        <linearGradient id="rg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8849A"/><stop offset="100%" stop-color="#C8607A"/></linearGradient>
+        <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter>
+      </defs>
+      <g filter="url(#glow)">
+        <ellipse cx="75" cy="70" rx="52" ry="52" stroke="url(#rg1)" stroke-width="14" fill="none" opacity=".95"/>
+        <ellipse cx="125" cy="70" rx="52" ry="52" stroke="url(#rg2)" stroke-width="14" fill="none" opacity=".95"/>
+        <path d="M100,30 Q95,70 100,110" stroke="rgba(255,255,255,.4)" stroke-width="6" fill="none" stroke-linecap="round"/>
+      </g>
+    </svg>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:50px;font-weight:700;color:#C8607A;letter-spacing:-2px;line-height:1;margin-bottom:4px">أنا وياك</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:#C9954A;margin-bottom:16px;letter-spacing:4px">ANA WYAK</div>
+    <div style="font-size:14px;color:#9A6070;font-style:italic">Me & You — Always 💕<br><span style="font-family:'Cairo',sans-serif;font-size:12px;font-style:normal">معاً دائماً</span></div>
+  </div>
+  <div style="position:absolute;bottom:60px;width:140px;height:3px;background:rgba(232,132,154,.2);border-radius:2px;overflow:hidden"><div style="height:100%;background:linear-gradient(90deg,#C9954A,#E8849A,#F0CC70);animation:progressLoad 2.4s ease forwards"></div></div>
+</div>
+
+<!-- ══════════════════════════════════════ AUTH -->
+<div id="auth-screen" style="display:none;min-height:100vh;background:var(--cream)">
+  <div style="max-width:420px;margin:0 auto;padding:max(48px,calc(20px + env(safe-area-inset-top))) 24px 24px">
+    <div style="text-align:center;margin-bottom:36px">
+      <svg width="80" height="54" viewBox="0 0 200 140" class="lux-pulse" style="margin-bottom:16px;filter:drop-shadow(0 4px 16px rgba(201,149,74,.3))">
+        <defs><linearGradient id="ag1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F0CC70"/><stop offset="100%" stop-color="#C9954A"/></linearGradient><linearGradient id="ag2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8849A"/><stop offset="100%" stop-color="#C8607A"/></linearGradient></defs>
+        <ellipse cx="75" cy="70" rx="52" ry="52" stroke="url(#ag1)" stroke-width="14" fill="none" opacity=".9"/>
+        <ellipse cx="125" cy="70" rx="52" ry="52" stroke="url(#ag2)" stroke-width="14" fill="none" opacity=".9"/>
+      </svg>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:700;color:var(--rose);line-height:1;letter-spacing:-1px">أنا وياك</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--gold);margin-bottom:8px;letter-spacing:3px">ANA WYAK</div>
+      <div style="font-size:14px;color:var(--text-soft)"><span class="en">Your private world for two ✨</span><span class="ar">عالمكما الخاص معاً ✨</span></div>
+    </div>
+    <div style="background:linear-gradient(180deg,rgba(232,132,154,.12),rgba(255,255,255,0));border:1px solid rgba(232,132,154,.16);border-radius:28px;padding:24px;margin-bottom:20px;backdrop-filter:blur(12px)">
+      <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:18px">
+        <div style="font-size:36px;line-height:1">✨</div>
+        <div>
+          <div style="font-size:18px;font-weight:800;color:var(--rose);margin-bottom:8px"><span class="en">Begin your private love ritual now</span><span class="ar">ابدؤوا طقس الحب الخاص الآن</span></div>
+          <div style="font-size:13px;color:var(--text-soft);line-height:1.8;max-width:320px"><span class="en">Feel the first luxury experience in 5 seconds — before registration.</span><span class="ar">اعيشوا التجربة الفاخرة الأولى في 5 ثوانٍ — قبل التسجيل.</span></div>
+        </div>
+      </div>
+      <button class="btn-gold" onclick="openTonight()" style="width:100%;padding:16px;font-size:15px;font-weight:800"><span class="en">🎲 Discover Tonight&apos;s Ritual</span><span class="ar">🎲 اكتشف طقس الليلة</span></button>
+      <div style="display:flex;justify-content:center;gap:10px;margin-top:16px;font-size:12px;color:var(--text-soft);line-height:1.6">
+        <span><span class="en">Instant luxury preview</span><span class="ar">معاينة فورية فاخرة</span></span>
+        <span>·</span>
+        <span><span class="en">No account needed</span><span class="ar">لا يتطلب حساب</span></span>
+        <span>·</span>
+        <span><span class="en">Designed for privacy</span><span class="ar">مصمم للخصوصية</span></span>
+      </div>
+    </div>
+    <div style="display:flex;background:var(--card2);border-radius:16px;padding:4px;margin-bottom:24px;border:1px solid var(--border)">
+      <button id="at-si" class="auth-tab" onclick="switchAuth('si')" style="background:var(--rose);color:#fff"><span class="en">Sign In</span><span class="ar">دخول</span></button>
+      <button id="at-su" class="auth-tab" onclick="switchAuth('su')" style="background:transparent;color:var(--text-soft)"><span class="en">Create Private Space</span><span class="ar">افتح مساحة خاصة</span></button>
+    </div>
+    <!-- SIGN IN -->
+    <div id="si-form">
+      <div style="margin-bottom:14px"><label class="label"><span class="en">Email</span><span class="ar">البريد الإلكتروني</span></label><input type="email" id="si-email" placeholder="your@email.com" autocomplete="email"></div>
+      <div style="margin-bottom:20px"><label class="label"><span class="en">Password</span><span class="ar">كلمة المرور</span></label><div style="position:relative"><input type="password" id="si-pass" placeholder="••••••••" autocomplete="current-password"><button onclick="togglePw('si-pass')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-soft)">👁</button></div></div>
+      <button class="btn-rose" onclick="doSignIn()" id="si-btn"><span class="en">Sign In 💕</span><span class="ar">دخول 💕</span></button>
+      <div style="text-align:center;margin-top:14px"><button onclick="doGuest()" style="background:none;border:none;color:var(--text-soft);font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline"><span class="en">Continue as Guest</span><span class="ar">متابعة كضيف</span></button></div>
+    </div>
+    <!-- SIGN UP -->
+    <div id="su-form" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+        <div><label class="label"><span class="en">Your Name</span><span class="ar">اسمك</span></label><input type="text" id="su-n1" placeholder="Fatima"></div>
+        <div><label class="label"><span class="en">Partner's Name</span><span class="ar">شريكك</span></label><input type="text" id="su-n2" placeholder="Ahmed"></div>
+      </div>
+      <div style="margin-bottom:14px"><label class="label"><span class="en">Email</span><span class="ar">البريد</span></label><input type="email" id="su-email" placeholder="your@email.com" autocomplete="email"></div>
+      <div style="margin-bottom:14px"><label class="label"><span class="en">Password (6+ chars)</span><span class="ar">كلمة المرور (6+)</span></label><div style="position:relative"><input type="password" id="su-pass" placeholder="••••••••" autocomplete="new-password"><button onclick="togglePw('su-pass')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-soft)">👁</button></div></div>
+      <div style="margin-bottom:14px"><label class="label"><span class="en">Family Type</span><span class="ar">نوع الأسرة</span></label>
+        <select id="su-fam"><option value="couple">💑 Couple / زوجان</option><option value="parents">👨‍👩‍👧‍👦 Parents / عائلة</option><option value="expat">✈️ Expat Family</option><option value="extended">🏘️ Extended Family</option><option value="single">🌱 Finding My Path</option></select></div>
+      <div style="background:var(--rose-pale);border-radius:12px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--text-mid)">📧 <span class="en">A welcome confirmation will be sent to your email.</span><span class="ar">سيُرسل بريد ترحيب لبريدك.</span></div>
+      <button class="btn-rose" onclick="doSignUp()" id="su-btn"><span class="en">Create Your Private World 💕</span><span class="ar">افتح عالمكما الخاص 💕</span></button>
+    </div>
+    <p style="text-align:center;font-size:11px;color:var(--text-soft);margin-top:16px;line-height:1.7"><span class="en">By continuing you agree to our <a href="terms.html" style="color:var(--rose)">Terms</a> & <a href="privacy.html" style="color:var(--rose)">Privacy Policy</a>.<br>Not a substitute for professional counseling.</span><span class="ar">بالمتابعة توافق على <a href="terms.html" style="color:var(--rose)">الشروط</a> و<a href="privacy.html" style="color:var(--rose)">سياسة الخصوصية</a>.<br>ليس بديلاً عن الإرشاد المهني.</span></p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ ONBOARDING -->
+<div id="onboarding" style="display:none;min-height:100vh">
+  <div class="ob-bar"><div class="ob-fill" id="ob-fill" style="width:33%"></div></div>
+  <div id="ob-0" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;text-align:center;min-height:calc(100vh - 3px)">
+    <div class="float" style="font-size:84px;margin-bottom:24px">💌</div>
+    <h1 style="font-size:30px;color:var(--rose);margin-bottom:12px;line-height:1.3"><span class="en">Build your signature love ritual</span><span class="ar">ابنوا طقس حبكم الخاص</span></h1>
+    <p style="color:var(--text-mid);font-size:15px;line-height:1.7;margin-bottom:28px"><span class="en">Choose the mood that turns tonight into a memorable experience.</span><span class="ar">اختر المزاج الذي يجعل الليلة تجربة لا تُنسى.</span></p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:420px;margin-bottom:24px">
+      <button class="btn-ghost ob-vibe-card" onclick="selectObVibe('Romantic',this)"><span class="en">Romantic & dreamy</span><span class="ar">رومانسي وحالم</span></button>
+      <button class="btn-ghost ob-vibe-card" onclick="selectObVibe('Luxury',this)"><span class="en">Luxury & intimate</span><span class="ar">فاخر وحميم</span></button>
+      <button class="btn-ghost ob-vibe-card" onclick="selectObVibe('Cozy',this)"><span class="en">Cozy & calm</span><span class="ar">دافئ وهادئ</span></button>
+      <button class="btn-ghost ob-vibe-card" onclick="selectObVibe('Adventurous',this)"><span class="en">Fun & adventurous</span><span class="ar">مرح ومغامرة</span></button>
+    </div>
+    <button class="btn-rose" onclick="nextObStep()" style="max-width:360px"><span class="en">Choose your mood</span><span class="ar">اختر مزاجك</span></button>
+  </div>
+  <div id="ob-1" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;text-align:center;min-height:calc(100vh - 3px)">
+    <div class="float" style="font-size:84px;margin-bottom:24px">📝</div>
+    <h1 style="font-size:30px;color:var(--rose);margin-bottom:12px;line-height:1.3"><span class="en">Introduce yourselves</span><span class="ar">عرّفا عن نفسيكما</span></h1>
+    <p style="color:var(--text-mid);font-size:15px;line-height:1.7;margin-bottom:28px"><span class="en">Your names will make every message feel like it was written just for you.</span><span class="ar">أسماؤكما تجعل كل رسالة تبدو موجهة خصيصاً لكما.</span></p>
+    <div style="width:100%;max-width:360px;margin-bottom:16px"><label class="label"><span class="en">Your name</span><span class="ar">اسمك</span></label><input type="text" id="ob-n1" placeholder="Fatima"></div>
+    <div style="width:100%;max-width:360px;margin-bottom:24px"><label class="label"><span class="en">Partner's name</span><span class="ar">اسم الشريك</span></label><input type="text" id="ob-n2" placeholder="Ahmed"></div>
+    <button class="btn-rose" onclick="nextObStep()" style="max-width:360px"><span class="en">Make it personal</span><span class="ar">اجعلها شخصية</span></button>
+  </div>
+  <div id="ob-2" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;text-align:center;min-height:calc(100vh - 3px)">
+    <div class="float" style="font-size:84px;margin-bottom:24px">✨</div>
+    <h1 style="font-size:30px;color:var(--rose);margin-bottom:12px;line-height:1.3"><span class="en">Choose your first ritual</span><span class="ar">اختر طقسكما الأول</span></h1>
+    <p style="color:var(--text-mid);font-size:15px;line-height:1.7;margin-bottom:28px"><span class="en">Start with the experience you want most tonight.</span><span class="ar">ابدؤوا بالتجربة التي تريدونها الليلة.</span></p>
+    <div style="display:grid;grid-template-columns:1fr;gap:12px;width:100%;max-width:420px;margin-bottom:24px">
+      <button class="btn-ghost ob-vibe-card" onclick="selectObWish('Date',this)"><span class="en">A luxury date idea</span><span class="ar">فكرة موعد فاخرة</span></button>
+      <button class="btn-ghost ob-vibe-card" onclick="selectObWish('Cook',this)"><span class="en">A romantic cook-together plan</span><span class="ar">خطة طبخ رومانسية</span></button>
+      <button class="btn-ghost ob-vibe-card" onclick="selectObWish('Memories',this)"><span class="en">A ritual to save your story</span><span class="ar">طقس لحفظ ذكرياتكما</span></button>
+    </div>
+    <button class="btn-rose" onclick="nextObStep()" style="max-width:360px"><span class="en">Continue</span><span class="ar">تابع</span></button>
+  </div>
+  <div id="ob-3" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;text-align:center;min-height:calc(100vh - 3px)">
+    <div class="float" style="font-size:84px;margin-bottom:24px">💑</div>
+    <h1 style="font-size:30px;color:var(--rose);margin-bottom:12px;line-height:1.3"><span class="en">When did your journey begin?</span><span class="ar">متى بدأت رحلتكما؟</span></h1>
+    <p style="color:var(--text-mid);font-size:15px;line-height:1.7;margin-bottom:28px"><span class="en">We will count every beautiful day together.</span><span class="ar">سنحسب كل يوم جميل معاً.</span></p>
+    <div style="width:100%;max-width:360px;margin-bottom:24px"><label class="label"><span class="en">Anniversary / Start Date (optional)</span><span class="ar">تاريخ الزواج (اختياري)</span></label><input type="date" id="ob-ann"></div>
+    <button class="btn-rose" onclick="finishOb()" style="max-width:360px"><span class="en">Enter Ana Wyak 💕</span><span class="ar">ادخل أنا وياك 💕</span></button>
+    <button onclick="finishOb()" style="background:none;border:none;color:var(--text-soft);font-size:13px;cursor:pointer;margin-top:12px;font-family:inherit"><span class="en">Skip for now</span><span class="ar">تخطي الآن</span></button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ MAIN APP -->
+<div id="app" style="display:none">
+  <header class="app-header">
+    <div onclick="showTab('home')" style="cursor:pointer;display:flex;align-items:center;gap:10px">
+      <svg width="32" height="22" viewBox="0 0 200 140"><defs><linearGradient id="hg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F0CC70"/><stop offset="100%" stop-color="#C9954A"/></linearGradient><linearGradient id="hg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8849A"/><stop offset="100%" stop-color="#C8607A"/></linearGradient></defs><ellipse cx="75" cy="70" rx="52" ry="52" stroke="url(#hg1)" stroke-width="16" fill="none"/><ellipse cx="125" cy="70" rx="52" ry="52" stroke="url(#hg2)" stroke-width="16" fill="none"/></svg>
+      <div>
+        <div class="app-logo-text" style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--rose),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1">أنا وياك</div>
+        <div id="hdr-names" style="font-size:10px;color:var(--text-soft);line-height:1.2">Ana Wyak · Me & You Always</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span id="credits-badge" style="background:var(--rose-glow);border:1px solid rgba(232,132,154,.3);color:var(--rose);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:700">3 💬</span>
+      <button onclick="toggleLang()" class="lang-btn" id="lang-btn">عربي</button>
+      <button onclick="toggleTheme()" id="theme-btn" style="background:none;border:none;font-size:20px;cursor:pointer;line-height:1">☀️</button>
+    </div>
+  </header>
+
+  <div id="tab-home"     class="tab-screen"></div>
+  <div id="tab-coach"    class="tab-screen"></div>
+  <div id="tab-cook"     class="tab-screen"></div>
+  <div id="tab-dates"    class="tab-screen"></div>
+  <div id="tab-memories" class="tab-screen"></div>
+  <div id="tab-profile"  class="tab-screen"></div>
+
+  <nav class="bottom-nav">
+    <button id="nav-home"     class="nav-btn active" onclick="showTab('home')"    ><span class="nav-icon">🏠</span><span class="en-i">Home</span><span class="ar-i">الرئيسية</span></button>
+    <button id="nav-coach"    class="nav-btn"         onclick="showTab('coach')"   ><span class="nav-icon">💬</span><span class="en-i">Coach</span><span class="ar-i">مدرب</span></button>
+    <button id="nav-cook"     class="nav-btn"         onclick="showTab('cook')"    ><span class="nav-icon">👨‍🍳</span><span class="en-i">Cook</span><span class="ar-i">نطبخ</span></button>
+    <button id="nav-dates"    class="nav-btn"         onclick="showTab('dates')"   ><span class="nav-icon">🌹</span><span class="en-i">Dates</span><span class="ar-i">خروجات</span></button>
+    <button id="nav-memories" class="nav-btn"         onclick="showTab('memories')"><span class="nav-icon">📖</span><span class="en-i">Story</span><span class="ar-i">قصتنا</span></button>
+    <button id="nav-profile"  class="nav-btn"         onclick="showTab('profile')" ><span class="nav-icon">👤</span><span class="en-i">Profile</span><span class="ar-i">الملف</span></button>
+  </nav>
+</div>
+
+<!-- ACHIEVEMENT OVERLAY -->
+<div id="ach-overlay">
+  <div id="ach-badge-el" style="padding:24px;background:var(--card);border-radius:28px;margin-bottom:20px;text-align:center;width:100%;max-width:310px">
+    <div style="font-size:76px;animation:gleam 3s infinite;display:inline-block">🤝</div>
+    <h2 style="font-family:'Cormorant Garamond',serif;color:var(--rose);margin-top:10px;font-size:26px">7 Days of Harmony</h2>
+    <div style="font-family:'Cairo',sans-serif;color:var(--gold-light);font-size:16px;margin-bottom:6px">وسام الوفاق</div>
+    <div id="ach-names" style="font-size:13px;color:var(--text-soft)"></div>
+  </div>
+  <p style="color:rgba(255,255,255,.8);max-width:280px;margin:0 0 20px;font-size:14px;line-height:1.8">You've completed the 7-Day Harmony Challenge! Your bond is stronger than ever 💕</p>
+  <div style="display:flex;flex-direction:column;gap:10px;width:220px">
+    <button class="btn-gold" id="share-badge-btn" onclick="shareBadge()"><span class="en">Share Badge ✨</span><span class="ar">شارك الوسام ✨</span></button>
+    <button onclick="document.getElementById('ach-overlay').classList.remove('open')" style="background:none;border:none;color:rgba(255,255,255,.55);font-size:13px;cursor:pointer;font-family:inherit"><span class="en">Continue Journey →</span><span class="ar">تابع الرحلة ←</span></button>
+  </div>
+</div>
+
+<!-- PAIRING SUCCESS MODAL -->
+<div id="pair-modal">
+  <div style="background:var(--card);width:100%;max-width:320px;border-radius:28px;padding:36px 24px;text-align:center;border:1px solid var(--gold-light);box-shadow:0 20px 60px rgba(0,0,0,.4);animation:modalIn .4s cubic-bezier(.175,.885,.32,1.275)">
+    <div style="font-size:60px;margin-bottom:16px;filter:drop-shadow(0 4px 12px rgba(201,149,74,.3))">✨</div>
+    <h2 style="font-family:'Cairo',sans-serif;color:var(--rose-deep);font-size:24px;margin-bottom:4px">تم الربط بنجاح</h2>
+    <h3 style="font-family:'Cormorant Garamond',serif;color:var(--gold);font-size:18px;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px">Hearts Connected</h3>
+    <p style="color:var(--text-mid);font-size:14px;margin-bottom:24px;line-height:1.6">Your shared journey in <b>Ana Wyak</b> starts now. Every memory is a shared one.</p>
+    <button class="btn-rose" onclick="closePairModal()"><span class="en">Open Our World ✨</span><span class="ar">افتح عالمنا ✨</span></button>
+  </div>
+</div>
+
+
+<!-- ═══════════ BIOMETRIC LOCK SCREEN ═══════════ -->
+<div id="lock-screen" style="display:none;position:fixed;inset:0;background:#150D10;z-index:9998;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center">
+  <svg width="80" height="54" viewBox="0 0 200 140" style="margin-bottom:24px;filter:drop-shadow(0 8px 24px rgba(201,149,74,.4))">
+    <defs><linearGradient id="bl1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F0CC70"/><stop offset="100%" stop-color="#C9954A"/></linearGradient><linearGradient id="bl2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8849A"/><stop offset="100%" stop-color="#C8607A"/></linearGradient></defs>
+    <ellipse cx="75" cy="70" rx="52" ry="52" stroke="url(#bl1)" stroke-width="14" fill="none"/>
+    <ellipse cx="125" cy="70" rx="52" ry="52" stroke="url(#bl2)" stroke-width="14" fill="none"/>
+  </svg>
+  <h2 style="font-family:'Cairo',sans-serif;color:#C9954A;font-size:26px;margin-bottom:6px">مساحة خاصة</h2>
+  <p style="font-family:'Cormorant Garamond',serif;color:#E8849A;font-size:18px;letter-spacing:2px;margin-bottom:6px">Your Private Space</p>
+  <p style="color:rgba(255,255,255,.3);font-size:12px;margin-bottom:40px">أنا وياك · Secured by Biometrics</p>
+  <button id="bio-unlock-btn" onclick="bioUnlock()" style="background:linear-gradient(135deg,#C9954A,#8D6631);color:#fff;border:none;border-radius:50px;padding:16px 36px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;box-shadow:0 8px 24px rgba(201,149,74,.4);margin-bottom:14px;width:100%;max-width:280px">🔓 Unlock with Biometrics</button>
+  <div id="bio-status" style="color:rgba(255,255,255,.4);font-size:12px;margin-bottom:20px;min-height:18px"></div>
+  <button onclick="bioSkip()" style="background:none;border:none;color:rgba(255,255,255,.2);font-size:11px;cursor:pointer;font-family:'Nunito',sans-serif;text-decoration:underline">Skip (disable in Profile settings)</button>
+</div>
+
+<!-- ═══════════ ALL MISSING CORE FUNCTIONS — PATCH ═══════════ -->
+
+  <script src="app.js" defer></script>
+</body>
+</html>
