@@ -17,7 +17,7 @@ const ADMIN_TOKEN = 'AW2026_FOUNDER';
 function isAdmin(){ return LS.get('aw_admin','') === ADMIN_TOKEN; }
 
 const SYS = `You are the AI companion for "أنا وياك" (Ana Wyak) — a warm, luxury couples app for Arab families worldwide.
-Voice: warm, wise, loving — like a trusted family elder. Mix Arabic and English naturally.
+Voice: warm, wise, loving — like a trusted family elder. Reply in the user's language. If the user writes in Arabic, respond fully in Arabic. If the user writes in English, respond fully in English. If the user mixes both, reply using both languages naturally.
 Use these naturally: يا حبيبي, ماشاء الله, الحمدلله, يا قلبي, بالتوفيق, يا عيوني
 
 CULTURAL EXPERTISE: UAE, Saudi Arabia, Qatar, Kuwait, Bahrain, Oman, Jordan, Lebanon, Egypt, Morocco, Arab diaspora globally.
@@ -153,10 +153,14 @@ async function callAI(msgs,sys){
   const PROXY_URL  = LS.get('aw_proxy_url','') || DEFAULT_PROXY || WORKER_URL;
   const userKey    = LS.get('aw_apikey','');
 
+  const SYS_PROMPT = isAr
+    ? SYS + '\nLanguage Behavior: The user interface is Arabic. Respond fully in Arabic unless the user mixes Arabic and English in the prompt.'
+    : SYS;
+
   const reqBody = {
     model:'claude-sonnet-4-5',
     max_tokens:600,
-    system:sys||SYS,
+    system:sys||SYS_PROMPT,
     messages:msgs
   };
 
@@ -754,7 +758,7 @@ function closePairModal(){const m=document.getElementById('pair-modal');m.classL
 function showPaywall(){
   let pw=document.getElementById('pw');
   if(!pw){pw=document.createElement('div');pw.id='pw';pw.className='pw-wrap';pw.onclick=e=>{if(e.target===pw){pw.classList.remove('open');hap.tap()}};
-  pw.innerHTML=`<div class="pw-sheet"><div class="sheet-handle"></div><div style="text-align:center"><div style="font-size:52px;margin-bottom:10px" class="float">👑</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--rose);margin-bottom:4px">أنا وياك Pro</div><div style="font-size:13px;color:var(--text-soft);margin-bottom:16px">${isAr?`استخدمت رسائلك اليوم. تتجدد خلال ${timeUntilMidnight()} 🌙`:`Daily free messages used. Resets in ${timeUntilMidnight()} 🌙`}</div>${['✨ '+(isAr?'رسائل AI غير محدودة':'Unlimited AI messages'),'👨‍🍳 '+(isAr?'وصفات وقوائم مشتريات':'Unlimited recipes & grocery lists'),'🌹 '+(isAr?'خطط خروجات غير محدودة':'Unlimited date plans'),'📖 '+(isAr?'ذكريات غير محدودة':'Unlimited memories'),'🏆 '+(isAr?'أوسمة وإنجازات حصرية':'Exclusive badges')].map(b=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);text-align:left;font-size:13px">${b}</div>`).join('')}<div style="font-size:28px;font-weight:800;color:var(--rose);margin:16px 0 4px">AED 15<span style="font-size:15px;font-weight:400;color:var(--text-soft)">/${isAr?'شهر':'month'}</span></div><a href="${STRIPE_LINK}" class="btn-gold" style="display:block;text-decoration:none;margin-bottom:12px" target="_blank" rel="noopener noreferrer">${isAr?'اشترك الآن 🚀':'Subscribe Now 🚀'}</a><div style="font-size:12px;color:var(--text-soft);line-height:1.6;margin-bottom:16px">${isAr?'يمكنك الآن الدفع مباشرة عبر Stripe. للمساعدة: ':'You can now pay directly with Stripe. For support: '}<a href="mailto:support@anawyak.app" style="color:var(--rose)">support@anawyak.app</a></div><button onclick="document.getElementById('pw').classList.remove('open')" style="background:none;border:none;color:var(--text-soft);font-size:14px;cursor:pointer;font-family:inherit">${isAr?'لاحقاً':'Maybe later'}</button></div></div>`;document.body.appendChild(pw)}pw.classList.add('open');hap.tap();
+  pw.innerHTML=`<div class="pw-sheet"><div class="sheet-handle"></div><div style="text-align:center"><div style="font-size:52px;margin-bottom:10px" class="float">👑</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--rose);margin-bottom:4px">أنا وياك Pro</div><div style="font-size:13px;color:var(--text-soft);margin-bottom:16px">${isAr?`استخدمت رسائلك اليوم. تتجدد خلال ${timeUntilMidnight()} 🌙`:`Daily free messages used. Resets in ${timeUntilMidnight()} 🌙`}</div>${['✨ '+(isAr?'رسائل AI غير محدودة':'Unlimited AI messages'),'👨‍🍳 '+(isAr?'وصفات وقوائم مشتريات':'Unlimited recipes & grocery lists'),'🌹 '+(isAr?'خطط خروجات غير محدودة':'Unlimited date plans'),'📖 '+(isAr?'ذكريات غير محدودة':'Unlimited memories'),'🏆 '+(isAr?'أوسمة وإنجازات حصرية':'Exclusive badges')].map(b=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);text-align:left;font-size:13px">${b}</div>`).join('')}<div style="font-size:28px;font-weight:800;color:var(--rose);margin:16px 0 4px">AED 15<span style="font-size:15px;font-weight:400;color:var(--text-soft)">/${isAr?'شهر':'month'}</span></div><a href="mailto:support@anawyak.app?subject=Ana%20Wyak%20Premium%20Access" class="btn-gold" style="display:block;text-decoration:none;margin-bottom:12px">${isAr?'اطلب وصول Pro 🚀':'Request Pro Access 🚀'}</a><div style="font-size:12px;color:var(--text-soft);line-height:1.6;margin-bottom:16px">${isAr?'سيتم إطلاق الدفع عبر Paddle قريباً. راسل الدعم لحجز الوصول والحصول على رابط الشراء الآمن.':'Paddle checkout launches soon. Email support to reserve access and receive your secure purchase link.'} <a href="mailto:support@anawyak.app" style="color:var(--rose)">support@anawyak.app</a></div><button onclick="document.getElementById('pw').classList.remove('open')" style="background:none;border:none;color:var(--text-soft);font-size:14px;cursor:pointer;font-family:inherit">${isAr?'لاحقاً':'Maybe later'}</button></div></div>`;document.body.appendChild(pw)}pw.classList.add('open');hap.tap();
 }
 
 // ══════════════════════════════════════════════════
