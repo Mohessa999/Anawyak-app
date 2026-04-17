@@ -1569,39 +1569,108 @@ function exportData() {
 // ══════════════════════════════════════════════════
 //  TONIGHT DECIDER 🎲
 // ══════════════════════════════════════════════════
-var TONIGHT_EN = [
-  'Movie night — you pick 🎬','Cook a new recipe together 👨‍🍳',
-  'Take an evening walk 🌙','Play a board game together 🎮',
-  'Star gazing & deep talks 🌟','Spa night at home 🛁',
-  'Cook your partner\'s fav dish 💑','Write letters to each other 💌',
-  'Teach each other something new 🎓','Late night drive to nowhere 🚗',
-  'Watch a documentary together 📺','DIY dessert challenge 🍰',
-  'Take couple photos at home 📸','Plan next year\'s dream trip ✈️'
+var TONIGHT_REGIONS = [
+  {id:'UAE', en:'UAE', ar:'الإمارات'},
+  {id:'KSA', en:'Saudi Arabia', ar:'السعودية'},
+  {id:'QTR', en:'Qatar', ar:'قطر'}
 ];
-var TONIGHT_AR = [
-  'ليلة أفلام — أنت تختار 🎬','نطبخ وصفة جديدة معاً 👨‍🍳',
-  'مشية مسائية 🌙','نلعب لعبة معاً 🎮',
-  'نراقب النجوم ونتحدث 🌟','سبا في المنزل 🛁',
-  'نطبخ طبق الشريك المفضل 💑','نكتب رسائل لبعضنا 💌',
-  'نعلم بعضنا شيئاً جديداً 🎓','قيادة منتصف الليل 🚗',
-  'نشاهد وثائقياً معاً 📺','تحدي حلوى في المنزل 🍰',
-  'نلتقط صوراً معاً 📸','نخطط لرحلة أحلامنا القادمة ✈️'
+var TONIGHT_BUDGETS = [
+  {id:'Low', en:'Easy Budget', ar:'اقتصادي'},
+  {id:'Medium', en:'Balanced', ar:'متوسط'},
+  {id:'High', en:'Luxury', ar:'فاخر'}
 ];
+var TONIGHT_MOODS = [
+  {id:'Romantic', en:'Romantic', ar:'رومانسي'},
+  {id:'Cozy', en:'Cozy', ar:'دافئ'},
+  {id:'Adventurous', en:'Adventurous', ar:'مغامر'}
+];
+var tonightRegion = 'UAE';
+var tonightBudget = 'Medium';
+var tonightMood = 'Romantic';
+var DATE_VENUES = [
+  {region:'UAE',budget:'High',moods:['Romantic','Luxury'],place:'The Farm at Al Barari',city:'Dubai',rating:'4.7','source':'Instagram gem',en:'A private dinner in a green oasis with candlelit paths, rosewater desserts and luxury service.',ar:'عشاء خاص في واحة خضراء مع دروب من الشموع، حلويات بالماء الورد، وخدمة فاخرة.'},
+  {region:'UAE',budget:'Medium',moods:['Cozy','Romantic'],place:'Horse & Flower Café',city:'Dubai',rating:'4.6','source':'Google review',en:'A farm-style café between horses and flower gardens, perfect for coffee and sunset stories.',ar:'مقهى ريفي بين الخيول وحدائق الأزهار، مثالي للقهوة وقصص الغروب.'},
+  {region:'UAE',budget:'Medium',moods:['Adventurous','Cozy'],place:'Alserkal Avenue Art Walk',city:'Dubai',rating:'4.5','source':'TikTok favorite',en:'Art galleries, outdoor coffee and a creative date in Dubai’s cultural district.',ar:'سير في المعارض وفنجان قهوة في قلب الحي الثقافي بدبي.'},
+  {region:'UAE',budget:'High',moods:['Luxury','Romantic'],place:'Iris Dubai',city:'Dubai',rating:'4.7','source':'Google review',en:'Rooftop sunset dining with skyline views, perfect for a landmark romantic night.',ar:'عشاء سقفي عند الغروب مع إطلالة على أفق دبي، مناسب لليلة رومانسية راقية.'},
+  {region:'UAE',budget:'Medium',moods:['Adventurous','Romantic'],place:'Qasr Al Sarab Desert Dinner',city:'Abu Dhabi',rating:'4.8','source':'Travel review',en:'A desert resort dinner in royal tents, luxury tea and private dune walk.',ar:'عشاء في صحراء أبوظبي داخل خيام ملكية مع شاي فاخر ومشي عبر الكثبان.'},
+  {region:'KSA',budget:'Low',moods:['Cozy','Romantic'],place:'The Beach Road Walk',city:'Jeddah',rating:'4.6','source':'Google review',en:'A sunset corniche walk with dessert by the sea and soft lights.',ar:'تمشية على الكورنيش عند الغروب مع حلوى بجانب البحر.'},
+  {region:'KSA',budget:'Medium',moods:['Romantic','Cozy'],place:'Najd Village Dining',city:'Riyadh',rating:'4.7','source':'Local favorite',en:'Traditional Najdi dining in a heritage tent, with lanterns, music and Saudi sweets.',ar:'عشاء نجدي تقليدي في خيمة تراثية، مع فوانيس وموسيقى وحلويات سعودية.'},
+  {region:'KSA',budget:'High',moods:['Luxury','Romantic'],place:'Layali Al Khobar Terrace',city:'Khobar',rating:'4.8','source':'Instagram gem',en:'A private sea-view terrace dinner with seafood and elegant Saudi hospitality.',ar:'عشاء على تراس خاص بإطلالة بحرية، مأكولات بحرية وضيافة سعودية أنيقة.'},
+  {region:'QTR',budget:'High',moods:['Luxury','Romantic'],place:'Iris Doha Rooftop',city:'Doha',rating:'4.7','source':'Google review',en:'Skyline views and modern Gulf cuisine in a romantic rooftop setting.',ar:'إطلالة على أفق الدوحة مع مطبخ خليجي عصري وأجواء رومانسية.'},
+  {region:'QTR',budget:'Medium',moods:['Cozy','Romantic'],place:'Souq Waqif Lantern Dinner',city:'Doha',rating:'4.6','source':'Travel review',en:'A private lantern-lit dinner in Souq Waqif with local flavors and perfumed coffee.',ar:'عشاء خاص بضوء الفوانيس في سوق واقف مع نكهات محلية وقهوة معطرة.'},
+  {region:'QTR',budget:'High',moods:['Cozy','Adventurous'],place:'Al Shaqab Horse Ranch Café',city:'Doha',rating:'4.7','source':'Instagram favorite',en:'A luxury equestrian ranch café date surrounded by horses, calm gardens and coffee.',ar:'تجربة مقهى فخم في مزرعة خيل، تحيط بها الحدائق الهادئة والقهوة.'}
+];
+function selectTonightRegion(id,el){
+  tonightRegion = id;
+  document.querySelectorAll('.tn-region').forEach(function(btn){ btn.style.borderColor = 'rgba(255,255,255,.12)'; btn.style.color = 'var(--text-soft)'; btn.style.background='var(--card2)'; });
+  if(el){ el.style.borderColor='var(--gold)'; el.style.color='var(--rose)'; el.style.background='rgba(240,204,112,.15)'; }
+  hap.tap();
+}
+function selectTonightBudget(id,el){
+  tonightBudget = id;
+  document.querySelectorAll('.tn-budget').forEach(function(btn){ btn.style.borderColor = 'rgba(255,255,255,.12)'; btn.style.color = 'var(--text-soft)'; btn.style.background='var(--card2)'; });
+  if(el){ el.style.borderColor='var(--rose)'; el.style.color='var(--rose)'; el.style.background='rgba(232,132,154,.14)'; }
+  hap.tap();
+}
+function selectTonightMood(id,el){
+  tonightMood = id;
+  document.querySelectorAll('.tn-mood').forEach(function(btn){ btn.style.borderColor = 'rgba(255,255,255,.12)'; btn.style.color = 'var(--text-soft)'; btn.style.background='var(--card2)'; });
+  if(el){ el.style.borderColor='var(--gold)'; el.style.color='var(--rose)'; el.style.background='rgba(240,204,112,.15)'; }
+  hap.tap();
+}
 function openTonight() {
-  var list = isAr ? TONIGHT_AR : TONIGHT_EN;
-  var pick = list[Math.floor(Math.random() * list.length)];
   var sh = getSheet('tn-sh');
   sh.querySelector('.sheet').innerHTML =
     '<div class="sheet-handle"></div>' +
-    '<div style="text-align:center;padding:8px 0">' +
-      '<div style="font-size:52px;margin-bottom:10px;animation:bounceIn .4s ease">🎲</div>' +
-      '<div style="font-family:\'Cormorant Garamond\',serif;color:var(--rose);font-size:20px;font-weight:700;margin-bottom:8px">' + (isAr?'فكرة الليلة الخاصة':'Your special idea for tonight') + '</div>' +
-      '<div style="font-size:14px;color:var(--text-mid);line-height:1.7;margin-bottom:16px">' + (isAr?'اقتراح سريع لخلق لحظة دفء معاً':'A quick suggestion to create a warm moment together') + '</div>' +
-      '<div style="font-size:22px;font-weight:700;color:var(--text);margin:16px 0;line-height:1.4">' + pick + '</div>' +
-      '<div style="display:flex;gap:10px;margin-top:20px">' +
-        '<button class="btn-ghost" style="padding:12px;font-size:14px" onclick="openTonight()">🎲 ' + (isAr?'أخرى':'Another') + '</button>' +
-        '<button class="btn-rose" style="padding:12px;font-size:14px" onclick="closeSheet(\'tn-sh\');T(isAr?\'استمتعا بليلتكما! 💕\':\'Enjoy your night! 💕\')">' + (isAr?'ابدأ الليلة':'Start tonight') + '</button>' +
+    '<div style="text-align:center;padding:12px 0">' +
+      '<div style="font-size:48px;margin-bottom:12px;animation:bounceIn .4s ease">🎲</div>' +
+      '<div style="font-family:\'Cormorant Garamond\',serif;color:var(--rose);font-size:22px;font-weight:700;margin-bottom:8px">' + (isAr?'وش جوّكم اليوم؟':'What mood is tonight?') + '</div>' +
+      '<div style="font-size:14px;color:var(--text-mid);line-height:1.7;margin-bottom:18px">' + (isAr?'اختر المنطقة، الميزانية، والمزاج لنقدّم لك اقتراحاً محلياً فاخراً':'Choose region, budget, and mood for a curated local suggestion') + '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px">' +
+        TONIGHT_REGIONS.map(function(r){ return '<button class="tn-region" onclick="selectTonightRegion(\''+r.id+'\',this)" style="border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:12px;font-size:12px;cursor:pointer;background:var(--card2);color:var(--text-soft)">'+(isAr?r.ar:r.en)+'</button>'; }).join('') +
       '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px">' +
+        TONIGHT_BUDGETS.map(function(b){ return '<button class="tn-budget" onclick="selectTonightBudget(\''+b.id+'\',this)" style="border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:12px;font-size:12px;cursor:pointer;background:var(--card2);color:var(--text-soft)">'+(isAr?b.ar:b.en)+'</button>'; }).join('') +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px">' +
+        TONIGHT_MOODS.map(function(m){ return '<button class="tn-mood" onclick="selectTonightMood(\''+m.id+'\',this)" style="border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:12px;font-size:12px;cursor:pointer;background:var(--card2);color:var(--text-soft)">'+(isAr?m.ar:m.en)+'</button>'; }).join('') +
+      '</div>' +
+      '<button class="btn-gold" style="width:100%;padding:14px;font-size:15px;font-weight:800" onclick="generateTonightSuggestion()">' + (isAr?'اقترح لي الليلة':'Suggest tonight') + '</button>' +
+    '</div>';
+  sh.classList.add('open');
+  // Highlight defaults
+  setTimeout(function(){ document.querySelectorAll('.tn-region, .tn-budget, .tn-mood').forEach(function(btn){ btn.style.borderColor='rgba(255,255,255,.12)'; btn.style.background='var(--card2)'; btn.style.color='var(--text-soft)'; }); if(document.querySelector('.tn-region')){ document.querySelectorAll('.tn-region')[0].style.borderColor='var(--gold)'; document.querySelectorAll('.tn-region')[0].style.color='var(--rose)'; document.querySelectorAll('.tn-region')[0].style.background='rgba(240,204,112,.15)'; } if(document.querySelector('.tn-budget')){ document.querySelectorAll('.tn-budget')[1].style.borderColor='var(--rose)'; document.querySelectorAll('.tn-budget')[1].style.color='var(--rose)'; document.querySelectorAll('.tn-budget')[1].style.background='rgba(232,132,154,.14)'; } if(document.querySelector('.tn-mood')){ document.querySelectorAll('.tn-mood')[0].style.borderColor='var(--gold)'; document.querySelectorAll('.tn-mood')[0].style.color='var(--rose)'; document.querySelectorAll('.tn-mood')[0].style.background='rgba(240,204,112,.15)'; } }, 50);
+}
+function generateTonightSuggestion() {
+  var candidates = DATE_VENUES.filter(function(v){ return v.region === tonightRegion && v.budget === tonightBudget && v.moods.includes(tonightMood); });
+  if(!candidates.length) {
+    candidates = DATE_VENUES.filter(function(v){ return v.region === tonightRegion && v.budget === tonightBudget; });
+  }
+  if(!candidates.length) {
+    candidates = DATE_VENUES.filter(function(v){ return v.region === tonightRegion; });
+  }
+  if(!candidates.length) {
+    candidates = DATE_VENUES;
+  }
+  var choice = candidates[Math.floor(Math.random() * candidates.length)];
+  var sh = getSheet('tn-sh');
+  sh.querySelector('.sheet').innerHTML =
+    '<div class="sheet-handle"></div>' +
+    '<div style="text-align:center;padding:18px 12px">' +
+      '<div style="font-size:52px;margin-bottom:12px">✨</div>' +
+      '<div style="font-family:\'Cormorant Garamond\',serif;color:var(--rose);font-size:22px;font-weight:700;margin-bottom:10px">' + (isAr?'اقتراح الليلة':'Tonight’s suggestion') + '</div>' +
+      '<div style="font-size:14px;color:var(--text-mid);line-height:1.8;margin-bottom:20px">' + (isAr?'هذا المكان مُختار بعناية من أفضل تجارب الخليج.':'This venue is handpicked from top Gulf experiences.') + '</div>' +
+      '<div style="text-align:left;background:rgba(255,255,255,.04);border:1px solid rgba(232,132,154,.14);border-radius:22px;padding:18px;margin-bottom:18px">' +
+        '<div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px">' + choice.place + ' · ' + choice.city + '</div>' +
+        '<div style="font-size:14px;color:var(--text-soft);line-height:1.7;margin-bottom:10px">' + (isAr?choice.ar:choice.en) + '</div>' +
+        '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--text-soft)">' +
+          '<span>' + (isAr?'التقييم':'Rating') + ': ' + choice.rating + ' ⭐</span>' +
+          '<span>' + (isAr?'مصدر':'Source') + ': ' + choice.source + '</span>' +
+          '<span>' + (isAr?'ميزانية':'Budget') + ': ' + (isAr? (choice.budget==='High'?'فاخر':choice.budget==='Medium'?'متوسط':'اقتصادي') : choice.budget) + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<button class="btn-gold" style="width:100%;padding:14px;font-size:15px;font-weight:800;margin-bottom:10px" onclick="closeSheet(\'tn-sh\');T(isAr?\'استمتعا بليلتكما! 💕\':\'Enjoy your night! 💕\')">' + (isAr?'احفظ الفكرة':'Save the idea') + '</button>' +
+      '<button class="btn-ghost" style="width:100%;padding:14px;font-size:14px" onclick="openTonight()">' + (isAr?'جرب اقتراحاً آخر':'Try another idea') + '</button>' +
     '</div>';
   sh.classList.add('open');
   hap.celebrate();
