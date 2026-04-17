@@ -236,6 +236,10 @@ async function callAI(msgs,sys){
 }
 // Debounce flag — prevents double AI calls (race condition fix)
 var _aiLock = false;
+var _tonightLock = false;
+var _cookLock = false;
+var _dateLock = false;
+var tonightHistory = [];
 async function sendChat(text){
   if(_aiLock) return; // prevent concurrent AI calls
   const inp=document.getElementById('chat-in');
@@ -266,12 +270,12 @@ let _tInt=null,_tSecs=0,_tRun=false,_tTask=0,_cookMood='',_cookMoodN='';
 
 function rCook(el){
   const moods=[{e:'😴',n:isAr?'تعبانين وكيفيين':'Tired & Cozy',k:'cozy'},{e:'🎉',n:isAr?'احتفاليين':'Celebratory',k:'fancy'},{e:'🥗',n:isAr?'صحيين':'Healthy',k:'healthy'},{e:'💕',n:isAr?'رومانسيين':'Romantic',k:'romantic'},{e:'🌶️',n:isAr?'مغامرين':'Adventurous',k:'adventurous'}];
-  const cuisines=[{f:'🇸🇦',n:'Saudi',a:'سعودي',d:['كبسة','مندي','جريش','هريس','مطبق']},{f:'🇦🇪',n:'Emirati',a:'إماراتي',d:['مجبوس','بلاليط','لقيمات','ثريد','هريس']},{f:'🇱🇧',n:'Lebanese',a:'لبناني',d:['شاورما','كبة','تبولة','لبنة بالزعتر','مجدرة']},{f:'🇪🇬',n:'Egyptian',a:'مصري',d:['كشري','ملوخية','فول','شكشوكة','كفتة']},{f:'🇲🇦',n:'Moroccan',a:'مغربي',d:['طاجين','كسكس','بسطيلة','حريرة','مرقة']},{f:'🇮🇹',n:'Italian',a:'إيطالي',d:['Truffle Risotto','Carbonara','Ossobuco','Tiramisu','Bruschetta']},{f:'🇯🇵',n:'Japanese',a:'ياباني',d:['Sushi DIY','Ramen','Teriyaki Chicken','Gyoza','Miso Soup']},{f:'🇮🇳',n:'Indian',a:'هندي',d:['Butter Chicken','Biryani','Dal Makhani','Palak Paneer','Naan']},{f:'🇬🇷',n:'Greek',a:'يوناني',d:['Moussaka','Souvlaki','Spanakopita','Tzatziki','Baklava']},{f:'🇲🇽',n:'Mexican',a:'مكسيكي',d:['Tacos al Pastor','Guacamole','Enchiladas','Churros','Pozole']}];
+  const cuisines=[{f:'🇸🇦',n:'Saudi',a:'سعودي',d:['كبسة','مندي','جريش','هريس','مطبق']},{f:'🇦🇪',n:'Emirati',a:'إماراتي',d:['مجبوس','بلاليط','لقيمات','ثريد','هريس']},{f:'🇱🇧',n:'Lebanese',a:'لبناني',d:['شاورما','كبة','تبولة','لبنة بالزعتر','مجدرة']},{f:'🇪🇬',n:'Egyptian',a:'مصري',d:['كشري','ملوخية','فول','شكشوكة','كفتة']},{f:'🇲🇦',n:'Moroccan',a:'مغربي',d:['طاجين','كسكس','بسطيلة','حريرة','مرقة']},{f:'🇮🇹',n:'Italian',a:'إيطالي',d:['Truffle Risotto','Carbonara','Ossobuco','Tiramisu','Bruschetta']},{f:'🇯🇵',n:'Japanese',a:'ياباني',d:['Sushi DIY','Ramen','Teriyaki Chicken','Gyoza','Miso Soup']},{f:'🇮🇳',n:'Indian',a:'هندي',d:['Butter Chicken','Biryani','Dal Makhani','Palak Paneer','Naan']},{f:'🇬🇷',n:'Greek',a:'يوناني',d:['Moussaka','Souvlaki','Spanakopita','Tzatziki','Baklava']},{f:'🇲🇽',n:'Mexican',a:'مكسيكي',d:['Tacos al Pastor','Guacamole','Enchiladas','Churros','Pozole']},{f:'🇹🇷',n:'Turkish',a:'تركي',d:['Lahmacun','Kebabs','Borek','Baklava','Ayran']},{f:'🇫🇷',n:'French',a:'فرنسي',d:['Ratatouille','Coq au Vin','Croque Monsieur','Crème Brûlée','Quiche']},{f:'🇹🇭',n:'Thai',a:'تايلاندي',d:['Pad Thai','Green Curry','Tom Yum','Mango Sticky Rice','Som Tam']},{f:'🇪🇸',n:'Spanish',a:'إسباني',d:['Paella','Tapas','Churros','Gazpacho','Tortilla Española']},{f:'🇮🇷',n:'Persian',a:'فارسي',d:['Fesenjan','Ghormeh Sabzi','Kebab','Tahdig','Zereshk Polo']},{f:'🇨🇳',n:'Chinese',a:'صيني',d:['Kung Pao Chicken','Dumplings','Sweet & Sour Pork','Mapo Tofu','Fried Rice']},{f:'🇰🇷',n:'Korean',a:'كوري',d:['Bibimbap','Bulgogi','Kimchi Stew','Japchae','Korean BBQ']},{f:'🇺🇸',n:'American',a:'أمريكي',d:['BBQ Ribs','Burgers','Mac & Cheese','Pancakes','Apple Pie']},{f:'🇻🇳',n:'Vietnamese',a:'فيتنامي',d:['Pho','Banh Mi','Spring Rolls','Bun Cha','Vietnamese Coffee']},{f:'🇧🇷',n:'Brazilian',a:'برازيلي',d:['Feijoada','Pão de Queijo','Moqueca','Brigadeiro','Coxinha']}];
+  const topDishes = cuisines.flatMap(function(c){ return c.d; }).slice(0,30);
   el.innerHTML=`<div class="container">
   <button class="back-btn" onclick="showTab('home')">← ${isAr?'رجوع':'Back'}</button>
   <div style="margin-bottom:20px"><div style="font-size:24px;font-weight:700;font-family:'Cormorant Garamond',serif">${isAr?'ماذا سنطبخ، شيف؟ 👨‍🍳':'What to Cook, Chef? 👨‍🍳'}</div><div style="font-size:14px;color:var(--text-soft)">${isAr?'تحدي طبخ مشترك':'Shared cooking challenge'}</div></div>
 
-  <!-- CHEF MOOD ENGINE -->
   <div class="chef-card" style="margin-bottom:20px">
     <div style="font-size:13px;font-weight:800;color:var(--gold-light);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">🎭 ${isAr?'محرك المزاج':'Mood Engine'}</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">${moods.map(m=>`<span class="chip" id="cm-${m.k}" onclick="pickMood('${m.k}','${m.n}',this)" style="background:rgba(255,255,255,.06);border-color:rgba(201,149,74,.3);color:var(--gold-light)">${m.e} ${m.n}</span>`).join('')}</div>
@@ -280,7 +284,6 @@ function rCook(el){
     <div id="cook-res" style="margin-top:12px"></div>
   </div>
 
-  <!-- GROCERY LIST -->
   <div id="grocery-sec" style="display:${grocery.length>0?'block':'none'};margin-bottom:20px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <div style="font-size:14px;font-weight:700;color:var(--text-mid)">🛒 ${isAr?'قائمة المشتريات':'Grocery List'}</div>
@@ -289,7 +292,6 @@ function rCook(el){
     <div class="card" style="padding:16px"><div id="grocery-list">${groceryHTML()}</div></div>
   </div>
 
-  <!-- TIMER -->
   <div class="card" style="padding:20px;margin-bottom:20px">
     <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:16px">⏱️ ${isAr?'مؤقت الطبخ معاً — يتبادل المهام كل دقيقتين':'Cooking Timer — Tasks switch every 2 min'}</div>
     <div class="timer-ring" id="timer-disp">00:00</div>
@@ -300,10 +302,10 @@ function rCook(el){
     </div>
   </div>
 
-  <!-- CUISINE SELECTOR -->
   <div style="font-size:14px;font-weight:700;color:var(--text-mid);margin-bottom:12px">🌍 ${isAr?'اختر المطبخ:':'Choose Cuisine:'}</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">${(window._CD=cuisines,cuisines).map((c,_i)=>'<div class="card tap" onclick="showDishes('+_i+')" style="padding:14px;display:flex;align-items:center;gap:10px"><span style="font-size:26px">'+c.f+'</span><div><div style="font-weight:700;font-size:13px;color:var(--text)">'+(isAr?c.a:c.n)+'</div><div style="font-size:10px;color:var(--text-soft);margin-top:2px">'+c.d.slice(0,2).join(' · ')+'</div></div></div>').join('')}
-  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">${(window._CD=cuisines,cuisines).map((c,_i)=>'<div class="card tap" onclick="showDishes('+_i+')" style="padding:14px;display:flex;align-items:center;gap:10px"><span style="font-size:26px">'+c.f+'</span><div><div style="font-weight:700;font-size:13px;color:var(--text)">'+(isAr?c.a:c.n)+'</div><div style="font-size:10px;color:var(--text-soft);margin-top:2px">'+c.d.slice(0,2).join(' · ')+'</div></div></div>').join('')}</div>
+  <div style="font-size:14px;font-weight:700;color:var(--text-mid);margin-bottom:12px">⭐ ${isAr?'أفضل 30 طبقاً':'Top 30 dishes'}</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:16px">${topDishes.map(function(d){ return '<span class="chip" onclick="promptDishRecipe(\''+d.replace(/'/g,'&#39;')+'\')">'+d+'</span>'; }).join('')}</div>
   <div id="dishes-sec" style="margin-bottom:16px"></div>
   </div>`;
 }
@@ -325,20 +327,31 @@ let _cookMoodKey='',_cookMoodName='';
 function pickMood(k,n,el){_cookMoodKey=k;_cookMoodName=n;document.querySelectorAll('[id^="cm-"]').forEach(c=>{c.classList.remove('active');c.style.background='rgba(255,255,255,.06)';c.style.borderColor='rgba(201,149,74,.3)';c.style.color='var(--gold-light)'});el.classList.add('active');el.style.background='var(--rose-glow)';el.style.borderColor='var(--rose)';el.style.color='var(--rose)';const t=document.getElementById('cook-mood-txt');if(t)t.textContent=(isAr?'مزاجكم: ':'Mood: ')+n;hap.tap()}
 
 async function getCookSug(){
+  if(_cookLock) return;
   if(!canUse()){showPaywall();return}
   if(!_cookMoodKey){T(isAr?'اختر مزاجك أولاً':'Select your mood first');hap.error();return}
-  const res=document.getElementById('cook-res');if(!res)return;
+  _cookLock = true;
+  var cookBtn = document.querySelector('button[onclick="getCookSug()"]');
+  if(cookBtn){cookBtn.disabled=true; cookBtn.style.opacity='.7'; cookBtn.style.cursor='not-allowed';}
+  const res=document.getElementById('cook-res');if(!res){_cookLock=false; if(cookBtn){cookBtn.disabled=false;cookBtn.style.opacity='1';cookBtn.style.cursor='pointer';} return;}
   res.innerHTML=`<div style="text-align:center;padding:14px;color:rgba(255,255,255,.5)"><div class="typing-dots"><span></span><span></span><span></span></div><div style="font-size:13px;margin-top:6px">${isAr?'يفكر... 🍳':'Thinking... 🍳'}</div></div>`;
   useCredit();const p=profile||{};
   const moodMap={cozy:isAr?'طبق دافئ ومريح':'warm comfort food',fancy:isAr?'طبق احتفالي':'celebratory dish',healthy:isAr?'طبق خفيف وصحي':'light healthy dish',romantic:isAr?'طبق رومانسي لشخصين':'romantic dish for two',adventurous:isAr?'وصفة مغامرة من مطابخ العالم':'bold adventurous recipe'};
   const prompt=isAr?`اقترح وصفة واحدة محددة لـ ${p.n1||'الشريك أ'} و${p.n2||'الشريك ب'} يطبخانها معاً. مزاجهم: "${_cookMoodName}" — ${moodMap[_cookMoodKey]}. اذكر: اسم الطبق، المكونات الرئيسية (5-6)، وقسّم المهام: ${p.n1||'الشريك أ'} يفعل X و${p.n2||'الشريك ب'} يفعل Y. اجعلها مرحة ورومانسية.`:`Suggest ONE specific recipe for ${p.n1||'Partner A'} and ${p.n2||'Partner B'} to cook together. Mood: "${_cookMoodName}" — ${moodMap[_cookMoodKey]}. Include: dish name, 5-6 key ingredients (list them clearly), and divide tasks: ${p.n1||'Partner A'} does X while ${p.n2||'Partner B'} does Y simultaneously. Make it fun and romantic.`;
   const reply=await callAI([{role:'user',content:prompt}]);
-  if(reply.startsWith('⏰')){res.innerHTML=`<div class="ai-error">${reply}</div>`;return}
+  var cookBtn = document.querySelector('button[onclick="getCookSug()"]');
+  if(reply.startsWith('⏰')||reply.startsWith('💡')||reply.startsWith('🔑')){
+    res.innerHTML=`<div class="ai-error">${reply}</div>`;
+    _cookLock=false;
+    if(cookBtn){cookBtn.disabled=false;cookBtn.style.opacity='1';cookBtn.style.cursor='pointer';}
+    return;
+  }
   // Extract ingredients for grocery list (simplified)
   const dishMatch=reply.match(/["""](.*?)["""]/);
   const dishName=dishMatch?dishMatch[1]:_cookMoodName;
   res.innerHTML=`<div style="background:rgba(255,255,255,.06);border-radius:16px;padding:16px;border:1px solid rgba(201,149,74,.2)"><div style="font-size:13px;line-height:1.9;color:rgba(255,255,255,.85)">${reply.replace(/\n/g,'<br>')}</div></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn-gold" style="padding:10px;font-size:12px;flex:1" onclick="generateGrocery('${dishName}')">${isAr?'🛒 قائمة المشتريات':'🛒 Grocery List'}</button><button class="btn-rose" style="padding:10px;font-size:12px;flex:1" onclick="startTimer()">${isAr?'⏱️ ابدأ المؤقت':'⏱️ Start Timer'}</button></div>`;
-  updateCredits();hap.success();
+  updateCredits();hap.success();_cookLock=false;
+  if(cookBtn){cookBtn.disabled=false;cookBtn.style.opacity='1';cookBtn.style.cursor='pointer';}
 }
 
 function generateGrocery(dishName){
@@ -356,9 +369,30 @@ function showDishes(idx){
   var title=document.createElement('div');
   title.style.cssText='font-size:13px;font-weight:700;color:var(--text-mid);margin-bottom:10px';
   title.textContent=(isAr?'أطباق '+nm:nm+' Dishes');
+  var moodHint=document.createElement('div');
+  moodHint.style.cssText='font-size:12px;color:var(--text-soft);margin-bottom:12px';
+  moodHint.textContent=_cookMoodName ? (isAr?'اختيارات مزاج '+_cookMoodName:'Mood picks: '+_cookMoodName) : (isAr?'اختر مزاجاً لمقترحات ألذ':'Choose a mood for better picks');
+
+  var sorted=cu.d.slice();
+  if(_cookMoodKey){
+    var moodKeywords={
+      romantic:['love','rose','candle','baklava','tiramisu','risotto','sushi','cream','champagne'],
+      cozy:['soup','stew','curry','risotto','pasta','naan','rice','comfort','melt'],
+      adventurous:['spicy','kimchi','sushi','taco','biryani','mapo','teriyaki','curry','tangy'],
+      healthy:['salad','grilled','veggies','tofu','pho','tabbouleh','soup','light','fresh'],
+      fancy:['truffle','tiramisu','risotto','sushi','coq','lobster','scallop','rose','champagne']
+    };
+    var keys=moodKeywords[_cookMoodKey]||[];
+    sorted.sort(function(a,b){
+      var sa=keys.reduce(function(sum,k){return sum+(a.toLowerCase().includes(k)?1:0);},0);
+      var sb=keys.reduce(function(sum,k){return sum+(b.toLowerCase().includes(k)?1:0);},0);
+      return sb-sa;
+    });
+  }
+  var topPick=sorted.slice(0,5);
   var row=document.createElement('div');
   row.style.cssText='display:flex;flex-wrap:wrap;gap:6px';
-  cu.d.forEach(function(d,i){
+  topPick.forEach(function(d,i){
     var k='c'+idx+'_'+i;
     window._DC[k]={dish:d,cuisine:nm};
     var sp=document.createElement('span');
@@ -366,14 +400,22 @@ function showDishes(idx){
     (function(key){sp.onclick=function(){getCuisineRecipe(key);};})(k);
     row.appendChild(sp);
   });
-  sec.appendChild(title);sec.appendChild(row);
+  sec.appendChild(title);
+  sec.appendChild(moodHint);
+  sec.appendChild(row);
+  var extra=document.createElement('div');
+  extra.style.cssText='font-size:12px;color:var(--text-soft);margin-top:12px;line-height:1.5';
+  extra.textContent=(isAr?'عرض أفضل 30 طبقاً على الجانب':'See the top 30 dishes list at the bottom');
+  sec.appendChild(extra);
   sec.scrollIntoView({behavior:'smooth'});hap.tap();
 }
 async function getCuisineRecipe(key){
+  if(_cookLock) return;
+  _cookLock = true;
   var cached=(window._DC||{})[key];
-  if(!cached){T(isAr?'خطأ، حاول مجدداً':'Error, try again');return;}
+  if(!cached){T(isAr?'خطأ، حاول مجدداً':'Error, try again');_cookLock=false;return;}
   var dish=cached.dish,cuisine=cached.cuisine;
-  if(!canUse()){showPaywall();return;}
+  if(!canUse()){showPaywall();_cookLock=false;return;}
   T(isAr?'يحضر الوصفة... 🍳':'Getting recipe... 🍳');
   useCredit();
   var p=profile||{};
@@ -388,7 +430,28 @@ async function getCuisineRecipe(key){
   var closeBtn='<button class="btn-rose" style="margin-top:16px" onclick="closeSheet(\'recipe-sh\')">'+(isAr?'حسناً 💕':'Got it! 💕')+'</button>';
   var heading='<h3 style="font-family:Georgia,serif;color:var(--rose);margin-bottom:16px;font-size:22px">🍳 '+dish+'</h3>';
   sh.querySelector('.sheet').innerHTML='<div class="sheet-handle"></div>'+heading+body+closeBtn;
-  sh.classList.add('open');updateCredits();hap.success();
+  sh.classList.add('open');updateCredits();hap.success();_cookLock=false;
+}
+
+async function promptDishRecipe(dish){
+  if(_cookLock) return;
+  if(!canUse()){showPaywall();return;}
+  _cookLock = true;
+  T(isAr?'يحضر الوصفة... 🍳':'Getting recipe... 🍳');
+  useCredit();
+  var p=profile||{};
+  var prompt=isAr
+    ?('وصفة "'+dish+'" لشخصين '+(p.n1||'الشريك أ')+' و'+(p.n2||'الشريك ب')+' يطبخانها معاً. قسّم المهام واجعلها ممتعة ورومانسية.')
+    :('Recipe for "'+dish+'" for '+(p.n1||'Partner A')+' and '+(p.n2||'Partner B')+' to cook together. Divide tasks and keep it fun and romantic.');
+  var reply=await callAI([{role:'user',content:prompt}]);
+  var sh=getSheet('recipe-sh');
+  var isErr=reply.startsWith('⏰')||reply.startsWith('💡')||reply.startsWith('🔑');
+  var safeReply=reply.split('\n').join('<br>');
+  var body=isErr?('<div class="ai-error">'+reply+'</div>'):( '<div style="font-size:14px;line-height:1.9;color:var(--text)">'+safeReply+'</div>' );
+  var closeBtn='<button class="btn-rose" style="margin-top:16px" onclick="closeSheet(\'recipe-sh\')">'+(isAr?'حسناً 💕':'Got it! 💕')+'</button>';
+  var heading='<h3 style="font-family:Georgia,serif;color:var(--rose);margin-bottom:16px;font-size:22px">🍳 '+dish+'</h3>';
+  sh.querySelector('.sheet').innerHTML='<div class="sheet-handle"></div>'+heading+body+closeBtn;
+  sh.classList.add('open');updateCredits();hap.success();_cookLock=false;
 }
 
 // Timer
@@ -448,14 +511,21 @@ function renderPlaces(list){
 }
 function filterDates(id,el){document.querySelectorAll('[id^="dc-"]').forEach(c=>c.classList.remove('active'));el.classList.add('active');const g=document.getElementById('places-grid');if(g&&window._dp&&window._dp[id])g.innerHTML=renderPlaces(window._dp[id]);hap.tap()}
 async function getAIDatePlan(){
+  if(_dateLock) return;
   if(!canUse()){showPaywall();return}
+  _dateLock = true;
   const vibe=document.getElementById('date-vibe')?.value||'special';
-  const res=document.getElementById('date-plan-res');if(!res)return;
+  const res=document.getElementById('date-plan-res');if(!res){_dateLock=false;return;}
   res.innerHTML=`<div style="text-align:center;padding:12px"><div class="typing-dots"><span></span><span></span><span></span></div><div style="font-size:13px;color:var(--text-soft);margin-top:6px">${isAr?'يخطط... 💕':'Planning... 💕'}</div></div>`;
   useCredit();const p=profile||{};
   const reply=await callAI([{role:'user',content:isAr?`خطة خروجة رومانسية لـ ${p.n1||'الزوجين'} و${p.n2||''}. المزاج: "${vibe}". اذكر أين يذهبون، ماذا يفعلون، ماذا يحضرون، وكيف يجعلون الليلة مميزة. استخدم إيموجيز.`:`Romantic date plan for ${p.n1||'the couple'}${p.n2?' and '+p.n2:''}. Vibe: "${vibe}". Include where to go, what to do, what to bring, how to make it magical. Use emojis.`}]);
-  res.innerHTML=reply.startsWith('⏰')?`<div class="ai-error">${reply}</div>`:`<div class="card" style="padding:14px;border-left:3px solid var(--rose)"><div style="font-size:13px;line-height:1.8;color:var(--text)">${reply.replace(/\n/g,'<br>')}</div></div>`;
-  updateCredits();hap.success();
+  if(reply.startsWith('⏰')||reply.startsWith('💡')||reply.startsWith('🔑')){
+    res.innerHTML=`<div class="ai-error">${reply}</div>`;
+    _dateLock = false;
+    return;
+  }
+  res.innerHTML=`<div class="card" style="padding:14px;border-left:3px solid var(--rose)"><div style="font-size:13px;line-height:1.8;color:var(--text)">${reply.replace(/\n/g,'<br>')}</div></div>`;
+  updateCredits();hap.success();_dateLock=false;
 }
 async function getAIPlacePlan(name){
   if(!canUse()){showPaywall();return}
@@ -758,7 +828,7 @@ function closePairModal(){const m=document.getElementById('pair-modal');m.classL
 function showPaywall(){
   let pw=document.getElementById('pw');
   if(!pw){pw=document.createElement('div');pw.id='pw';pw.className='pw-wrap';pw.onclick=e=>{if(e.target===pw){pw.classList.remove('open');hap.tap()}};
-  pw.innerHTML=`<div class="pw-sheet"><div class="sheet-handle"></div><div style="text-align:center"><div style="font-size:52px;margin-bottom:10px" class="float">👑</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--rose);margin-bottom:4px">أنا وياك Pro</div><div style="font-size:13px;color:var(--text-soft);margin-bottom:16px">${isAr?`استخدمت رسائلك اليوم. تتجدد خلال ${timeUntilMidnight()} 🌙`:`Daily free messages used. Resets in ${timeUntilMidnight()} 🌙`}</div>${['✨ '+(isAr?'رسائل AI غير محدودة':'Unlimited AI messages'),'👨‍🍳 '+(isAr?'وصفات وقوائم مشتريات':'Unlimited recipes & grocery lists'),'🌹 '+(isAr?'خطط خروجات غير محدودة':'Unlimited date plans'),'📖 '+(isAr?'ذكريات غير محدودة':'Unlimited memories'),'🏆 '+(isAr?'أوسمة وإنجازات حصرية':'Exclusive badges')].map(b=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);text-align:left;font-size:13px">${b}</div>`).join('')}<div style="font-size:28px;font-weight:800;color:var(--rose);margin:16px 0 4px">AED 15<span style="font-size:15px;font-weight:400;color:var(--text-soft)">/${isAr?'شهر':'month'}</span></div><a href="mailto:support@anawyak.app?subject=Ana%20Wyak%20Premium%20Access" class="btn-gold" style="display:block;text-decoration:none;margin-bottom:12px">${isAr?'اطلب وصول Pro 🚀':'Request Pro Access 🚀'}</a><div style="font-size:12px;color:var(--text-soft);line-height:1.6;margin-bottom:16px">${isAr?'سيتم إطلاق الدفع عبر Paddle قريباً. راسل الدعم لحجز الوصول والحصول على رابط الشراء الآمن.':'Paddle checkout launches soon. Email support to reserve access and receive your secure purchase link.'} <a href="mailto:support@anawyak.app" style="color:var(--rose)">support@anawyak.app</a></div><button onclick="document.getElementById('pw').classList.remove('open')" style="background:none;border:none;color:var(--text-soft);font-size:14px;cursor:pointer;font-family:inherit">${isAr?'لاحقاً':'Maybe later'}</button></div></div>`;document.body.appendChild(pw)}pw.classList.add('open');hap.tap();
+  pw.innerHTML=`<div class="pw-sheet"><div class="sheet-handle"></div><div style="text-align:center"><div style="font-size:52px;margin-bottom:10px" class="float">👑</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--rose);margin-bottom:4px">أنا وياك Pro</div><div style="font-size:13px;color:var(--text-soft);margin-bottom:16px">${isAr?`استخدمت رسائلك اليوم. تتجدد خلال ${timeUntilMidnight()} 🌙`:`Daily free messages used. Resets in ${timeUntilMidnight()} 🌙`}</div>${['✨ '+(isAr?'رسائل AI غير محدودة':'Unlimited AI messages'),'👨‍🍳 '+(isAr?'وصفات وقوائم مشتريات':'Unlimited recipes & grocery lists'),'🌹 '+(isAr?'خطط خروجات غير محدودة':'Unlimited date plans'),'📖 '+(isAr?'ذكريات غير محدودة':'Unlimited memories'),'🏆 '+(isAr?'أوسمة وإنجازات حصرية':'Exclusive badges')].map(b=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);text-align:left;font-size:13px">${b}</div>`).join('')}<div style="font-size:14px;color:var(--text-soft);margin-bottom:4px">${isAr?'عرض الإطلاق':'Launch offer'}</div><div style="font-size:28px;font-weight:800;color:var(--rose);margin:12px 0 4px"><span style="text-decoration:line-through;color:var(--text-soft);font-size:18px">AED 39</span> AED 29<span style="font-size:15px;font-weight:400;color:var(--text-soft)">/${isAr?'شهر':'month'}</span></div><div style="font-size:14px;color:var(--text-soft);margin-bottom:10px">${isAr?'أو اشتراك سنوي AED 580 → AED 290 فقط':'or annual AED 580 → AED 290 only'}</div><div style="font-size:14px;color:var(--text-soft);margin-bottom:16px">${isAr?'وفر 50٪ مع الباقة السنوية':'Save 50% with the annual plan'}</div><a href="mailto:support@anawyak.app?subject=Ana%20Wyak%20Premium%20Access" class="btn-gold" style="display:block;text-decoration:none;margin-bottom:12px">${isAr?'اطلب وصول Pro 🚀':'Request Pro Access 🚀'}</a><div style="font-size:12px;color:var(--text-soft);line-height:1.6;margin-bottom:16px">${isAr?'سيتم إطلاق الدفع عبر Paddle قريباً. راسل الدعم لحجز الوصول وحصولك على رابط الشراء الآمن.':'Paddle checkout launches soon. Email support to reserve your access and receive your secure purchase link.'} <a href="mailto:support@anawyak.app" style="color:var(--rose)">support@anawyak.app</a></div><button onclick="document.getElementById('pw').classList.remove('open')" style="background:none;border:none;color:var(--text-soft);font-size:14px;cursor:pointer;font-family:inherit">${isAr?'لاحقاً':'Maybe later'}</button></div></div>`;document.body.appendChild(pw)}pw.classList.add('open');hap.tap();
 }
 
 // ══════════════════════════════════════════════════
@@ -1318,6 +1388,13 @@ async function doSignIn() {
   var found = accounts.find(function(a){ return a.email === email && a.hash === hash; });
   var btnLabel = '<span class="en">Sign In 💕</span><span class="ar">دخول 💕</span>';
   if(found) {
+    if(found.verified === false) {
+      if(btn) btn.innerHTML = btnLabel;
+      openVerifySheet(email, found.verifyCode);
+      T(isAr?'الرجاء تأكيد بريدك الإلكتروني أولاً':'Please verify your email first');
+      hap.tap();
+      return;
+    }
     profile = found.profile;
     LS.set('aw_profile', profile);
     if(btn) btn.innerHTML = btnLabel;
@@ -1326,6 +1403,63 @@ async function doSignIn() {
     if(btn) btn.innerHTML = btnLabel;
     T(isAr?'البريد أو كلمة المرور غير صحيحة':'Wrong email or password'); hap.error();
   }
+}
+function openVerifySheet(email, code) {
+  var sh = getSheet('verify-sh');
+  sh.querySelector('.sheet').innerHTML =
+    '<div class="sheet-handle"></div>' +
+    '<h3 style="font-family:\'Cormorant Garamond\',serif;color:var(--rose);margin-bottom:16px;font-size:22px">' + (isAr?'تأكيد البريد الإلكتروني':'Verify Your Email') + '</h3>' +
+    '<div style="font-size:14px;color:var(--text-mid);line-height:1.7;margin-bottom:18px">' +
+      (isAr?'أرسلنا رمز التحقق إلى بريدك. أدخله لتفعيل حسابك.':'We sent a verification code to your email. Enter it to activate your account.') +
+    '</div>' +
+    '<div style="margin-bottom:14px"><label class="label">' + (isAr?'رمز التحقق':'Verification code') + '</label><input id="verify-code" placeholder="ABC123"></div>' +
+    '<div style="font-size:13px;color:var(--text-soft);margin-bottom:18px;line-height:1.5">' +
+      (isAr?'رمز العرض التجريبي':'Demo code') + ': <strong>' + code + '</strong>' +
+    '</div>' +
+    '<button class="btn-rose" style="margin-bottom:10px" onclick="verifySignupCode(\'' + email + '\')">' + (isAr?'تأكيد الحساب':'Confirm Account') + '</button>' +
+    '<button class="btn-ghost" style="padding:14px;font-size:14px" onclick="resendVerificationCode(\'' + email + '\')">' + (isAr?'إعادة إرسال الرمز':'Resend code') + '</button>';
+  sh.classList.add('open');
+}
+function verifySignupCode(email) {
+  var input = (document.getElementById('verify-code')||{}).value.trim();
+  if(!input){ T(isAr?'أدخل رمز التحقق':'Enter the verification code'); hap.error(); return; }
+  var accounts = LS.get('aw_accounts', []);
+  var account = accounts.find(function(a){ return a.email === email; });
+  if(!account){ T(isAr?'حساب غير موجود':'Account not found'); hap.error(); return; }
+  if(input !== account.verifyCode){ T(isAr?'رمز غير صحيح':'Wrong code'); hap.error(); return; }
+  account.verified = true;
+  LS.set('aw_accounts', accounts);
+  profile = account.profile;
+  LS.set('aw_profile', profile);
+  closeSheet('verify-sh');
+  T(isAr?'تم التحقق بنجاح 💕':'Verified successfully 💕');
+  hap.celebrate();
+  document.getElementById('onboarding').style.display = 'block';
+  var ob0 = document.getElementById('ob-0');
+  var ob1 = document.getElementById('ob-1');
+  var ob2 = document.getElementById('ob-2');
+  var ob3 = document.getElementById('ob-3');
+  if(ob0) ob0.style.display = 'flex';
+  if(ob1) ob1.style.display = 'none';
+  if(ob2) ob2.style.display = 'none';
+  if(ob3) ob3.style.display = 'none';
+  var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '25%';
+  document.getElementById('ob-n1').value = profile.n1 || '';
+  document.getElementById('ob-n2').value = profile.n2 || '';
+  obStep = 0; obVibe = '';
+}
+function resendVerificationCode(email) {
+  var accounts = LS.get('aw_accounts', []);
+  var account = accounts.find(function(a){ return a.email === email; });
+  if(!account){ T(isAr?'حساب غير موجود':'Account not found'); hap.error(); return; }
+  account.verifyCode = genCode();
+  account.verified = false;
+  LS.set('aw_accounts', accounts);
+  profile = account.profile;
+  LS.set('aw_profile', profile);
+  closeSheet('verify-sh');
+  openVerifySheet(email, account.verifyCode);
+  T(isAr?'تم إعادة إرسال الرمز':'Code resent'); hap.success();
 }
 async function doSignUp() {
   var n1    = ((document.getElementById('su-n1')||{}).value||'').trim();
@@ -1345,31 +1479,17 @@ async function doSignUp() {
     T(isAr?'البريد مستخدم بالفعل':'Email already registered'); hap.error(); return;
   }
   var hash = await hashPw(pass);
-  var newProfile = { n1:n1, n2:n2, fam:fam, code:genCode(), firstWish:'', ann:'' };
-  accounts.push({ email:email, hash:hash, profile:newProfile });
+  var code = genCode();
+  var newProfile = { n1:n1, n2:n2, fam:fam, code:code, firstWish:'', ann:'' };
+  accounts.push({ email:email, hash:hash, profile:newProfile, verified:false, verifyCode:code });
   LS.set('aw_accounts', accounts);
   profile = newProfile;
   LS.set('aw_profile', profile);
   obWish = '';
   if(btn) btn.innerHTML = btnLabel;
   hap.celebrate();
-  // Show onboarding
-  document.getElementById('auth-screen').style.display = 'none';
-  var ob = document.getElementById('onboarding');
-  if(ob){ ob.style.display = 'block'; }
-  var ob0 = document.getElementById('ob-0');
-  var ob1 = document.getElementById('ob-1');
-  var ob2 = document.getElementById('ob-2');
-  var ob3 = document.getElementById('ob-3');
-  if(ob0) ob0.style.display = 'flex';
-  if(ob1) ob1.style.display = 'none';
-  if(ob2) ob2.style.display = 'none';
-  if(ob3) ob3.style.display = 'none';
-  var fill = document.getElementById('ob-fill');
-  if(fill) fill.style.width = '25%';
-  document.getElementById('ob-n1').value = n1;
-  document.getElementById('ob-n2').value = n2;
-  obStep = 0; obVibe = '';
+  openVerifySheet(email, code);
+  T(isAr?'تم إنشاء الحساب! أدخل رمز التحقق للمواصلة.':'Account created! Enter verification code to continue.');
   return;
 }
 function selectObVibe(v,el){
@@ -1619,6 +1739,8 @@ function selectTonightMood(id,el){
   hap.tap();
 }
 function openTonight() {
+  if(_tonightLock) return;
+  tonightHistory = [];
   var sh = getSheet('tn-sh');
   sh.querySelector('.sheet').innerHTML =
     '<div class="sheet-handle"></div>' +
@@ -1642,6 +1764,8 @@ function openTonight() {
   setTimeout(function(){ document.querySelectorAll('.tn-region, .tn-budget, .tn-mood').forEach(function(btn){ btn.style.borderColor='rgba(255,255,255,.12)'; btn.style.background='var(--card2)'; btn.style.color='var(--text-soft)'; }); if(document.querySelector('.tn-region')){ document.querySelectorAll('.tn-region')[0].style.borderColor='var(--gold)'; document.querySelectorAll('.tn-region')[0].style.color='var(--rose)'; document.querySelectorAll('.tn-region')[0].style.background='rgba(240,204,112,.15)'; } if(document.querySelector('.tn-budget')){ document.querySelectorAll('.tn-budget')[1].style.borderColor='var(--rose)'; document.querySelectorAll('.tn-budget')[1].style.color='var(--rose)'; document.querySelectorAll('.tn-budget')[1].style.background='rgba(232,132,154,.14)'; } if(document.querySelector('.tn-mood')){ document.querySelectorAll('.tn-mood')[0].style.borderColor='var(--gold)'; document.querySelectorAll('.tn-mood')[0].style.color='var(--rose)'; document.querySelectorAll('.tn-mood')[0].style.background='rgba(240,204,112,.15)'; } }, 50);
 }
 function generateTonightSuggestion() {
+  if(_tonightLock) return;
+  _tonightLock = true;
   var candidates = DATE_VENUES.filter(function(v){ return v.region === tonightRegion && v.budget === tonightBudget && v.moods.includes(tonightMood); });
   if(!candidates.length) {
     candidates = DATE_VENUES.filter(function(v){ return v.region === tonightRegion && v.budget === tonightBudget; });
@@ -1652,7 +1776,10 @@ function generateTonightSuggestion() {
   if(!candidates.length) {
     candidates = DATE_VENUES;
   }
-  var choice = candidates[Math.floor(Math.random() * candidates.length)];
+  var available = candidates.filter(function(v){ return tonightHistory.indexOf(v.place) === -1; });
+  if(!available.length){ tonightHistory = []; available = candidates; }
+  var choice = available[Math.floor(Math.random() * available.length)];
+  tonightHistory.push(choice.place);
   var sh = getSheet('tn-sh');
   sh.querySelector('.sheet').innerHTML =
     '<div class="sheet-handle"></div>' +
@@ -1670,10 +1797,11 @@ function generateTonightSuggestion() {
         '</div>' +
       '</div>' +
       '<button class="btn-gold" style="width:100%;padding:14px;font-size:15px;font-weight:800;margin-bottom:10px" onclick="closeSheet(\'tn-sh\');T(isAr?\'استمتعا بليلتكما! 💕\':\'Enjoy your night! 💕\')">' + (isAr?'احفظ الفكرة':'Save the idea') + '</button>' +
-      '<button class="btn-ghost" style="width:100%;padding:14px;font-size:14px" onclick="openTonight()">' + (isAr?'جرب اقتراحاً آخر':'Try another idea') + '</button>' +
+      '<button class="btn-ghost" style="width:100%;padding:14px;font-size:14px" onclick="generateTonightSuggestion()">' + (isAr?'جرب اقتراحاً آخر':'Try another idea') + '</button>' +
     '</div>';
   sh.classList.add('open');
   hap.celebrate();
+  _tonightLock = false;
 }
 
 // ══════════════════════════════════════════════════
