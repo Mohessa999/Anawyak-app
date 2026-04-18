@@ -1,9 +1,9 @@
 /**
- * ANA WYAK Service Worker v2.1 — أنا وياك
+ * ANA WYAK Service Worker v2.2 — أنا وياك
  * Cache version bumped — clears old stale cache on deploy
  */
 
-const CACHE_NAME = 'ana-wyak-v2.1';
+const CACHE_NAME = 'ana-wyak-v2.2';
 const ASSETS = ['./', './index.html', './manifest.json', './pricing.html', './pricing-ar.html', './terms.html', './terms-ar.html', './privacy.html', './privacy-ar.html', './refund.html', './refund-ar.html', './subscribe.html', './offline.html', './styles.css', './app.js', './icons/icon-192.png', './icons/icon-512.png', 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Nunito:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap'];
 
 self.addEventListener('install', event => {
