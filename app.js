@@ -159,7 +159,8 @@ async function callAI(msgs,sys){
 
   const reqBody = {
     model:'claude-sonnet-4-5',
-    max_tokens:600,
+    max_tokens:320,
+    temperature:0.35,
     system:sys||SYS_PROMPT,
     messages:msgs
   };
@@ -343,7 +344,7 @@ async function getCookSug(){
   res.innerHTML=`<div style="text-align:center;padding:14px;color:rgba(255,255,255,.5)"><div class="typing-dots"><span></span><span></span><span></span></div><div style="font-size:13px;margin-top:6px">${isAr?'يفكر... 🍳':'Thinking... 🍳'}</div></div>`;
   useCredit();const p=profile||{};
   const moodMap={cozy:isAr?'طبق دافئ ومريح':'warm comfort food',fancy:isAr?'طبق احتفالي':'celebratory dish',healthy:isAr?'طبق خفيف وصحي':'light healthy dish',romantic:isAr?'طبق رومانسي لشخصين':'romantic dish for two',adventurous:isAr?'وصفة مغامرة من مطابخ العالم':'bold adventurous recipe'};
-  const prompt=isAr?`اقترح وصفة واحدة محددة لـ ${p.n1||'الشريك أ'} و${p.n2||'الشريك ب'} يطبخانها معاً. مزاجهم: "${_cookMoodName}" — ${moodMap[_cookMoodKey]}. اذكر: اسم الطبق، المكونات الرئيسية (5-6)، وقسّم المهام: ${p.n1||'الشريك أ'} يفعل X و${p.n2||'الشريك ب'} يفعل Y. اجعلها مرحة ورومانسية.`:`Suggest ONE specific recipe for ${p.n1||'Partner A'} and ${p.n2||'Partner B'} to cook together. Mood: "${_cookMoodName}" — ${moodMap[_cookMoodKey]}. Include: dish name, 5-6 key ingredients (list them clearly), and divide tasks: ${p.n1||'Partner A'} does X while ${p.n2||'Partner B'} does Y simultaneously. Make it fun and romantic.`;
+  const prompt=isAr?`اقترح وصفة واحدة محددة لـ ${p.n1||'الشريك أ'} و${p.n2||'الشريك ب'} يطبخانها معاً. مزاجهم: "${_cookMoodName}" — ${moodMap[_cookMoodKey]}. اذكر: اسم الطبق، المكونات الرئيسية (5-6)، وقسّم المهام: ${p.n1||'الشريك أ'} يفعل X و${p.n2||'الشريك ب'} يفعل Y. اجعلها مرحة ورومانسية. اجعل الرد موجزاً وقصيراً.`:`Suggest ONE specific recipe for ${p.n1||'Partner A'} and ${p.n2||'Partner B'} to cook together. Mood: "${_cookMoodName}" — ${moodMap[_cookMoodKey]}. Include: dish name, 5-6 key ingredients (list them clearly), and divide tasks: ${p.n1||'Partner A'} does X while ${p.n2||'Partner B'} does Y simultaneously. Make it fun and romantic. Keep the response concise and short.`;
   const reply=await callAI([{role:'user',content:prompt}]);
   var cookBtn = document.querySelector('button[onclick="getCookSug()"]');
   if(reply.startsWith('⏰')||reply.startsWith('💡')||reply.startsWith('🔑')){
@@ -426,8 +427,8 @@ async function getCuisineRecipe(key){
   useCredit();
   var p=profile||{};
   var prompt=isAr
-    ?('وصفة "'+dish+'" من المطبخ '+cuisine+' لـ '+(p.n1||'الشريك أ')+' و'+(p.n2||'الشريك ب')+' يطبخانها معاً. قسّم المهام بينهما. اجعلها مرحة.')
-    :('Recipe for "'+dish+'" ('+cuisine+') for '+(p.n1||'Partner A')+' and '+(p.n2||'Partner B')+'. Divide tasks between A and B. Keep it fun and romantic.');
+    ?('وصفة "'+dish+'" من المطبخ '+cuisine+' لـ '+(p.n1||'الشريك أ')+' و'+(p.n2||'الشريك ب')+' يطبخانها معاً. قسّم المهام بينهما. اجعلها مرحة. اجعل الرد موجزاً ومباشراً.')
+    :('Recipe for "'+dish+'" ('+cuisine+') for '+(p.n1||'Partner A')+' and '+(p.n2||'Partner B')+'. Divide tasks between A and B. Keep it fun and romantic. Keep the answer concise with ingredients and task split.');
   var reply=await callAI([{role:'user',content:prompt}]);
   var sh=getSheet('recipe-sh');
   var isErr=reply.startsWith('⏰')||reply.startsWith('💡')||reply.startsWith('🔑');
@@ -447,8 +448,8 @@ async function promptDishRecipe(dish){
   useCredit();
   var p=profile||{};
   var prompt=isAr
-    ?('وصفة "'+dish+'" لشخصين '+(p.n1||'الشريك أ')+' و'+(p.n2||'الشريك ب')+' يطبخانها معاً. قسّم المهام واجعلها ممتعة ورومانسية.')
-    :('Recipe for "'+dish+'" for '+(p.n1||'Partner A')+' and '+(p.n2||'Partner B')+' to cook together. Divide tasks and keep it fun and romantic.');
+    ?('وصفة "'+dish+'" لشخصين '+(p.n1||'الشريك أ')+' و'+(p.n2||'الشريك ب')+' يطبخانها معاً. قسّم المهام واجعلها ممتعة ورومانسية. اجعل الرد قصيراً ومباشراً.')
+    :('Recipe for "'+dish+'" for '+(p.n1||'Partner A')+' and '+(p.n2||'Partner B')+' to cook together. Divide tasks and keep it fun and romantic. Keep the answer short, with ingredients and a simple task split.');
   var reply=await callAI([{role:'user',content:prompt}]);
   var sh=getSheet('recipe-sh');
   var isErr=reply.startsWith('⏰')||reply.startsWith('💡')||reply.startsWith('🔑');
@@ -672,7 +673,7 @@ function rProfile(el){
     <svg width="60" height="40" viewBox="0 0 200 140" class="float" style="margin-bottom:12px"><defs><linearGradient id="pgl1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F0CC70"/><stop offset="100%" stop-color="#C9954A"/></linearGradient><linearGradient id="pgl2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8849A"/><stop offset="100%" stop-color="#C8607A"/></linearGradient></defs><ellipse cx="75" cy="70" rx="52" ry="52" stroke="url(#pgl1)" stroke-width="16" fill="none"/><ellipse cx="125" cy="70" rx="52" ry="52" stroke="url(#pgl2)" stroke-width="16" fill="none"/></svg>
     <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--gold);margin-bottom:4px">أنا وياك Pro</div>
     <div style="font-size:13px;color:var(--text-soft);margin-bottom:14px;line-height:1.6">${isAr?'رسائل غير محدودة · وصفات · أفكار خروجات · ميزات حصرية':'Unlimited messages · Recipes · Date plans · Exclusive features'}</div>
-    <div style="font-size:28px;font-weight:800;color:var(--gold);margin-bottom:14px">AED 15 <span style="font-size:14px;font-weight:400;color:var(--text-soft)">/${isAr?'شهر':'month'}</span></div>
+    <div style="font-size:28px;font-weight:800;color:var(--gold);margin-bottom:14px">AED 29 <span style="font-size:14px;font-weight:400;color:var(--text-soft)">/${isAr?'شهر':'month'}</span></div>
     <a href="subscribe.html" class="btn-gold" style="display:block;text-decoration:none;text-align:center;padding:14px;border-radius:50px">${isAr?'اشترك الآن ✨':'Subscribe Now ✨'}</a>
   </div>
   <button onclick="shareApp()" class="btn-ghost" style="margin-bottom:12px">${isAr?'📤 شارك أنا وياك':'📤 Share Ana Wyak'}</button>

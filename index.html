@@ -36,6 +36,15 @@
 <meta name="description" content="A private luxury world for two. Intimacy engineered for the modern Arab couple.">
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Nunito:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+(function(){
+  const url=new URL(window.location.href);
+  if(!url.searchParams.has('cachebust')){
+    url.searchParams.set('cachebust', Date.now());
+    window.location.replace(url.pathname+'?'+url.searchParams.toString()+url.hash);
+  }
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 <link rel="stylesheet" href="styles.css">
 </head>
