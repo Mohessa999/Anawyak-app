@@ -84,6 +84,7 @@ let isAr      = LS.get('aw_lang',false);
 let obStep    = 0;
 let obVibe    = '';
 let obWish    = '';
+let obMode    = 'pre'; // 'pre' = pre-auth questions, 'post' = post-signup anniversary
 
 // ══════════════════════════════════════════════════
 //  HAPTICS
@@ -147,7 +148,7 @@ function updateCredits(){
 // ══════════════════════════════════════════════════
 //  API
 // ══════════════════════════════════════════════════
-async function callAI(msgs,sys){
+async function callAI(msgs,sys,fastMode){
   // Worker URL — triple fallback to guarantee connection
   const WORKER_URL = 'https://anawyak.moh-essa.workers.dev';
   const PROXY_URL  = LS.get('aw_proxy_url','') || DEFAULT_PROXY || WORKER_URL;
@@ -158,8 +159,8 @@ async function callAI(msgs,sys){
     : SYS;
 
   const reqBody = {
-    model:'claude-sonnet-4-5',
-    max_tokens:320,
+    model: fastMode ? 'claude-haiku-4-5-20251001' : 'claude-sonnet-4-5',
+    max_tokens: fastMode ? 200 : 320,
     temperature:0.35,
     system:sys||SYS_PROMPT,
     messages:msgs
@@ -305,16 +306,63 @@ function rCook(el){
     </div>
   </div>
 
-  <div style="font-size:14px;font-weight:700;color:var(--text-mid);margin-bottom:12px">🌍 ${isAr?'اختر المطبخ:':'Choose Cuisine:'}</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">${(window._CD=cuisines,cuisines).map((c,_i)=>'<div class="card tap" onclick="showDishes('+_i+')" style="padding:14px;display:flex;align-items:center;gap:10px"><span style="font-size:26px">'+c.f+'</span><div><div style="font-weight:700;font-size:13px;color:var(--text)">'+(isAr?c.a:c.n)+'</div><div style="font-size:10px;color:var(--text-soft);margin-top:2px">'+c.d.slice(0,2).join(' · ')+'</div></div></div>').join('')}</div>
-  <div style="font-size:14px;font-weight:700;color:var(--text-mid);margin-bottom:12px">⭐ ${isAr?'أفضل 30 طبقاً':'Top 30 dishes'}</div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:16px">${topDishes.map(function(d){ return '<span class="chip" onclick="promptDishRecipe(\''+d.replace(/'/g,'&#39;')+'\')">'+d+'</span>'; }).join('')}</div>
-  <div style="font-size:14px;font-weight:700;color:var(--text-mid);margin-bottom:12px">🍲 ${isAr?'أفضل 30 حساء':'Top 30 soups'}</div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:16px">${topSoups.map(function(d){ return '<span class="chip" onclick="promptDishRecipe(\''+d.replace(/'/g,'&#39;')+'\')">'+d+'</span>'; }).join('')}</div>
-  <div style="font-size:14px;font-weight:700;color:var(--text-mid);margin-bottom:12px">🍰 ${isAr?'أفضل 30 حلوى':'Top 30 desserts'}</div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:16px">${topDesserts.map(function(d){ return '<span class="chip" onclick="promptDishRecipe(\''+d.replace(/'/g,'&#39;')+'\')">'+d+'</span>'; }).join('')}</div>
-  <div id="dishes-sec" style="margin-bottom:16px"></div>
+  <!-- COLLAPSIBLE: Cuisines -->
+  <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
+    <div onclick="toggleCookSection('cuisines')" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer;user-select:none">
+      <div style="font-size:14px;font-weight:700;color:var(--text-mid)">🌍 ${isAr?'المطابخ العالمية':'World Cuisines'} <span style="font-size:11px;color:var(--text-soft)">(${cuisines.length})</span></div>
+      <span id="sect-cuisines-icon" style="color:var(--rose);font-size:16px;transition:transform .2s">▼</span>
+    </div>
+    <div id="sect-cuisines" style="display:none;padding:0 12px 12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${(window._CD=cuisines,cuisines).map((c,_i)=>'<div class="card tap" onclick="showDishes('+_i+')" style="padding:12px;display:flex;align-items:center;gap:8px;margin:0"><span style="font-size:22px">'+c.f+'</span><div><div style="font-weight:700;font-size:12px;color:var(--text)">'+(isAr?c.a:c.n)+'</div><div style="font-size:10px;color:var(--text-soft);margin-top:1px">'+c.d.slice(0,2).join(' · ')+'</div></div></div>').join('')}</div>
+      <div id="dishes-sec" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <!-- COLLAPSIBLE: Top Dishes -->
+  <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
+    <div onclick="toggleCookSection('dishes')" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer;user-select:none">
+      <div style="font-size:14px;font-weight:700;color:var(--text-mid)">⭐ ${isAr?'أفضل الأطباق':'Top Dishes'} <span style="font-size:11px;color:var(--text-soft)">(30)</span></div>
+      <span id="sect-dishes-icon" style="color:var(--rose);font-size:16px;transition:transform .2s">▼</span>
+    </div>
+    <div id="sect-dishes" style="display:none;padding:0 12px 12px">
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${topDishes.map(function(d){ return '<span class="chip" onclick="promptDishRecipe(\''+d.replace(/'/g,'&#39;')+'\')" style="font-size:12px">'+d+'</span>'; }).join('')}</div>
+    </div>
+  </div>
+
+  <!-- COLLAPSIBLE: Top Soups -->
+  <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
+    <div onclick="toggleCookSection('soups')" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer;user-select:none">
+      <div style="font-size:14px;font-weight:700;color:var(--text-mid)">🍲 ${isAr?'أفضل الحساء':'Top Soups'} <span style="font-size:11px;color:var(--text-soft)">(30)</span></div>
+      <span id="sect-soups-icon" style="color:var(--rose);font-size:16px;transition:transform .2s">▼</span>
+    </div>
+    <div id="sect-soups" style="display:none;padding:0 12px 12px">
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${topSoups.map(function(d){ return '<span class="chip" onclick="promptDishRecipe(\''+d.replace(/'/g,'&#39;')+'\')" style="font-size:12px">'+d+'</span>'; }).join('')}</div>
+    </div>
+  </div>
+
+  <!-- COLLAPSIBLE: Top Desserts -->
+  <div class="card" style="padding:0;margin-bottom:20px;overflow:hidden">
+    <div onclick="toggleCookSection('desserts')" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer;user-select:none">
+      <div style="font-size:14px;font-weight:700;color:var(--text-mid)">🍰 ${isAr?'أفضل الحلويات':'Top Desserts'} <span style="font-size:11px;color:var(--text-soft)">(30)</span></div>
+      <span id="sect-desserts-icon" style="color:var(--rose);font-size:16px;transition:transform .2s">▼</span>
+    </div>
+    <div id="sect-desserts" style="display:none;padding:0 12px 12px">
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${topDesserts.map(function(d){ return '<span class="chip" onclick="promptDishRecipe(\''+d.replace(/'/g,'&#39;')+'\')" style="font-size:12px">'+d+'</span>'; }).join('')}</div>
+    </div>
+  </div>
+
   </div>`;
+}
+
+function toggleCookSection(name) {
+  var body = document.getElementById('sect-'+name);
+  var icon = document.getElementById('sect-'+name+'-icon');
+  if(!body) return;
+  var isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if(icon) { icon.textContent = isOpen ? '▼' : '▲'; icon.style.color = isOpen ? 'var(--rose)' : 'var(--gold)'; }
+  if(!isOpen) body.scrollIntoView({behavior:'smooth', block:'nearest'});
+  hap.tap();
 }
 
 function groceryHTML(){
@@ -345,7 +393,7 @@ async function getCookSug(){
   useCredit();const p=profile||{};
   const moodMap={cozy:isAr?'طبق دافئ ومريح':'warm comfort food',fancy:isAr?'طبق احتفالي':'celebratory dish',healthy:isAr?'طبق خفيف وصحي':'light healthy dish',romantic:isAr?'طبق رومانسي لشخصين':'romantic dish for two',adventurous:isAr?'وصفة مغامرة من مطابخ العالم':'bold adventurous recipe'};
   const prompt=isAr?`اقترح وصفة واحدة محددة لـ ${p.n1||'الشريك أ'} و${p.n2||'الشريك ب'} يطبخانها معاً. مزاجهم: "${_cookMoodName}" — ${moodMap[_cookMoodKey]}. اذكر: اسم الطبق، المكونات الرئيسية (5-6)، وقسّم المهام: ${p.n1||'الشريك أ'} يفعل X و${p.n2||'الشريك ب'} يفعل Y. اجعلها مرحة ورومانسية. اجعل الرد موجزاً وقصيراً.`:`Suggest ONE specific recipe for ${p.n1||'Partner A'} and ${p.n2||'Partner B'} to cook together. Mood: "${_cookMoodName}" — ${moodMap[_cookMoodKey]}. Include: dish name, 5-6 key ingredients (list them clearly), and divide tasks: ${p.n1||'Partner A'} does X while ${p.n2||'Partner B'} does Y simultaneously. Make it fun and romantic. Keep the response concise and short.`;
-  const reply=await callAI([{role:'user',content:prompt}]);
+  const reply=await callAI([{role:'user',content:prompt}],null,true);
   var cookBtn = document.querySelector('button[onclick="getCookSug()"]');
   if(reply.startsWith('⏰')||reply.startsWith('💡')||reply.startsWith('🔑')){
     res.innerHTML=`<div class="ai-error">${reply}</div>`;
@@ -370,6 +418,9 @@ function generateGrocery(dishName){
 function showDishes(idx){
   var cu=(window._CD||[])[idx];if(!cu)return;
   var nm=isAr?cu.a:cu.n;
+  // Ensure cuisine section is expanded so dishes-sec is visible
+  var cuisBody=document.getElementById('sect-cuisines');
+  if(cuisBody&&cuisBody.style.display==='none') toggleCookSection('cuisines');
   var sec=document.getElementById('dishes-sec');if(!sec)return;
   if(!window._DC)window._DC={};
   sec.innerHTML='';
@@ -410,10 +461,6 @@ function showDishes(idx){
   sec.appendChild(title);
   sec.appendChild(moodHint);
   sec.appendChild(row);
-  var extra=document.createElement('div');
-  extra.style.cssText='font-size:12px;color:var(--text-soft);margin-top:12px;line-height:1.5';
-  extra.textContent=(isAr?'عرض أفضل 30 طبقاً على الجانب':'See the top 30 dishes list at the bottom');
-  sec.appendChild(extra);
   sec.scrollIntoView({behavior:'smooth'});hap.tap();
 }
 async function getCuisineRecipe(key){
@@ -429,7 +476,7 @@ async function getCuisineRecipe(key){
   var prompt=isAr
     ?('وصفة "'+dish+'" من المطبخ '+cuisine+' لـ '+(p.n1||'الشريك أ')+' و'+(p.n2||'الشريك ب')+' يطبخانها معاً. قسّم المهام بينهما. اجعلها مرحة. اجعل الرد موجزاً ومباشراً.')
     :('Recipe for "'+dish+'" ('+cuisine+') for '+(p.n1||'Partner A')+' and '+(p.n2||'Partner B')+'. Divide tasks between A and B. Keep it fun and romantic. Keep the answer concise with ingredients and task split.');
-  var reply=await callAI([{role:'user',content:prompt}]);
+  var reply=await callAI([{role:'user',content:prompt}],null,true);
   var sh=getSheet('recipe-sh');
   var isErr=reply.startsWith('⏰')||reply.startsWith('💡')||reply.startsWith('🔑');
   var safeReply=reply.split('\n').join('<br>');
@@ -450,7 +497,7 @@ async function promptDishRecipe(dish){
   var prompt=isAr
     ?('وصفة "'+dish+'" لشخصين '+(p.n1||'الشريك أ')+' و'+(p.n2||'الشريك ب')+' يطبخانها معاً. قسّم المهام واجعلها ممتعة ورومانسية. اجعل الرد قصيراً ومباشراً.')
     :('Recipe for "'+dish+'" for '+(p.n1||'Partner A')+' and '+(p.n2||'Partner B')+' to cook together. Divide tasks and keep it fun and romantic. Keep the answer short, with ingredients and a simple task split.');
-  var reply=await callAI([{role:'user',content:prompt}]);
+  var reply=await callAI([{role:'user',content:prompt}],null,true);
   var sh=getSheet('recipe-sh');
   var isErr=reply.startsWith('⏰')||reply.startsWith('💡')||reply.startsWith('🔑');
   var safeReply=reply.split('\n').join('<br>');
@@ -674,7 +721,7 @@ function rProfile(el){
     <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--gold);margin-bottom:4px">أنا وياك Pro</div>
     <div style="font-size:13px;color:var(--text-soft);margin-bottom:14px;line-height:1.6">${isAr?'رسائل غير محدودة · وصفات · أفكار خروجات · ميزات حصرية':'Unlimited messages · Recipes · Date plans · Exclusive features'}</div>
     <div style="font-size:28px;font-weight:800;color:var(--gold);margin-bottom:14px">AED 29 <span style="font-size:14px;font-weight:400;color:var(--text-soft)">/${isAr?'شهر':'month'}</span></div>
-    <a href="subscribe.html" class="btn-gold" style="display:block;text-decoration:none;text-align:center;padding:14px;border-radius:50px">${isAr?'اشترك الآن ✨':'Subscribe Now ✨'}</a>
+    <a href="subscribe.html" target="_blank" class="btn-gold" style="display:block;text-decoration:none;text-align:center;padding:14px;border-radius:50px">${isAr?'اشترك الآن ✨':'Subscribe Now ✨'}</a>
   </div>
   <button onclick="shareApp()" class="btn-ghost" style="margin-bottom:12px">${isAr?'📤 شارك أنا وياك':'📤 Share Ana Wyak'}</button>
   <!-- ADMIN MODE TOGGLE (invisible to regular users) -->
@@ -690,7 +737,7 @@ function rProfile(el){
   }
   <button onclick="doSignOut()" style="width:100%;background:none;border:none;color:var(--rose);font-size:13px;cursor:pointer;padding:8px;font-family:inherit;font-weight:600">${isAr?'تسجيل الخروج':'Sign Out'}</button>
   <button onclick="if(confirm(isAr?'مسح كل البيانات؟':'Reset ALL data?'))localStorage.clear(),location.reload()" style="width:100%;background:none;border:none;color:var(--text-soft);font-size:12px;cursor:pointer;padding:4px;font-family:inherit">${isAr?'مسح جميع البيانات':'Reset all data'}</button>
-  <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text-soft);line-height:1.8">© 2026 أنا وياك · Ana Wyak · ${isAr?'جميع الحقوق محفوظة':'All rights reserved'}<br>${isAr?'ليس بديلاً عن الإرشاد المهني':'Not a substitute for professional counseling'}<br><a href="privacy.html" style="color:var(--rose)">Privacy Policy</a> · <a href="terms.html" style="color:var(--rose)">Terms of Service</a></div>
+  <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text-soft);line-height:1.8">© 2026 أنا وياك · Ana Wyak · ${isAr?'جميع الحقوق محفوظة':'All rights reserved'}<br>${isAr?'ليس بديلاً عن الإرشاد المهني':'Not a substitute for professional counseling'}<br><a href="privacy.html" target="_blank" style="color:var(--rose)">Privacy Policy</a> · <a href="terms.html" target="_blank" style="color:var(--rose)">Terms of Service</a> · <a href="pricing.html" target="_blank" style="color:var(--rose)">Pricing</a></div>
   </div>`;
   const an=document.getElementById('ach-names');if(an&&profile)an.textContent=(profile.n1||'')+(profile.n2?' & '+profile.n2:'');
 }
@@ -806,10 +853,39 @@ function closePairModal(){const m=document.getElementById('pair-modal');m.classL
 // ══════════════════════════════════════════════════
 //  PAYWALL
 // ══════════════════════════════════════════════════
+function paywallContact(){
+  var email='support@anawyak.app';
+  var subject=encodeURIComponent('Ana Wyak Pro Access');
+  // Try mailto in new tab; always show the email for copy as fallback
+  try { window.open('mailto:'+email+'?subject='+subject,'_blank'); } catch(e){}
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(email).then(function(){
+      T(isAr?'📧 تم نسخ البريد: '+email:'📧 Email copied: '+email, 3000);
+    }).catch(function(){ T(email, 4000); });
+  } else {
+    T(email, 4000);
+  }
+}
 function showPaywall(){
   let pw=document.getElementById('pw');
-  if(!pw){pw=document.createElement('div');pw.id='pw';pw.className='pw-wrap';pw.onclick=e=>{if(e.target===pw){pw.classList.remove('open');hap.tap()}};
-  pw.innerHTML=`<div class="pw-sheet"><div class="sheet-handle"></div><div style="text-align:center"><div style="font-size:52px;margin-bottom:10px" class="float">👑</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--rose);margin-bottom:4px">أنا وياك Pro</div><div style="font-size:13px;color:var(--text-soft);margin-bottom:16px">${isAr?`استخدمت رسائلك اليوم. تتجدد خلال ${timeUntilMidnight()} 🌙`:`Daily free messages used. Resets in ${timeUntilMidnight()} 🌙`}</div>${['✨ '+(isAr?'رسائل AI غير محدودة':'Unlimited AI messages'),'👨‍🍳 '+(isAr?'وصفات وقوائم مشتريات':'Unlimited recipes & grocery lists'),'🌹 '+(isAr?'خطط خروجات غير محدودة':'Unlimited date plans'),'📖 '+(isAr?'ذكريات غير محدودة':'Unlimited memories'),'🏆 '+(isAr?'أوسمة وإنجازات حصرية':'Exclusive badges')].map(b=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);text-align:left;font-size:13px">${b}</div>`).join('')}<div style="font-size:14px;color:var(--text-soft);margin-bottom:4px">${isAr?'عرض الإطلاق':'Launch offer'}</div><div style="font-size:28px;font-weight:800;color:var(--rose);margin:12px 0 4px"><span style="text-decoration:line-through;color:var(--text-soft);font-size:18px">AED 39</span> AED 29<span style="font-size:15px;font-weight:400;color:var(--text-soft)">/${isAr?'شهر':'month'}</span></div><div style="font-size:14px;color:var(--text-soft);margin-bottom:10px">${isAr?'أو اشتراك سنوي AED 580 → AED 290 فقط':'or annual AED 580 → AED 290 only'}</div><div style="font-size:14px;color:var(--text-soft);margin-bottom:16px">${isAr?'وفر 50٪ مع الباقة السنوية':'Save 50% with the annual plan'}</div><a href="mailto:support@anawyak.app?subject=Ana%20Wyak%20Premium%20Access" class="btn-gold" style="display:block;text-decoration:none;margin-bottom:12px">${isAr?'اطلب وصول Pro 🚀':'Request Pro Access 🚀'}</a><div style="font-size:12px;color:var(--text-soft);line-height:1.6;margin-bottom:16px">${isAr?'سيتم إطلاق الدفع عبر Paddle قريباً. راسل الدعم لحجز الوصول وحصولك على رابط الشراء الآمن.':'Paddle checkout launches soon. Email support to reserve your access and receive your secure purchase link.'} <a href="mailto:support@anawyak.app" style="color:var(--rose)">support@anawyak.app</a></div><button onclick="document.getElementById('pw').classList.remove('open')" style="background:none;border:none;color:var(--text-soft);font-size:14px;cursor:pointer;font-family:inherit">${isAr?'لاحقاً':'Maybe later'}</button></div></div>`;document.body.appendChild(pw)}pw.classList.add('open');hap.tap();
+  if(pw){ pw.remove(); pw=null; } // always rebuild so timeUntilMidnight() is fresh
+  pw=document.createElement('div');pw.id='pw';pw.className='pw-wrap';
+  pw.onclick=function(e){if(e.target===pw){pw.classList.remove('open');hap.tap()}};
+  var features=['✨ '+(isAr?'رسائل AI غير محدودة':'Unlimited AI messages'),'👨‍🍳 '+(isAr?'وصفات وقوائم مشتريات':'Unlimited recipes & grocery lists'),'🌹 '+(isAr?'خطط خروجات غير محدودة':'Unlimited date plans'),'📖 '+(isAr?'ذكريات غير محدودة':'Unlimited memories'),'🏆 '+(isAr?'أوسمة وإنجازات حصرية':'Exclusive badges')];
+  pw.innerHTML='<div class="pw-sheet"><div class="sheet-handle"></div><div style="text-align:center">'+
+    '<div style="font-size:52px;margin-bottom:10px" class="float">👑</div>'+
+    '<div style="font-family:\'Cormorant Garamond\',serif;font-size:26px;font-weight:700;color:var(--rose);margin-bottom:4px">أنا وياك Pro</div>'+
+    '<div style="font-size:13px;color:var(--text-soft);margin-bottom:16px">'+(isAr?'استخدمت رسائلك اليوم. تتجدد خلال '+timeUntilMidnight()+' 🌙':'Daily free messages used. Resets in '+timeUntilMidnight()+' 🌙')+'</div>'+
+    features.map(function(b){ return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);text-align:left;font-size:13px">'+b+'</div>'; }).join('')+
+    '<div style="font-size:14px;color:var(--text-soft);margin-bottom:4px;margin-top:16px">'+(isAr?'عرض الإطلاق':'Launch offer')+'</div>'+
+    '<div style="font-size:28px;font-weight:800;color:var(--rose);margin:12px 0 4px"><span style="text-decoration:line-through;color:var(--text-soft);font-size:18px">AED 39</span> AED 29<span style="font-size:15px;font-weight:400;color:var(--text-soft)">/'+(isAr?'شهر':'month')+'</span></div>'+
+    '<div style="font-size:14px;color:var(--text-soft);margin-bottom:16px">'+(isAr?'أو سنوي AED 290 فقط — وفر 50٪':'or annual AED 290 only — save 50%')+'</div>'+
+    '<button class="btn-gold" onclick="paywallContact()" style="display:block;width:100%;margin-bottom:10px;cursor:pointer;font-family:inherit;font-size:15px;padding:14px;border-radius:50px;border:none">'+(isAr?'اطلب وصول Pro 🚀':'Request Pro Access 🚀')+'</button>'+
+    '<a href="pricing.html" target="_blank" style="display:block;font-size:12px;color:var(--rose);margin-bottom:16px;text-decoration:none">'+(isAr?'عرض خيارات الأسعار':'View pricing options')+'</a>'+
+    '<button onclick="document.getElementById(\'pw\').classList.remove(\'open\')" style="background:none;border:none;color:var(--text-soft);font-size:14px;cursor:pointer;font-family:inherit">'+(isAr?'لاحقاً':'Maybe later')+'</button>'+
+    '</div></div>';
+  document.body.appendChild(pw);
+  pw.classList.add('open');hap.tap();
 }
 
 // ══════════════════════════════════════════════════
@@ -1461,23 +1537,26 @@ function verifySignupCode(email) {
   account.verified = true;
   LS.set('aw_accounts', accounts);
   profile = account.profile;
+  // Preserve pre-auth choices (vibe + wish) into profile
+  if(obVibe) { profile.vibe = obVibe; }
+  if(obWish) { profile.firstWish = obWish; }
   LS.set('aw_profile', profile);
   closeSheet('verify-sh');
   T(isAr?'تم التحقق بنجاح 💕':'Verified successfully 💕');
   hap.celebrate();
+  document.getElementById('auth-screen').style.display = 'none';
+  // Post-auth: show names step (ob-1) then anniversary (ob-3)
+  obMode = 'post';
+  obStep = 0;
   document.getElementById('onboarding').style.display = 'block';
-  var ob0 = document.getElementById('ob-0');
+  ['ob-0','ob-1','ob-2','ob-3'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.style.display = 'none';
+  });
   var ob1 = document.getElementById('ob-1');
-  var ob2 = document.getElementById('ob-2');
-  var ob3 = document.getElementById('ob-3');
-  if(ob0) ob0.style.display = 'flex';
-  if(ob1) ob1.style.display = 'none';
-  if(ob2) ob2.style.display = 'none';
-  if(ob3) ob3.style.display = 'none';
-  var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '25%';
-  document.getElementById('ob-n1').value = profile.n1 || '';
-  document.getElementById('ob-n2').value = profile.n2 || '';
-  obStep = 0; obVibe = '';
+  if(ob1) ob1.style.display = 'flex';
+  var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '75%';
+  var n1el = document.getElementById('ob-n1'); if(n1el) n1el.value = profile.n1 || '';
+  var n2el = document.getElementById('ob-n2'); if(n2el) n2el.value = profile.n2 || '';
 }
 function resendVerificationCode(email) {
   var accounts = LS.get('aw_accounts', []);
@@ -1511,7 +1590,7 @@ async function doSignUp() {
   }
   var hash = await hashPw(pass);
   var code = genCode();
-  var newProfile = { n1:n1, n2:n2, fam:fam, code:code, firstWish:'', ann:'' };
+  var newProfile = { n1:n1, n2:n2, fam:fam, code:genCode(), firstWish:obWish||'', ann:'', vibe:obVibe||'' };
   accounts.push({ email:email, hash:hash, profile:newProfile, verified:false, verifyCode:code });
   LS.set('aw_accounts', accounts);
   profile = newProfile;
@@ -1548,51 +1627,61 @@ function selectObWish(w,el){
   hap.tap();
 }
 function nextObStep(){
-  if(obStep === 0){
-    if(!obVibe){ T(isAr?'اختر مزاج العلاقة أولاً':'Choose your relationship vibe first'); hap.error(); return; }
-    obStep = 1;
-    var ob0 = document.getElementById('ob-0');
-    var ob1 = document.getElementById('ob-1');
-    if(ob0) ob0.style.display = 'none';
-    if(ob1) ob1.style.display = 'flex';
-    var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '50%';
-    T(isAr?'أضف أسماءكما الآن':'Now add your names');
-    return;
+  // ── PRE-AUTH PHASE: two hook questions before sign-up ──
+  if(obMode === 'pre'){
+    if(obStep === 0){
+      if(!obVibe){ T(isAr?'اختر مزاج علاقتكما أولاً':'Choose your relationship vibe first'); hap.error(); return; }
+      obStep = 1;
+      var ob0 = document.getElementById('ob-0');
+      var ob2 = document.getElementById('ob-2'); // skip straight to wish selection
+      if(ob0) ob0.style.display = 'none';
+      if(ob2) ob2.style.display = 'flex';
+      var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '66%';
+      return;
+    }
+    if(obStep === 1){
+      if(!obWish){ T(isAr?'اختر طقسكما الأول':'Choose your first ritual'); hap.error(); return; }
+      // Hook questions done → show sign-up as the "gotcha"
+      var ob = document.getElementById('onboarding');
+      if(ob) ob.style.display = 'none';
+      var auth = document.getElementById('auth-screen');
+      if(auth) auth.style.display = 'block';
+      switchAuth('su');
+      hap.celebrate();
+      T(isAr?'خطوة أخيرة — أنشئ عالمكما الخاص 💕':'One last step — create your private world 💕');
+      return;
+    }
   }
-  if(obStep === 1){
-    var n1 = (document.getElementById('ob-n1')||{}).value.trim();
-    var n2 = (document.getElementById('ob-n2')||{}).value.trim();
-    if(!n1 || !n2){ T(isAr?'أدخل اسميك واسما شريكك':'Enter both your name and your partner\'s name'); hap.error(); return; }
-    profile.n1 = n1; profile.n2 = n2; LS.set('aw_profile', profile);
-    obStep = 2;
-    var ob1 = document.getElementById('ob-1');
-    var ob2 = document.getElementById('ob-2');
-    if(ob1) ob1.style.display = 'none';
-    if(ob2) ob2.style.display = 'flex';
-    var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '75%';
-    T(isAr?'اختر طقسكما الأول':'Choose your first ritual');
-    return;
-  }
-  if(obStep === 2){
-    if(!obWish){ T(isAr?'اختر طقساً أولياً أولاً':'Choose your first ritual first'); hap.error(); return; }
-    profile.firstWish = obWish; LS.set('aw_profile', profile);
-    obStep = 3;
-    var ob2 = document.getElementById('ob-2');
-    var ob3 = document.getElementById('ob-3');
-    if(ob2) ob2.style.display = 'none';
-    if(ob3) ob3.style.display = 'flex';
-    var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '100%';
-    T(isAr?'أخيراً، أضف تاريخ الذكرى أو تخطى':'Finally, add your anniversary or skip');
-    return;
+
+  // ── POST-AUTH PHASE: anniversary only ──
+  if(obMode === 'post'){
+    if(obStep === 0){
+      var n1 = (document.getElementById('ob-n1')||{}).value.trim();
+      var n2 = (document.getElementById('ob-n2')||{}).value.trim();
+      if(!n1 || !n2){ T(isAr?'أدخل اسميك واسم شريكك':'Enter both names'); hap.error(); return; }
+      profile.n1 = n1; profile.n2 = n2; LS.set('aw_profile', profile);
+      obStep = 1;
+      var ob1b = document.getElementById('ob-1');
+      var ob3 = document.getElementById('ob-3');
+      if(ob1b) ob1b.style.display = 'none';
+      if(ob3) ob3.style.display = 'flex';
+      var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '100%';
+      T(isAr?'أضف تاريخ الذكرى أو تخطى':'Add your anniversary or skip');
+      return;
+    }
   }
 }
 function doGuest() {
-  profile = { n1: isAr?'أنتم':'You', n2: isAr?'شريككم':'Partner', fam:'couple', guest:true, code:genCode() };
+  profile = { n1: isAr?'أنتم':'You', n2: isAr?'شريككم':'Partner', fam:'couple', guest:true, code:genCode(),
+    firstWish: obWish||'Date', vibe: obVibe||'Romantic' };
   LS.set('aw_profile', profile);
+  document.getElementById('auth-screen').style.display = 'none';
   launchApp();
 }
 function finishOb() {
-  if(obStep === 0 || obStep === 1 || obStep === 2){ nextObStep(); return; }
+  if(obMode === 'pre'){ nextObStep(); return; }
+  // post-auth: save anniversary → launch
+  if(obMode === 'post' && obStep === 0){ nextObStep(); return; }
   var ann = (document.getElementById('ob-ann')||{}).value;
   if(ann && profile){ profile.ann = ann; LS.set('aw_profile', profile); }
   launchApp();
@@ -1865,7 +1954,16 @@ window.addEventListener('DOMContentLoaded', function() {
         setTimeout(function(){ showTab(startTab); }, 300);
       }
     } else {
-      document.getElementById('auth-screen').style.display = 'block';
+      // Show pre-auth hook questions first — sign-up is the "gotcha"
+      obMode = 'pre'; obStep = 0; obVibe = ''; obWish = '';
+      var ob = document.getElementById('onboarding');
+      if(ob) ob.style.display = 'block';
+      ['ob-0','ob-1','ob-2','ob-3'].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.style.display = 'none';
+      });
+      var ob0 = document.getElementById('ob-0');
+      if(ob0) ob0.style.display = 'flex';
+      var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '33%';
     }
   }, 2500);
 });
