@@ -272,6 +272,8 @@ function rCook(el){
   const moods=[{e:'😴',n:isAr?'تعبانين وكيفيين':'Tired & Cozy',k:'cozy'},{e:'🎉',n:isAr?'احتفاليين':'Celebratory',k:'fancy'},{e:'🥗',n:isAr?'صحيين':'Healthy',k:'healthy'},{e:'💕',n:isAr?'رومانسيين':'Romantic',k:'romantic'},{e:'🌶️',n:isAr?'مغامرين':'Adventurous',k:'adventurous'}];
   const cuisines=[{f:'🇸🇦',n:'Saudi',a:'سعودي',d:['كبسة','مندي','جريش','هريس','مطبق']},{f:'🇦🇪',n:'Emirati',a:'إماراتي',d:['مجبوس','بلاليط','لقيمات','ثريد','هريس']},{f:'🇱🇧',n:'Lebanese',a:'لبناني',d:['شاورما','كبة','تبولة','لبنة بالزعتر','مجدرة']},{f:'🇪🇬',n:'Egyptian',a:'مصري',d:['كشري','ملوخية','فول','شكشوكة','كفتة']},{f:'🇲🇦',n:'Moroccan',a:'مغربي',d:['طاجين','كسكس','بسطيلة','حريرة','مرقة']},{f:'🇮🇹',n:'Italian',a:'إيطالي',d:['Truffle Risotto','Carbonara','Ossobuco','Tiramisu','Bruschetta']},{f:'🇯🇵',n:'Japanese',a:'ياباني',d:['Sushi DIY','Ramen','Teriyaki Chicken','Gyoza','Miso Soup']},{f:'🇮🇳',n:'Indian',a:'هندي',d:['Butter Chicken','Biryani','Dal Makhani','Palak Paneer','Naan']},{f:'🇬🇷',n:'Greek',a:'يوناني',d:['Moussaka','Souvlaki','Spanakopita','Tzatziki','Baklava']},{f:'🇲🇽',n:'Mexican',a:'مكسيكي',d:['Tacos al Pastor','Guacamole','Enchiladas','Churros','Pozole']},{f:'🇹🇷',n:'Turkish',a:'تركي',d:['Lahmacun','Kebabs','Borek','Baklava','Ayran']},{f:'🇫🇷',n:'French',a:'فرنسي',d:['Ratatouille','Coq au Vin','Croque Monsieur','Crème Brûlée','Quiche']},{f:'🇹🇭',n:'Thai',a:'تايلاندي',d:['Pad Thai','Green Curry','Tom Yum','Mango Sticky Rice','Som Tam']},{f:'🇪🇸',n:'Spanish',a:'إسباني',d:['Paella','Tapas','Churros','Gazpacho','Tortilla Española']},{f:'🇮🇷',n:'Persian',a:'فارسي',d:['Fesenjan','Ghormeh Sabzi','Kebab','Tahdig','Zereshk Polo']},{f:'🇨🇳',n:'Chinese',a:'صيني',d:['Kung Pao Chicken','Dumplings','Sweet & Sour Pork','Mapo Tofu','Fried Rice']},{f:'🇰🇷',n:'Korean',a:'كوري',d:['Bibimbap','Bulgogi','Kimchi Stew','Japchae','Korean BBQ']},{f:'🇺🇸',n:'American',a:'أمريكي',d:['BBQ Ribs','Burgers','Mac & Cheese','Pancakes','Apple Pie']},{f:'🇻🇳',n:'Vietnamese',a:'فيتنامي',d:['Pho','Banh Mi','Spring Rolls','Bun Cha','Vietnamese Coffee']},{f:'🇧🇷',n:'Brazilian',a:'برازيلي',d:['Feijoada','Pão de Queijo','Moqueca','Brigadeiro','Coxinha']}];
   const topDishes = cuisines.flatMap(function(c){ return c.d; }).slice(0,30);
+  const topSoups = ['Tom Yum','Miso Soup','Gazpacho','French Onion','Pho','Harira','Shorbat Adas','Borscht','Minestrone','Laksa','Avgolemono','Lentil Soup','Tomato Basil','Caldo Verde','Goulash','Matzo Ball','Chorba','Consommé','Chicken Noodle','Clam Chowder','Sinigang','Corn Chowder','Chicken Mulligatawny','Pumpkin Soup','Hot and Sour','Egg Drop','Lentil Dal','Seafood Bisque','Miso Ramen','Cream of Mushroom'];
+  const topDesserts = ['Tiramisu','Baklava','Crème Brûlée','Mango Sticky Rice','Churros','Pavlova','Gulab Jamun','Knafeh','Basbousa','Kanafeh','Macarons','Pastel de Nata','Tres Leches','Chocolate Fondant','Baklava Rolls','Rice Pudding','Mochi','Affogato','Cheesecake','Panna Cotta','Crepes','Sticky Toffee Pudding','Sahlab','Qatayef','Halva','Banoffee Pie','Coconut Macaroons','Brigadeiro','Loukoumades','Poached Pears'];
   el.innerHTML=`<div class="container">
   <button class="back-btn" onclick="showTab('home')">← ${isAr?'رجوع':'Back'}</button>
   <div style="margin-bottom:20px"><div style="font-size:24px;font-weight:700;font-family:'Cormorant Garamond',serif">${isAr?'ماذا سنطبخ، شيف؟ 👨‍🍳':'What to Cook, Chef? 👨‍🍳'}</div><div style="font-size:14px;color:var(--text-soft)">${isAr?'تحدي طبخ مشترك':'Shared cooking challenge'}</div></div>
@@ -306,6 +308,10 @@ function rCook(el){
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">${(window._CD=cuisines,cuisines).map((c,_i)=>'<div class="card tap" onclick="showDishes('+_i+')" style="padding:14px;display:flex;align-items:center;gap:10px"><span style="font-size:26px">'+c.f+'</span><div><div style="font-weight:700;font-size:13px;color:var(--text)">'+(isAr?c.a:c.n)+'</div><div style="font-size:10px;color:var(--text-soft);margin-top:2px">'+c.d.slice(0,2).join(' · ')+'</div></div></div>').join('')}</div>
   <div style="font-size:14px;font-weight:700;color:var(--text-mid);margin-bottom:12px">⭐ ${isAr?'أفضل 30 طبقاً':'Top 30 dishes'}</div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:16px">${topDishes.map(function(d){ return '<span class="chip" onclick="promptDishRecipe(\''+d.replace(/'/g,'&#39;')+'\')">'+d+'</span>'; }).join('')}</div>
+  <div style="font-size:14px;font-weight:700;color:var(--text-mid);margin-bottom:12px">🍲 ${isAr?'أفضل 30 حساء':'Top 30 soups'}</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:16px">${topSoups.map(function(d){ return '<span class="chip" onclick="promptDishRecipe(\''+d.replace(/'/g,'&#39;')+'\')">'+d+'</span>'; }).join('')}</div>
+  <div style="font-size:14px;font-weight:700;color:var(--text-mid);margin-bottom:12px">🍰 ${isAr?'أفضل 30 حلوى':'Top 30 desserts'}</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:16px">${topDesserts.map(function(d){ return '<span class="chip" onclick="promptDishRecipe(\''+d.replace(/'/g,'&#39;')+'\')">'+d+'</span>'; }).join('')}</div>
   <div id="dishes-sec" style="margin-bottom:16px"></div>
   </div>`;
 }
@@ -640,32 +646,6 @@ function rProfile(el){
     <div style="font-size:12px;color:var(--text-soft);margin-bottom:10px">${isAr?'شارك هذا الكود مع شريكك لربط تقدمكما':'Share with your partner to link your progress'}</div>
     <div style="background:var(--rose-pale);border-radius:12px;padding:14px;text-align:center;font-size:26px;font-weight:800;color:var(--rose);letter-spacing:5px;margin-bottom:10px;font-family:'Cormorant Garamond',serif">${getCode()}</div>
     <button onclick="copyCode()" class="btn-ghost" style="padding:10px;font-size:13px">${isAr?'📋 نسخ الكود':'📋 Copy Code'}</button>
-  </div>
-  <!-- AI CONNECTION -->
-  <div class="card" style="padding:16px;margin-bottom:16px">
-    <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:10px">🤖 ${isAr?'اتصال الذكاء الاصطناعي':'AI Connection'}</div>
-    ${(function(){
-      var hasConn=!!(LS.get('aw_proxy_url','')||DEFAULT_PROXY||LS.get('aw_apikey',''));
-      var src=LS.get('aw_proxy_url','')||DEFAULT_PROXY?'proxy':LS.get('aw_apikey','')?'key':'none';
-      var bg=hasConn?'rgba(123,174,142,.1)':'rgba(239,68,68,.06)';
-      var bc=hasConn?'rgba(123,174,142,.3)':'rgba(239,68,68,.2)';
-      var col=hasConn?'var(--sage)':'#EF4444';
-      var label=src==='proxy'?('✅ AI '+(isAr?'متصل — Worker Proxy آمن 🔒':'connected — Worker Proxy 🔒')):src==='key'?('🔑 '+(isAr?'متصل — مفتاح شخصي':'connected — personal key')):('⚠️ '+(isAr?'AI غير متصل':'AI not connected'));
-      var sub=src==='proxy'?(isAr?'طلبات AI تمر عبر خادم آمن':'AI requests via secure proxy'):src==='key'?(isAr?'المفتاح محفوظ على هاتفك':'Key stored on your device'):(isAr?'سيُفعَّل قريباً':'Will be activated soon');
-      return '<div style="border-radius:12px;padding:12px 14px;border:1px solid '+bc+';background:'+bg+'">'+
-        '<div style="font-size:13px;font-weight:700;color:'+col+';margin-bottom:3px">'+label+'</div>'+
-        '<div style="font-size:11px;color:var(--text-soft)">'+sub+'</div></div>';
-    })()}
-    ${isAdmin()?`
-    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-      <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:10px">👑 Admin Settings</div>
-      <label class="label">Worker Proxy URL</label>
-      <input type="url" id="proxy-in" placeholder="https://anawyak-ai.moh-essa.workers.dev" style="margin-bottom:8px;font-size:12px">
-      <button onclick="saveProxy()" class="btn-gold" style="padding:8px;font-size:12px;margin-bottom:12px">${isAr?'حفظ':'Save Proxy'}</button>
-      <label class="label">Backup API Key</label>
-      <input type="password" id="ak-in" placeholder="sk-ant-api03-..." style="margin-bottom:8px;font-size:12px">
-      <button onclick="saveKey()" class="btn-ghost" style="padding:8px;font-size:12px">${isAr?'حفظ المفتاح':'Save Key'}</button>
-    </div>`:''}
   </div>
   <!-- THEME -->
   <div class="card" style="padding:16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
@@ -1088,9 +1068,20 @@ function rHome(el) {
   var nextOcc = occasions.length ? occasions[0] : null;
   var savedMood = LS.get('aw_mood', '');
   var moods = ['😊','🥰','😴','💪','😤','🥺','🎉','💑'];
+  var h7 = (LS.get('aw_grat',{days:[]}).days||[]).length >= 7;
+  var h30 = streak >= 30;
+  var h10 = memories.length >= 10;
 
   var ritualPrompt = '';
   var targetTab = 'dates';
+  var secretPreview = secretLang.slice(0,2).map(function(s){
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(232,132,154,.1);font-size:13px;color:var(--text);"><span style="font-size:22px">' + s.emoji + '</span><span style="flex:1;color:var(--text-mid)">' + esc(s.meaning) + '</span></div>';
+  }).join('');
+  var badgeSummary = '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+    '<span class="chip" style="padding:8px 12px;font-size:12px">🤝 ' + (h7? (isAr?'مفعل':'On') : (isAr?'7 أيام':'7d')) + '</span>' +
+    '<span class="chip" style="padding:8px 12px;font-size:12px">🔥 ' + (h30? (isAr?'مفعل':'On') : (isAr?'30 يوم':'30d')) + '</span>' +
+    '<span class="chip" style="padding:8px 12px;font-size:12px">📖 ' + (h10? (isAr?'مفعل':'On') : (isAr?'10 ذكريات':'10 mem')) + '</span>' +
+  '</div>';
   if(p.firstWish){
     var wishLabel = '';
     var wishDesc = '';
@@ -1136,26 +1127,65 @@ function rHome(el) {
   el.innerHTML = '<div class="container" style="padding-top:20px">' +
 
   // HERO CARD
-  '<div class="card-rose" style="padding:22px;margin-bottom:20px;animation:fadeUp .5s ease">' +
-    '<div style="text-align:center;margin-bottom:10px">' +
+  '<div class="card-rose" style="padding:18px;margin-bottom:20px;animation:fadeUp .5s ease">' +
+    '<div style="text-align:center;margin-bottom:8px">' +
       '<div style="font-size:13px;color:var(--text-soft);margin-bottom:2px">' +
         (isAr ? 'أهلاً، ' : 'Welcome back, ') +
         '<span style="font-weight:800;color:var(--rose)">' + (p.n1 || (isAr?'حبيبي':'Habibi')) + '</span>' +
         (p.n2 ? ' & ' + p.n2 : '') + ' 💕' +
       '</div>' +
-      '<div style="font-size:14px;font-style:italic;color:var(--text-mid);line-height:1.6">"' + dailyQuote() + '"</div>' +
+      '<div style="font-size:13px;font-style:italic;color:var(--text-mid);line-height:1.5">"' + dailyQuote() + '"</div>' +
     '</div>' +
     '<div style="display:flex;justify-content:center;gap:4px;flex-wrap:wrap;margin-bottom:10px">' +
       moods.map(function(m){ return '<span class="mood-emoji ' + (savedMood===m?'selected':'') + '" onclick="saveMood(\'' + m + '\',this)">' + m + '</span>'; }).join('') +
     '</div>' +
-    '<div style="text-align:center;font-size:12px;color:var(--text-soft);margin-bottom:12px">' + (isAr?'الرحلة تبدأ بطقس واحد صغير':'Your journey begins with one small ritual') + '</div>' +
-    '<button class="btn-gold" onclick="showTab(\'' + targetTab + '\')" style="margin:0 auto;max-width:260px;padding:14px;font-size:14px;font-weight:800">' +
+    '<div style="text-align:center;font-size:12px;color:var(--text-soft);margin-bottom:10px">' + (isAr?'خطوة صغيرة، تأثير كبير الليلة':'One small step, a big difference tonight') + '</div>' +
+    '<button class="btn-gold" onclick="showTab(\'' + targetTab + '\')" style="margin:0 auto;max-width:240px;padding:12px 16px;font-size:14px;font-weight:800">' +
       (p.firstWish ? (isAr?'ابدأ طقسك الأول':'Start your first ritual') : (isAr?'اكتشف طقسك الأول':'Discover your first ritual')) +
     '</button>' +
-    '<div style="text-align:center;font-size:11px;color:var(--text-soft);margin-top:10px">' + (isAr?'ابدأ بعنصر واحد بسيط لتشعر بالفرق الليلة':'Start with one simple thing to feel the difference tonight') + '</div>' +
   '</div>' +
 
   ritualPrompt +
+
+  '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px">' +
+    '<div class="card tap" onclick="showTab(\'memories\')" style="padding:16px;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;">' +
+      '<div>' +
+        '<div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:10px">🎉 ' + (isAr?'المناسبات':'Occasions') + '</div>' +
+        (nextOcc ?
+          '<div style="font-size:22px;font-weight:700;color:var(--rose);margin-bottom:6px">' + nextOcc.d + '</div>' +
+          '<div style="font-size:12px;color:var(--text-mid);line-height:1.6">' + nextOcc.n + ' · ' + (isAr?'باقي':'left') + '</div>' :
+          '<div style="font-size:14px;color:var(--text-mid);line-height:1.6">' + (isAr?'لم تضاف بعد':'No occasion added yet') + '</div>'
+        ) +
+      '</div>' +
+      '<button class="btn-ghost" style="padding:10px;font-size:12px;">' + (isAr?'عرض المناسبات':'View Occasions') + '</button>' +
+    '</div>' +
+
+    '<div class="card tap" onclick="showTab(\'profile\')" style="padding:16px;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;">' +
+      '<div>' +
+        '<div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:10px">🔒 ' + (isAr?'لغة سرية':'Secret Language') + '</div>' +
+        '<div style="font-size:12px;color:var(--text-soft);margin-bottom:10px">' + (isAr?'رمز خاص بينكما فقط':'Private emoji meanings for you two') + '</div>' +
+        secretPreview +
+      '</div>' +
+      '<button class="btn-ghost" style="padding:10px;font-size:12px;">' + (isAr?'تحرير اللغة':'Edit Language') + '</button>' +
+    '</div>' +
+
+    '<div class="card tap" onclick="showTab(\'profile\')" style="padding:16px;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;">' +
+      '<div>' +
+        '<div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:10px">🏆 ' + (isAr?'الأوسمة':'Badges') + '</div>' +
+        '<div style="font-size:12px;color:var(--text-soft);margin-bottom:10px">' + (isAr?'شاهد إنجازاتكما المشتركة':'See your shared achievements') + '</div>' +
+        badgeSummary +
+      '</div>' +
+      '<button class="btn-ghost" style="padding:10px;font-size:12px;">' + (isAr?'عرضها':'View Badges') + '</button>' +
+    '</div>' +
+
+    '<div class="card tap" onclick="openQuiz()" style="padding:16px;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;">' +
+      '<div>' +
+        '<div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:10px">🎮 ' + (isAr?'اختبار الأزواج':'Couples Quiz') + '</div>' +
+        '<div style="font-size:12px;color:var(--text-soft);line-height:1.6">' + (isAr?'اختبر معرفتك بشريكك':'Test how well you know each other') + '</div>' +
+      '</div>' +
+      '<button class="btn-ghost" style="padding:10px;font-size:12px;">' + (isAr?'ابدأ الآن':'Start Now') + '</button>' +
+    '</div>' +
+  '</div>' +
 
   // STREAK + COUNTDOWN
   '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">' +
