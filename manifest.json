@@ -1,19 +1,18 @@
 {
-  "name": "Ana Wyak | أنا وياك",
+  "id": "/",
+  "name": "أنا وياك — Ana Wyak",
   "short_name": "Ana Wyak",
-  "description": "A private luxury world for two. Intimacy engineered for the modern Arab couple.",
-  "start_url": "/",
-  "scope": "/",
+  "description": "The private luxury world for two. AI relationship coach, date planning, cook-together, and couple rituals for Gulf families.",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
+  "display_override": ["standalone", "window-controls-overlay"],
+  "orientation": "portrait-primary",
   "background_color": "#150D10",
   "theme_color": "#C9954A",
-  "lang": "ar",
-  "dir": "rtl",
-  "categories": [
-    "lifestyle",
-    "social"
-  ],
+  "lang": "en",
+  "categories": ["lifestyle", "social"],
+  "iarc_rating_id": "",
   "icons": [
     {
       "src": "icons/icon-192.png",
@@ -41,15 +40,31 @@
       "name": "AI Coach",
       "short_name": "Coach",
       "description": "Open the AI relationship coach",
-      "url": "./index.html?tab=coach",
+      "url": "./?tab=coach",
       "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Cook Together",
       "short_name": "Cook",
       "description": "Find a recipe to cook together",
-      "url": "./index.html?tab=cook",
+      "url": "./?tab=cook",
       "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Tonight's Date",
+      "short_name": "Tonight",
+      "description": "Decide what to do tonight",
+      "url": "./?tab=dates",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Ana Wyak Home Screen"
     }
   ]
 }
