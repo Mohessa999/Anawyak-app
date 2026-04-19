@@ -236,6 +236,39 @@ async function callAI(msgs,sys,fastMode){
     return isAr?'مشكلة في الاتصال: '+e.message:'Connection error: '+e.message;
   }
 }
+// ── VERIFICATION EMAIL — sends via Cloudflare Worker → Resend ──
+async function sendVerificationEmail(email, code, name) {
+  try {
+    var r = await fetch('https://anawyak.moh-essa.workers.dev/send-email', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email: email, code: code, name: name || '', type: 'signup'})
+    });
+    var d = await r.json().catch(function(){ return {}; });
+    return d.ok === true;
+  } catch(e) { return false; }
+}
+
+// ── LEAD STORAGE — stores to Supabase via Worker for marketing ──
+function storeLead(data) {
+  try {
+    fetch('https://anawyak.moh-essa.workers.dev/store-lead', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    }).catch(function(){});
+  } catch(e) {}
+}
+
+// ── AUTO-FILL — tapping the displayed code fills the input ──
+function autoFillCode(code) {
+  var inp = document.getElementById('verify-code');
+  if(inp){ inp.value = code; inp.focus(); }
+  if(navigator.clipboard) navigator.clipboard.writeText(code).catch(function(){});
+  hap.success();
+  T(isAr ? '✅ تم النسخ — اضغط تفعيل الحساب' : '✅ Code filled — tap Activate');
+}
+
 // Debounce flag — prevents double AI calls (race condition fix)
 var _aiLock = false;
 var _tonightLock = false;
@@ -1512,18 +1545,32 @@ async function doSignIn() {
   }
 }
 function openVerifySheet(email, code) {
+  // code = null → email was sent (show "check inbox")
+  // code = string → email failed or resend not configured (show code prominently on screen)
+  var codeBlock = code
+    ? '<div onclick="autoFillCode(\'' + code + '\')" style="cursor:pointer;user-select:none;background:rgba(240,204,112,.14);border:2px solid var(--gold);border-radius:14px;padding:20px;text-align:center;margin-bottom:16px">' +
+        '<div style="font-size:11px;color:var(--text-soft);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">' + (isAr?'رمز التحقق — اضغط للنسخ':'Verification code — tap to fill') + '</div>' +
+        '<div style="font-family:monospace;font-size:36px;font-weight:700;color:var(--gold);letter-spacing:10px">' + code + '</div>' +
+        '<div style="font-size:12px;color:var(--text-soft);margin-top:8px">' + (isAr?'سيتم النسخ تلقائياً عند الضغط':'Auto-fills the input when tapped') + '</div>' +
+      '</div>'
+    : '<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px;text-align:center;margin-bottom:16px">' +
+        '<div style="font-size:22px;margin-bottom:6px">📧</div>' +
+        '<div style="font-size:14px;color:var(--text-mid);font-weight:600">' + (isAr?'تحقق من صندوق الوارد':'Check your email inbox') + '</div>' +
+        '<div style="font-size:12px;color:var(--text-soft);margin-top:4px">' + email + '</div>' +
+      '</div>';
   var sh = getSheet('verify-sh');
   sh.querySelector('.sheet').innerHTML =
     '<div class="sheet-handle"></div>' +
-    '<h3 style="font-family:\'Cormorant Garamond\',serif;color:var(--rose);margin-bottom:16px;font-size:22px">' + (isAr?'تأكيد البريد الإلكتروني':'Verify Your Email') + '</h3>' +
-    '<div style="font-size:14px;color:var(--text-mid);line-height:1.7;margin-bottom:18px">' +
-      (isAr?'أرسلنا رمز التحقق إلى بريدك. أدخله لتفعيل حسابك.':'We sent a verification code to your email. Enter it to activate your account.') +
+    '<h3 style="font-family:\'Cormorant Garamond\',serif;color:var(--rose);margin-bottom:10px;font-size:22px">' + (isAr?'تفعيل الحساب 💕':'Activate Account 💕') + '</h3>' +
+    '<div style="font-size:14px;color:var(--text-mid);line-height:1.7;margin-bottom:14px">' +
+      (isAr ? 'أدخل رمز التحقق لتفعيل حسابك' : 'Enter the verification code to activate your account') +
     '</div>' +
-    '<div style="margin-bottom:14px"><label class="label">' + (isAr?'رمز التحقق':'Verification code') + '</label><input id="verify-code" placeholder="ABC123"></div>' +
-    '<div style="font-size:13px;color:var(--text-soft);margin-bottom:18px;line-height:1.5">' +
-      (isAr?'رمز العرض التجريبي':'Demo code') + ': <strong>' + code + '</strong>' +
+    codeBlock +
+    '<div style="margin-bottom:16px">' +
+      '<label class="label">' + (isAr?'رمز التحقق (6 أحرف)':'6-character code') + '</label>' +
+      '<input id="verify-code" placeholder="ABC123" autocomplete="one-time-code" style="text-transform:uppercase;letter-spacing:6px;font-size:22px;text-align:center;font-weight:700;font-family:monospace">' +
     '</div>' +
-    '<button class="btn-rose" style="margin-bottom:10px" onclick="verifySignupCode(\'' + email + '\')">' + (isAr?'تأكيد الحساب':'Confirm Account') + '</button>' +
+    '<button class="btn-rose" style="margin-bottom:10px" onclick="verifySignupCode(\'' + email + '\')">' + (isAr?'تفعيل الحساب 💕':'Activate Account 💕') + '</button>' +
     '<button class="btn-ghost" style="padding:14px;font-size:14px" onclick="resendVerificationCode(\'' + email + '\')">' + (isAr?'إعادة إرسال الرمز':'Resend code') + '</button>';
   sh.classList.add('open');
 }
@@ -1565,28 +1612,46 @@ function resendVerificationCode(email) {
   account.verifyCode = genCode();
   account.verified = false;
   LS.set('aw_accounts', accounts);
-  profile = account.profile;
-  LS.set('aw_profile', profile);
-  closeSheet('verify-sh');
-  openVerifySheet(email, account.verifyCode);
-  T(isAr?'تم إعادة إرسال الرمز':'Code resent'); hap.success();
+  var newCode = account.verifyCode;
+  var name = (account.profile && account.profile.n1) || '';
+  T(isAr?'جاري الإرسال...':'Sending...'); hap.tap();
+  sendVerificationEmail(email, newCode, name).then(function(sent) {
+    closeSheet('verify-sh');
+    openVerifySheet(email, sent ? null : newCode);
+    if(sent){
+      T(isAr?'تم الإرسال! تحقق من بريدك 📧':'Sent! Check your email 📧'); hap.success();
+    } else {
+      T(isAr?'انسخ الرمز الجديد أدناه':'Copy the new code below'); hap.tap();
+    }
+  });
 }
 async function doSignUp() {
   var n1    = ((document.getElementById('su-n1')||{}).value||'').trim();
   var n2    = ((document.getElementById('su-n2')||{}).value||'').trim();
-  var email = ((document.getElementById('su-email')||{}).value||'').trim();
+  var email = ((document.getElementById('su-email')||{}).value||'').trim().toLowerCase();
   var pass  = (document.getElementById('su-pass')||{}).value || '';
   var fam   = (document.getElementById('su-fam')||{}).value || 'couple';
   var btn   = document.getElementById('su-btn');
-  var btnLabel = '<span class="en">Create Account 💕</span><span class="ar">إنشاء الحساب 💕</span>';
+  var btnLabel = '<span class="en">Create Your Private World 💕</span><span class="ar">افتح عالمكما الخاص 💕</span>';
   if(!n1||!n2||!email||!pass){ T(isAr?'أكمل جميع الحقول':'Fill all fields'); hap.error(); return; }
   if(pass.length < 6){ T(isAr?'كلمة المرور قصيرة (6+ أحرف)':'Password too short (6+ chars)'); hap.error(); return; }
   if(!email.includes('@')){ T(isAr?'بريد إلكتروني غير صحيح':'Invalid email'); hap.error(); return; }
   if(btn) btn.innerHTML = '<span class="spinner"></span>';
   var accounts = LS.get('aw_accounts', []);
-  if(accounts.some(function(a){ return a.email === email; })){
+  var existing = accounts.find(function(a){ return a.email === email; });
+  if(existing) {
     if(btn) btn.innerHTML = btnLabel;
-    T(isAr?'البريد مستخدم بالفعل':'Email already registered'); hap.error(); return;
+    if(!existing.verified) {
+      // Account exists but not yet verified — generate fresh code and resend
+      existing.verifyCode = genCode();
+      LS.set('aw_accounts', accounts);
+      var resent = await sendVerificationEmail(email, existing.verifyCode, existing.profile.n1 || n1);
+      openVerifySheet(email, resent ? null : existing.verifyCode);
+      T(isAr?'الحساب موجود — تم إرسال رمز جديد 📧':'Account exists — new code sent 📧');
+    } else {
+      T(isAr?'البريد مستخدم — سجّل دخولك':'Email registered — sign in instead'); hap.error();
+    }
+    return;
   }
   var hash = await hashPw(pass);
   var code = genCode();
@@ -1595,12 +1660,17 @@ async function doSignUp() {
   LS.set('aw_accounts', accounts);
   profile = newProfile;
   LS.set('aw_profile', profile);
-  obWish = '';
   if(btn) btn.innerHTML = btnLabel;
   hap.celebrate();
-  openVerifySheet(email, code);
-  T(isAr?'تم إنشاء الحساب! أدخل رمز التحقق للمواصلة.':'Account created! Enter verification code to continue.');
-  return;
+  // Send verification email (falls back to showing code on screen if Resend not configured)
+  var emailSent = await sendVerificationEmail(email, code, n1);
+  openVerifySheet(email, emailSent ? null : code);
+  T(emailSent
+    ? (isAr?'تم الإنشاء! تحقق من بريدك 📧':'Created! Check your email inbox 📧')
+    : (isAr?'تم الإنشاء! انسخ الرمز أدناه وأدخله':'Created! Copy the code and enter it'));
+  // Store lead for marketing — fire and forget
+  storeLead({email:email, name:n1, partner:n2, vibe:obVibe||'', wish:obWish||'', fam:fam, lang:isAr?'ar':'en', source:'signup'});
+  obWish = '';
 }
 function selectObVibe(v,el){
   obVibe = v;
