@@ -16,6 +16,14 @@ const FREE_LIMIT = 5; // Free users get 5/day — enough to feel the magic
 const ADMIN_TOKEN = 'AW2026_FOUNDER';
 function isAdmin(){ return LS.get('aw_admin','') === ADMIN_TOKEN; }
 
+// ── PADDLE BILLING ──────────────────────────────────────────
+// Get your client token: Paddle Dashboard → Developer → Authentication → Client-side token
+const PADDLE_CLIENT_TOKEN = 'live_REPLACE_WITH_YOUR_CLIENT_TOKEN'; // ← Paddle Dashboard → Developer → Authentication → Client-side token
+const PADDLE_MONTHLY_PRICE = 'pri_01kpe8qnd2m40hwa5809wsjajj'; // $7.90/month · 7-day trial
+const PADDLE_ANNUAL_PRICE  = 'pri_01kpe94s1a2pe0acfpsssbk17x'; // $79.00/year · 7-day trial
+
+function isPro(){ return isAdmin() || LS.get('aw_pro', false); }
+
 const SYS = `You are the AI companion for "أنا وياك" (Ana Wyak) — a warm, luxury couples app for Arab families worldwide.
 Voice: warm, wise, loving — like a trusted family elder. Reply in the user's language. If the user writes in Arabic, respond fully in Arabic. If the user writes in English, respond fully in English. If the user mixes both, reply using both languages naturally.
 Use these naturally: يا حبيبي, ماشاء الله, الحمدلله, يا قلبي, بالتوفيق, يا عيوني
@@ -267,6 +275,218 @@ function autoFillCode(code) {
   if(navigator.clipboard) navigator.clipboard.writeText(code).catch(function(){});
   hap.success();
   T(isAr ? '✅ تم النسخ — اضغط تفعيل الحساب' : '✅ Code filled — tap Activate');
+}
+
+// ══════════════════════════════════════════════════
+//  PADDLE CHECKOUT
+// ══════════════════════════════════════════════════
+function initPaddle() {
+  if(!PADDLE_CLIENT_TOKEN || PADDLE_CLIENT_TOKEN.includes('REPLACE')) return;
+  if(typeof Paddle === 'undefined') return;
+  Paddle.Initialize({
+    token: PADDLE_CLIENT_TOKEN,
+    eventCallback: function(ev) {
+      if(ev.name === 'checkout.completed') {
+        LS.set('aw_pro', true);
+        if(profile){ profile.pro = true; LS.set('aw_profile', profile); }
+        hap.celebrate();
+        setTimeout(function(){
+          T(isAr ? '🎉 أنا وياك Pro مفعّل! جميع الميزات متاحة 💕' : '🎉 Ana Wyak Pro activated! All features unlocked 💕', 5000);
+          showTab('profile');
+        }, 500);
+      }
+    }
+  });
+}
+
+function openPaddleCheckout(priceId) {
+  if(!PADDLE_CLIENT_TOKEN || PADDLE_CLIENT_TOKEN.includes('REPLACE')) {
+    // Fallback: open Paddle payment link in browser
+    var monthlyLink = 'https://buy.paddle.com/product/'+PADDLE_MONTHLY_PRICE;
+    var annualLink  = 'https://buy.paddle.com/product/'+PADDLE_ANNUAL_PRICE;
+    var link = priceId === PADDLE_ANNUAL_PRICE ? annualLink : monthlyLink;
+    window.open(link, '_blank');
+    T(isAr ? 'جارٍ فتح صفحة الدفع...' : 'Opening payment page...'); return;
+  }
+  if(typeof Paddle === 'undefined') {
+    T(isAr ? 'جارٍ تحميل نظام الدفع...' : 'Loading payment...'); hap.tap();
+    setTimeout(function(){ openPaddleCheckout(priceId); }, 1200); return;
+  }
+  var customerEmail = '';
+  var accounts = LS.get('aw_accounts', []);
+  if(profile) {
+    var me = accounts.find(function(a){ return a.profile && a.profile.code === profile.code; });
+    if(me) customerEmail = me.email || '';
+  }
+  try {
+    Paddle.Checkout.open({
+      items: [{ priceId: priceId, quantity: 1 }],
+      customer: customerEmail ? { email: customerEmail } : {},
+      settings: { displayMode: 'overlay', theme: 'dark', locale: isAr ? 'ar' : 'en' }
+    });
+    hap.tap();
+  } catch(e) {
+    console.error('[AW Paddle]', e);
+    paywallContact();
+  }
+}
+
+function checkPaddleSuccess() {
+  var params = new URLSearchParams(window.location.search);
+  if(params.get('paddle_success') !== '1') return;
+  window.history.replaceState({}, '', window.location.pathname);
+  LS.set('aw_pro', true);
+  if(profile){ profile.pro = true; LS.set('aw_profile', profile); }
+  hap.celebrate();
+  T(isAr ? '🎉 Pro مفعّل! جميع الميزات متاحة 💕' : '🎉 Pro activated! All features unlocked 💕', 5000);
+}
+
+// ══════════════════════════════════════════════════
+//  PARTNER REAL-TIME SYNC
+// ══════════════════════════════════════════════════
+var _syncInterval = null;
+var _partnerLastSeen = null;
+
+function getShareableState() {
+  return {
+    code:      profile ? profile.code : '',
+    n1:        profile ? profile.n1 : '',
+    n2:        profile ? profile.n2 : '',
+    vibe:      profile ? profile.vibe : '',
+    occasions: occasions.slice(0, 15),
+    grocery:   grocery.slice(0, 30),
+    secretLang: secretLang,
+    lastSeen:  new Date().toISOString()
+  };
+}
+
+async function syncToCloud() {
+  if(!profile || !profile.code) return;
+  try {
+    fetch('https://anawyak.moh-essa.workers.dev/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(getShareableState())
+    }).catch(function(){});
+  } catch(e) {}
+}
+
+async function fetchPartnerSync(partnerCode) {
+  try {
+    var r = await fetch('https://anawyak.moh-essa.workers.dev/partner/' + partnerCode.toUpperCase());
+    if(!r.ok) return null;
+    var d = await r.json();
+    return d.ok ? d.data : null;
+  } catch(e) { return null; }
+}
+
+function linkPartner() {
+  var inp = document.getElementById('partner-code-inp');
+  var code = (inp ? inp.value : '').trim().toUpperCase();
+  if(!code || code.length < 4) { T(isAr ? 'أدخل كود شريكك' : "Enter partner's code"); hap.error(); return; }
+  if(code === getCode()) { T(isAr ? 'هذا كودك أنت!' : "That's your own code!"); hap.error(); return; }
+  LS.set('aw_partner_code', code);
+  hap.celebrate();
+  T(isAr ? '🔗 جارٍ الربط...' : '🔗 Linking...');
+  startPartnerSync();
+  setTimeout(function(){ showTab('profile'); }, 600);
+}
+
+function unlinkPartner() {
+  LS.set('aw_partner_code', '');
+  if(_syncInterval) { clearInterval(_syncInterval); _syncInterval = null; }
+  hap.tap(); showTab('profile');
+  T(isAr ? 'تم إلغاء الربط' : 'Partner unlinked');
+}
+
+function applyPartnerData(data) {
+  if(!data) return;
+  // Merge partner occasions (add new ones, don't overwrite)
+  var existingIds = occasions.map(function(o){ return o.id; });
+  var newOccs = (data.occasions || []).filter(function(o){ return !existingIds.includes(o.id); });
+  if(newOccs.length) {
+    occasions = occasions.concat(newOccs);
+    LS.set('aw_occasions', occasions);
+  }
+  // Merge grocery (partner's unchecked items not already listed)
+  var existingItems = grocery.map(function(g){ return g.item; });
+  var newItems = (data.grocery || []).filter(function(g){ return !g.checked && !existingItems.includes(g.item); });
+  if(newItems.length) {
+    grocery = grocery.concat(newItems);
+    LS.set('aw_grocery', grocery);
+  }
+  // Update last seen
+  if(data.lastSeen !== _partnerLastSeen) {
+    _partnerLastSeen = data.lastSeen;
+    return true; // changed
+  }
+  return false;
+}
+
+function startPartnerSync() {
+  if(_syncInterval) clearInterval(_syncInterval);
+  syncToCloud();
+  var partnerCode = LS.get('aw_partner_code', '');
+  if(!partnerCode) return;
+  fetchPartnerSync(partnerCode).then(function(data) {
+    if(data) {
+      var changed = applyPartnerData(data);
+      if(changed) T(isAr ? '🔗 تم مزامنة بيانات شريكك ✨' : '🔗 Partner data synced ✨');
+    }
+  });
+  _syncInterval = setInterval(function() {
+    syncToCloud();
+    var pc = LS.get('aw_partner_code', '');
+    if(!pc) { clearInterval(_syncInterval); _syncInterval = null; return; }
+    fetchPartnerSync(pc).then(function(data) {
+      if(data) {
+        var changed = applyPartnerData(data);
+        if(changed) {
+          T(isAr ? '🔗 شريكك حدّث البيانات ✨' : '🔗 Partner updated ✨');
+          var activeEl = document.querySelector('.tab-screen.active');
+          if(activeEl) {
+            var tabId = activeEl.id;
+            if(tabId === 'tab-memories') showTab('memories');
+            if(tabId === 'tab-cook') showTab('cook');
+          }
+        }
+      }
+    });
+  }, 30000); // poll every 30s
+}
+
+// ══════════════════════════════════════════════════
+//  SERVICE WORKER UPDATE DETECTION
+// ══════════════════════════════════════════════════
+function setupSWUpdateDetection() {
+  if(!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.addEventListener('controllerchange', function() {
+    if(document._awReloading) return;
+    document._awReloading = true;
+    window.location.reload();
+  });
+  navigator.serviceWorker.ready.then(function(reg) {
+    reg.addEventListener('updatefound', function() {
+      var nw = reg.installing;
+      nw.addEventListener('statechange', function() {
+        if(nw.state === 'installed' && navigator.serviceWorker.controller) {
+          showUpdateBanner();
+        }
+      });
+    });
+  });
+}
+
+function showUpdateBanner() {
+  if(document.getElementById('aw-update-banner')) return;
+  var b = document.createElement('div');
+  b.id = 'aw-update-banner';
+  b.style.cssText = 'position:fixed;top:max(12px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:var(--text);color:var(--cream);border-radius:50px;padding:10px 18px;font-size:13px;font-weight:700;z-index:9999;white-space:nowrap;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:fadeUp .3s ease;cursor:pointer';
+  b.innerHTML = '✨ ' + (isAr ? 'تحديث جديد متاح' : 'New update ready') +
+    '<button onclick="window.location.reload()" style="background:var(--rose);color:#fff;border:none;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">' +
+    (isAr ? 'تحديث' : 'Refresh') + '</button>' +
+    '<button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--text-soft);font-size:18px;cursor:pointer;line-height:1">×</button>';
+  document.body.appendChild(b);
 }
 
 // Debounce flag — prevents double AI calls (race condition fix)
@@ -724,9 +944,25 @@ function rProfile(el){
   <!-- PARTNER CODE -->
   <div class="card" style="padding:16px;margin-bottom:16px">
     <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px">🔗 ${isAr?'كود الشريك':'Partner Code'}</div>
-    <div style="font-size:12px;color:var(--text-soft);margin-bottom:10px">${isAr?'شارك هذا الكود مع شريكك لربط تقدمكما':'Share with your partner to link your progress'}</div>
+    <div style="font-size:12px;color:var(--text-soft);margin-bottom:10px">${isAr?'شارك كودك مع شريكك لمزامنة المناسبات والوصفات والرموز السرية':'Share your code with your partner to sync occasions, recipes & secret language'}</div>
+    <div style="font-size:11px;color:var(--text-soft);margin-bottom:6px;font-weight:600">${isAr?'كودك:':'Your code:'}</div>
     <div style="background:var(--rose-pale);border-radius:12px;padding:14px;text-align:center;font-size:26px;font-weight:800;color:var(--rose);letter-spacing:5px;margin-bottom:10px;font-family:'Cormorant Garamond',serif">${getCode()}</div>
-    <button onclick="copyCode()" class="btn-ghost" style="padding:10px;font-size:13px">${isAr?'📋 نسخ الكود':'📋 Copy Code'}</button>
+    <button onclick="copyCode()" class="btn-ghost" style="padding:10px;font-size:13px;margin-bottom:12px">${isAr?'📋 نسخ الكود':'📋 Copy Code'}</button>
+    <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+      <div style="font-size:11px;color:var(--text-soft);margin-bottom:6px;font-weight:600">${isAr?'أدخل كود شريكك:':'Enter partner\'s code:'}</div>
+      ${LS.get('aw_partner_code','')?
+        `<div style="display:flex;align-items:center;gap:8px;background:rgba(232,132,154,.08);border:1px solid rgba(232,132,154,.2);border-radius:12px;padding:10px 12px;margin-bottom:8px">
+          <span style="font-size:13px;font-weight:700;color:var(--rose);letter-spacing:2px">${LS.get('aw_partner_code','')}</span>
+          <span style="flex:1"></span>
+          <span style="font-size:11px;color:var(--text-soft)">🔄 ${isAr?'متزامن':'Synced'}</span>
+        </div>
+        <button onclick="unlinkPartner()" style="background:none;border:1px solid rgba(232,132,154,.3);color:var(--rose);border-radius:12px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;width:100%;font-family:inherit">${isAr?'إلغاء الربط 🔗':'Unlink Partner 🔗'}</button>`:
+        `<div style="display:flex;gap:8px">
+          <input id="partner-code-inp" placeholder="${isAr?'كود شريكك…':'Partner\'s code…'}" maxlength="8" style="flex:1;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:14px;font-family:inherit;color:var(--text);letter-spacing:2px;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+          <button onclick="linkPartner()" class="btn-rose" style="padding:10px 16px;font-size:13px;white-space:nowrap">${isAr?'ربط':'Link'}</button>
+        </div>`
+      }
+    </div>
   </div>
   <!-- THEME -->
   <div class="card" style="padding:16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
@@ -753,8 +989,13 @@ function rProfile(el){
     <svg width="60" height="40" viewBox="0 0 200 140" class="float" style="margin-bottom:12px"><defs><linearGradient id="pgl1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F0CC70"/><stop offset="100%" stop-color="#C9954A"/></linearGradient><linearGradient id="pgl2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8849A"/><stop offset="100%" stop-color="#C8607A"/></linearGradient></defs><ellipse cx="75" cy="70" rx="52" ry="52" stroke="url(#pgl1)" stroke-width="16" fill="none"/><ellipse cx="125" cy="70" rx="52" ry="52" stroke="url(#pgl2)" stroke-width="16" fill="none"/></svg>
     <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--gold);margin-bottom:4px">أنا وياك Pro</div>
     <div style="font-size:13px;color:var(--text-soft);margin-bottom:14px;line-height:1.6">${isAr?'رسائل غير محدودة · وصفات · أفكار خروجات · ميزات حصرية':'Unlimited messages · Recipes · Date plans · Exclusive features'}</div>
-    <div style="font-size:28px;font-weight:800;color:var(--gold);margin-bottom:14px">AED 29 <span style="font-size:14px;font-weight:400;color:var(--text-soft)">/${isAr?'شهر':'month'}</span></div>
-    <a href="subscribe.html" target="_blank" class="btn-gold" style="display:block;text-decoration:none;text-align:center;padding:14px;border-radius:50px">${isAr?'اشترك الآن ✨':'Subscribe Now ✨'}</a>
+    <div style="font-size:28px;font-weight:800;color:var(--gold);margin-bottom:6px">$7.90 <span style="font-size:14px;font-weight:400;color:var(--text-soft)">/${isAr?'شهر':'month'}</span></div>
+    <div style="font-size:12px;color:var(--text-soft);margin-bottom:14px">${isAr?'أو $79/سنة · تجربة مجانية 7 أيام':'or $79/year · 7-day free trial'}</div>
+    ${isPro()?
+      `<div style="background:rgba(201,149,74,.15);border:1px solid rgba(201,149,74,.3);border-radius:50px;padding:14px;font-size:15px;font-weight:700;color:var(--gold);text-align:center">✨ ${isAr?'Pro مفعّل':'Pro Active'}</div>`:
+      `<button onclick="openPaddleCheckout(PADDLE_MONTHLY_PRICE)" class="btn-gold" style="display:block;width:100%;margin-bottom:10px;cursor:pointer;font-family:inherit;font-size:15px;padding:14px;border-radius:50px;border:none">${isAr?'ابدأ تجربتك المجانية 🚀':'Start Free Trial 🚀'}</button>
+      <button onclick="openPaddleCheckout(PADDLE_ANNUAL_PRICE)" style="display:block;width:100%;background:none;border:1px solid var(--gold);color:var(--gold);border-radius:50px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">${isAr?'السنوي $79 — الأفضل قيمة 💛':'Annual $79 — Best Value 💛'}</button>`
+    }
   </div>
   <button onclick="shareApp()" class="btn-ghost" style="margin-bottom:12px">${isAr?'📤 شارك أنا وياك':'📤 Share Ana Wyak'}</button>
   <!-- ADMIN MODE TOGGLE (invisible to regular users) -->
@@ -911,10 +1152,10 @@ function showPaywall(){
     '<div style="font-size:13px;color:var(--text-soft);margin-bottom:16px">'+(isAr?'استخدمت رسائلك اليوم. تتجدد خلال '+timeUntilMidnight()+' 🌙':'Daily free messages used. Resets in '+timeUntilMidnight()+' 🌙')+'</div>'+
     features.map(function(b){ return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);text-align:left;font-size:13px">'+b+'</div>'; }).join('')+
     '<div style="font-size:14px;color:var(--text-soft);margin-bottom:4px;margin-top:16px">'+(isAr?'عرض الإطلاق':'Launch offer')+'</div>'+
-    '<div style="font-size:28px;font-weight:800;color:var(--rose);margin:12px 0 4px"><span style="text-decoration:line-through;color:var(--text-soft);font-size:18px">AED 39</span> AED 29<span style="font-size:15px;font-weight:400;color:var(--text-soft)">/'+(isAr?'شهر':'month')+'</span></div>'+
-    '<div style="font-size:14px;color:var(--text-soft);margin-bottom:16px">'+(isAr?'أو سنوي AED 290 فقط — وفر 50٪':'or annual AED 290 only — save 50%')+'</div>'+
-    '<button class="btn-gold" onclick="paywallContact()" style="display:block;width:100%;margin-bottom:10px;cursor:pointer;font-family:inherit;font-size:15px;padding:14px;border-radius:50px;border:none">'+(isAr?'اطلب وصول Pro 🚀':'Request Pro Access 🚀')+'</button>'+
-    '<a href="pricing.html" target="_blank" style="display:block;font-size:12px;color:var(--rose);margin-bottom:16px;text-decoration:none">'+(isAr?'عرض خيارات الأسعار':'View pricing options')+'</a>'+
+    '<div style="font-size:28px;font-weight:800;color:var(--rose);margin:12px 0 4px">$7.90<span style="font-size:15px;font-weight:400;color:var(--text-soft)">/'+(isAr?'شهر':'month')+'</span></div>'+
+    '<div style="font-size:14px;color:var(--text-soft);margin-bottom:16px">'+(isAr?'أو سنوي $79 فقط — وفر 17٪ · تجربة مجانية 7 أيام':'or annual $79 only — save 17% · 7-day free trial')+'</div>'+
+    '<button class="btn-gold" onclick="openPaddleCheckout(PADDLE_MONTHLY_PRICE)" style="display:block;width:100%;margin-bottom:10px;cursor:pointer;font-family:inherit;font-size:15px;padding:14px;border-radius:50px;border:none">'+(isAr?'ابدأ تجربتك المجانية 🚀':'Start Free Trial 🚀')+'</button>'+
+    '<button onclick="openPaddleCheckout(PADDLE_ANNUAL_PRICE)" style="display:block;width:100%;background:none;border:1px solid var(--gold);color:var(--gold);border-radius:50px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:16px">'+(isAr?'السنوي $79 — الأفضل قيمة 💛':'Annual $79 — Best Value 💛')+'</button>'+
     '<button onclick="document.getElementById(\'pw\').classList.remove(\'open\')" style="background:none;border:none;color:var(--text-soft);font-size:14px;cursor:pointer;font-family:inherit">'+(isAr?'لاحقاً':'Maybe later')+'</button>'+
     '</div></div>';
   document.body.appendChild(pw);
@@ -1027,6 +1268,11 @@ document.addEventListener('visibilitychange',()=>{
 // ══════════════════════════════════════════════════
 let _tapCount=0,_tapTimer=null;
 document.addEventListener('DOMContentLoaded',()=>{
+  checkPaddleSuccess();
+  initPaddle();
+  setupSWUpdateDetection();
+  const _partnerCode=LS.get('aw_partner_code','');
+  if(_partnerCode) startPartnerSync(_partnerCode);
   setTimeout(()=>{const hdr=document.querySelector('.app-header');if(hdr)hdr.addEventListener('click',()=>{_tapCount++;clearTimeout(_tapTimer);_tapTimer=setTimeout(()=>_tapCount=0,1200);if(_tapCount>=5){_tapCount=0;openTestPanel()}})},3000);
   if(new URLSearchParams(window.location.search).get('test')==='1')setTimeout(openTestPanel,3000);
 });

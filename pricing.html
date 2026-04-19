@@ -4,64 +4,129 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Pricing — Ana Wyak</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Nunito:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
 <style>
+*{box-sizing:border-box}
 body{margin:0;padding:0;font-family:'Nunito',sans-serif;background:#150D10;color:#F5E6EB;min-height:100vh}
-.container{max-width:760px;margin:0 auto;padding:28px 20px}
+.wrap{max-width:760px;margin:0 auto;padding:36px 20px}
 a{color:#F0CC70;text-decoration:none}
-header{margin-bottom:28px;text-align:center}
-header h1{font-family:'Cormorant Garamond',serif;font-size:40px;margin:0 0 10px;color:#E8849A}
+header{text-align:center;margin-bottom:32px}
+header h1{font-family:'Cormorant Garamond',serif;font-size:44px;margin:0 0 10px;color:#E8849A}
 header p{color:#C4A0AF;font-size:15px;line-height:1.8;margin:0}
-.card{background:rgba(255,255,255,.05);border:1px solid rgba(240,204,112,.15);border-radius:24px;padding:28px;margin-bottom:18px}
-.price{font-size:48px;font-weight:800;color:#F0CC70;margin:0}
-.subtitle{font-size:16px;color:#C4A0AF;margin:10px 0 18px;line-height:1.7}
-ul{padding-left:18px}
-li{margin-bottom:12px}
-.button{display:inline-block;background:linear-gradient(135deg,#C9954A,#E8849A);color:#150D10;padding:14px 24px;border-radius:999px;font-weight:700;text-decoration:none;margin-top:18px}
-.footer{margin-top:36px;font-size:13px;color:#C4A0AF;text-align:center}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
+@media(max-width:600px){.plans{grid-template-columns:1fr}}
+.plan{background:rgba(255,255,255,.05);border:1.5px solid rgba(240,204,112,.18);border-radius:24px;padding:28px;position:relative}
+.plan.featured{border-color:rgba(201,149,74,.5);background:rgba(201,149,74,.06)}
+.badge{display:inline-block;background:linear-gradient(135deg,#C9954A,#F0CC70);color:#150D10;font-size:11px;font-weight:800;padding:3px 14px;border-radius:20px;margin-bottom:12px;letter-spacing:.5px}
+.plan h2{font-family:'Cormorant Garamond',serif;font-size:26px;margin:0 0 4px;color:#F0CC70}
+.price{font-size:48px;font-weight:800;color:#F5E6EB;margin:10px 0 2px}
+.price span{font-size:16px;font-weight:400;color:#C4A0AF}
+.subtitle{font-size:13px;color:#C4A0AF;margin:0 0 18px;line-height:1.7}
+ul{list-style:none;padding:0;margin:0 0 22px}
+ul li{display:flex;align-items:flex-start;gap:8px;font-size:13px;margin-bottom:10px;line-height:1.5}
+ul li::before{content:'✦';color:#C9954A;flex-shrink:0;margin-top:1px}
+.btn{display:block;width:100%;border:none;border-radius:50px;padding:16px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;margin-bottom:8px;transition:opacity .15s}
+.btn-primary{background:linear-gradient(135deg,#C9954A,#E8849A);color:#150D10}
+.btn-outline{background:none;border:1.5px solid #F0CC70;color:#F0CC70}
+.btn:active{opacity:.85}
+.trial-note{font-size:11px;color:#7A5A65;text-align:center}
+.faq{background:rgba(255,255,255,.03);border:1px solid rgba(240,204,112,.1);border-radius:20px;padding:24px;margin-bottom:24px}
+.faq h3{font-family:'Cormorant Garamond',serif;color:#C9954A;margin:0 0 16px;font-size:22px}
+.faq p{color:#C4A0AF;font-size:14px;line-height:1.8;margin:0 0 12px}
+.faq p:last-child{margin:0}
+.trust{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-bottom:28px}
+.trust-item{font-size:12px;color:#7A5A65;display:flex;align-items:center;gap:5px}
+footer{text-align:center;font-size:13px;color:#7A5A65;line-height:2.2}
 </style>
 </head>
 <body>
-<div class="container">
-<header>
-<h1>Pricing</h1>
-<p>Premium access for Ana Wyak couples with launch pricing, exclusive rituals, and AI-powered date planning.</p>
-</header>
-<div class="card" style="display:grid;gap:18px">
-  <div style="background:rgba(255,255,255,.05);border:1px solid rgba(240,204,112,.18);border-radius:24px;padding:24px;">
-    <p class="price"><span style="text-decoration:line-through;color:#C4A0AF;font-size:28px;font-weight:600;margin-right:8px">AED 39</span> AED 29<span style="font-size:18px;color:#C4A0AF;font-weight:400"> / month</span></p>
-    <p class="subtitle">Launch monthly price — premium access to AI dates, recipes, and private couple rituals.</p>
-    <ul>
-      <li>Unlimited AI relationship guidance</li>
-      <li>Unlimited date and cooking plans</li>
-      <li>Shared grocery and ritual tools</li>
-      <li>Private journal and occasion reminders</li>
-      <li>Early access to Gulf-only experiences</li>
-    </ul>
-    <a href="mailto:support@anawyak.app?subject=Ana%20Wyak%20Premium%20Access" class="button">Request monthly access</a>
+<div class="wrap">
+  <header>
+    <h1>Pricing</h1>
+    <p>One subscription unlocks the full Ana Wyak experience for both partners.</p>
+  </header>
+
+  <div class="plans">
+    <div class="plan featured">
+      <div class="badge">⭐ BEST VALUE</div>
+      <h2>Annual</h2>
+      <div class="price">$79 <span>/ year</span></div>
+      <p class="subtitle">Just $6.58/month — launch pricing, locked forever.</p>
+      <ul>
+        <li>Everything in Pro, all year</li>
+        <li>Anniversary rituals & smart reminders</li>
+        <li>Priority access to new features</li>
+        <li>Memory vault & digital keepsakes</li>
+        <li>Gulf-only exclusive experiences</li>
+        <li>Real-time partner sync via cloud</li>
+      </ul>
+      <button class="btn btn-primary" onclick="checkout('annual')">Start Free Trial ✦</button>
+      <div class="trial-note">7-day free trial · then $79/year · cancel anytime</div>
+    </div>
+
+    <div class="plan">
+      <h2>Monthly</h2>
+      <div class="price">$7.90 <span>/ month</span></div>
+      <p class="subtitle">Full access, billed monthly. Cancel anytime, no questions asked.</p>
+      <ul>
+        <li>Unlimited AI relationship coaching</li>
+        <li>Unlimited date & cooking plans</li>
+        <li>Shared grocery & habit rituals</li>
+        <li>Badges, occasions & memories</li>
+        <li>Real-time partner sync</li>
+        <li>Biometric privacy lock</li>
+      </ul>
+      <button class="btn btn-outline" onclick="checkout('monthly')">Start Free Trial</button>
+      <div class="trial-note">7-day free trial · then $7.90/month · cancel anytime</div>
+    </div>
   </div>
-  <div style="background:rgba(255,255,255,.05);border:1px solid rgba(240,204,112,.18);border-radius:24px;padding:24px;">
-    <p class="price"><span style="text-decoration:line-through;color:#C4A0AF;font-size:28px;font-weight:600;margin-right:8px">AED 580</span> AED 290<span style="font-size:18px;color:#C4A0AF;font-weight:400"> / year</span></p>
-    <p class="subtitle">Annual plan — save 50% and keep your premium experience all year long.</p>
-    <ul>
-      <li>All monthly benefits included</li>
-      <li>Annual rituals and anniversary reminders</li>
-      <li>Priority access to new premium features</li>
-      <li>Digital keepsakes and love story memory vault</li>
-      <li>Perfect for couples building a shared tradition</li>
-    </ul>
-    <a href="mailto:support@anawyak.app?subject=Ana%20Wyak%20Premium%20Access" class="button">Request annual access</a>
+
+  <div class="trust">
+    <div class="trust-item">🔒 Secure checkout via Paddle</div>
+    <div class="trust-item">↩ Cancel anytime before trial ends</div>
+    <div class="trust-item">🌍 All currencies accepted</div>
+    <div class="trust-item">✉ support@anawyak.app</div>
   </div>
+
+  <div class="faq">
+    <h3>How it works</h3>
+    <p>Ana Wyak Pro is a recurring digital subscription processed securely through <strong>Paddle</strong>, a trusted merchant of record. Your card is never charged during the 7-day trial — cancel before it ends and you owe nothing.</p>
+    <p>One subscription covers both partners. No physical goods are included. All services are delivered digitally through the Ana Wyak web experience.</p>
+    <p>For refunds, see our <a href="refund.html">Refund Policy</a>. Questions? Email <a href="mailto:support@anawyak.app">support@anawyak.app</a>.</p>
+  </div>
+
+  <footer>
+    <a href="terms.html">Terms of Service</a> · <a href="privacy.html">Privacy Policy</a> · <a href="refund.html">Refund Policy</a><br>
+    <a href="subscribe.html">Subscribe Now</a> · <a href="index.html">← Back to Ana Wyak</a>
+  </footer>
 </div>
-<section style="background:rgba(255,255,255,.03);border:1px solid rgba(240,204,112,.1);border-radius:20px;padding:22px;margin-bottom:18px;line-height:1.75;color:#F5E6EB">
-<h2 style="font-family:'Cormorant Garamond',serif;color:#C9954A;margin-top:0">How it works</h2>
-<p>This is a recurring digital subscription. Checkout will be available through Paddle soon. Reserve your access now and we will send the secure Paddle link to your email.</p>
-<p>No physical goods are included. All services are delivered digitally through the Ana Wyak web experience.</p>
-</section>
-<div class="footer">
-<a href="terms.html">Terms of Service</a> · <a href="privacy.html">Privacy Policy</a> · <a href="refund.html">Refund Policy</a><br>
-<a href="index.html">← Back to Ana Wyak</a>
-</div>
-</div>
+
+<script>
+const PADDLE_CLIENT_TOKEN = 'live_REPLACE_WITH_YOUR_CLIENT_TOKEN';
+const PADDLE_MONTHLY_PRICE = 'pri_01kpe8qnd2m40hwa5809wsjajj';
+const PADDLE_ANNUAL_PRICE  = 'pri_01kpe94s1a2pe0acfpsssbk17x';
+
+if (PADDLE_CLIENT_TOKEN && !PADDLE_CLIENT_TOKEN.includes('REPLACE')) {
+  Paddle.Initialize({
+    token: PADDLE_CLIENT_TOKEN,
+    eventCallback: function(e) {
+      if (e.name === 'checkout.completed') {
+        localStorage.setItem('aw_pro', 'true');
+        window.location.href = 'index.html?paddle_success=1';
+      }
+    }
+  });
+}
+
+function checkout(plan) {
+  const priceId = plan === 'annual' ? PADDLE_ANNUAL_PRICE : PADDLE_MONTHLY_PRICE;
+  if (PADDLE_CLIENT_TOKEN && !PADDLE_CLIENT_TOKEN.includes('REPLACE')) {
+    Paddle.Checkout.open({ items: [{ priceId, quantity: 1 }] });
+  } else {
+    window.open('subscribe.html', '_blank');
+  }
+}
+</script>
 </body>
 </html>

@@ -1,15 +1,22 @@
 /**
- * Ana Wyak — Cloudflare Worker v2.0
+ * Ana Wyak — Cloudflare Worker v3.0
  * Routes:
  *   POST /             → Anthropic AI proxy
  *   POST /send-email   → Resend verification / transactional email
  *   POST /store-lead   → Supabase marketing lead capture
+ *   POST /sync         → Save couple sync data to KV
+ *   GET  /partner/:code → Fetch partner's sync data from KV
+ *   POST /paddle-webhook → Paddle payment webhook → activate Pro
  *
  * Required Cloudflare Worker Secrets (Settings → Variables → Secrets):
  *   ANTHROPIC_API_KEY   — from console.anthropic.com
  *   RESEND_API_KEY      — from resend.com (free: 100 emails/day)
  *   SUPABASE_URL        — from supabase.com project settings (optional)
  *   SUPABASE_ANON_KEY   — from supabase.com project settings (optional)
+ *   PADDLE_WEBHOOK_SECRET — from Paddle Dashboard → Notifications → Webhook secret
+ *
+ * Required KV Namespace Binding (Settings → Variables → KV Namespace Bindings):
+ *   SYNC_STORE → Create a KV namespace called "AnaWyak_Sync" and bind it as SYNC_STORE
  */
 
 const ALLOWED_ORIGINS = [
@@ -27,7 +34,7 @@ function corsHeaders(origin) {
     : ALLOWED_ORIGINS[0];
   return {
     'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Max-Age': '86400',
   };
@@ -48,17 +55,26 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
+    const url = new URL(request.url);
+    const path = url.pathname.replace(/\/$/, '') || '/';
+
+    // Allow GET only for partner sync endpoint
+    if (request.method === 'GET') {
+      const partnerMatch = path.match(/^\/partner\/([A-Z0-9]{4,10})$/i);
+      if (partnerMatch) return handleGetPartner(partnerMatch[1].toUpperCase(), env, origin);
+      return json({ error: 'Not found' }, 404, origin);
+    }
+
     if (request.method !== 'POST') {
       return json({ error: 'Method not allowed' }, 405, origin);
     }
 
-    const url = new URL(request.url);
-    const path = url.pathname.replace(/\/$/, '') || '/';
-
     try {
-      if (path === '/' || path === '') return handleAI(request, env, origin);
-      if (path === '/send-email')         return handleSendEmail(request, env, origin);
-      if (path === '/store-lead')         return handleStoreLead(request, env, origin);
+      if (path === '/' || path === '')   return handleAI(request, env, origin);
+      if (path === '/send-email')        return handleSendEmail(request, env, origin);
+      if (path === '/store-lead')        return handleStoreLead(request, env, origin);
+      if (path === '/sync')              return handleSync(request, env, origin);
+      if (path === '/paddle-webhook')    return handlePaddleWebhook(request, env, origin);
       return json({ error: 'Not found' }, 404, origin);
     } catch (err) {
       console.error('[AW Worker]', err);
@@ -99,7 +115,6 @@ async function handleSendEmail(request, env, origin) {
   if (!email || !code) return json({ error: 'Missing email or code' }, 400, origin);
 
   if (!env.RESEND_API_KEY) {
-    // Resend not configured yet — return a signal so the app shows the code on screen
     return json({ ok: false, reason: 'resend_not_configured' }, 200, origin);
   }
 
@@ -111,7 +126,6 @@ async function handleSendEmail(request, env, origin) {
     : 'Ana Wyak — Your Verification Code 💕';
 
   const dir = isArabic ? 'rtl' : 'ltr';
-  const fromLine  = isArabic ? 'من' : 'from';
   const greeting  = isArabic ? `مرحباً ${displayName} 💕` : `Welcome, ${displayName} 💕`;
   const intro     = isArabic
     ? 'هذا رمز التحقق لحسابك في <strong>أنا وياك</strong>:'
@@ -130,7 +144,7 @@ async function handleSendEmail(request, env, origin) {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${subject}</title>
 </head>
-<body style="margin:0;padding:0;background:#150D10;font-family:${isArabic ? "'Cairo',": ''} 'Nunito',sans-serif;color:#F5E6EB">
+<body style="margin:0;padding:0;background:#150D10;font-family:${isArabic ? "'Cairo'," : ''} 'Nunito',sans-serif;color:#F5E6EB">
 <table width="100%" cellpadding="0" cellspacing="0">
 <tr><td align="center" style="padding:40px 20px">
 <table width="480" cellpadding="0" cellspacing="0" style="background:rgba(255,255,255,.06);border-radius:24px;border:1px solid rgba(240,204,112,.2);overflow:hidden">
@@ -158,7 +172,6 @@ async function handleSendEmail(request, env, origin) {
 </body>
 </html>`;
 
-  // Determine the from address — use verified domain if available, else Resend sandbox
   const fromEmail = env.RESEND_FROM_EMAIL || 'Ana Wyak <onboarding@resend.dev>';
 
   const resendRes = await fetch('https://api.resend.com/emails', {
@@ -177,19 +190,16 @@ async function handleSendEmail(request, env, origin) {
     return json({ ok: false, reason: 'resend_api_error', detail: resendData }, 200, origin);
   }
 
-  // Owner notification on new signup
+  // Notify owner on new signup
   if (type === 'signup' && env.RESEND_API_KEY) {
     fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         from: fromEmail,
         to: ['support@anawyak.app'],
         subject: `New Ana Wyak Registration: ${email}`,
-        html: `<p style="font-family:sans-serif">New user registered on Ana Wyak:<br><br><strong>Email:</strong> ${email}<br><strong>Name:</strong> ${name || 'N/A'}</p>`,
+        html: `<p style="font-family:sans-serif">New user registered:<br><br><strong>Email:</strong> ${email}<br><strong>Name:</strong> ${name || 'N/A'}</p>`,
       }),
     }).catch(() => {});
   }
@@ -230,4 +240,77 @@ async function handleStoreLead(request, env, origin) {
   });
 
   return json({ ok: r.ok, status: r.status }, 200, origin);
+}
+
+// ═══════════════════════════════════════════
+//  PARTNER SYNC — KV-backed couple data
+// ═══════════════════════════════════════════
+async function handleSync(request, env, origin) {
+  if (!env.SYNC_STORE) {
+    return json({ ok: false, reason: 'kv_not_configured' }, 200, origin);
+  }
+
+  const body = await request.json().catch(() => ({}));
+  const { code, ...payload } = body;
+
+  if (!code || code.length < 4) {
+    return json({ error: 'Missing or invalid code' }, 400, origin);
+  }
+
+  const key = `sync:${code.toUpperCase()}`;
+  const entry = { ...payload, updatedAt: new Date().toISOString() };
+
+  await env.SYNC_STORE.put(key, JSON.stringify(entry), { expirationTtl: 86400 * 30 }); // 30-day TTL
+
+  return json({ ok: true }, 200, origin);
+}
+
+async function handleGetPartner(code, env, origin) {
+  if (!env.SYNC_STORE) {
+    return json({ ok: false, reason: 'kv_not_configured' }, 200, origin);
+  }
+
+  const key = `sync:${code.toUpperCase()}`;
+  const raw = await env.SYNC_STORE.get(key);
+
+  if (!raw) return json({ ok: false, reason: 'not_found' }, 200, origin);
+
+  const data = JSON.parse(raw);
+  return json({ ok: true, data }, 200, origin);
+}
+
+// ═══════════════════════════════════════════
+//  PADDLE WEBHOOK — activate Pro on payment
+// ═══════════════════════════════════════════
+async function handlePaddleWebhook(request, env, origin) {
+  const body = await request.text();
+
+  // Verify Paddle signature if secret is set
+  if (env.PADDLE_WEBHOOK_SECRET) {
+    const sig = request.headers.get('Paddle-Signature') || '';
+    const ts  = sig.match(/ts=(\d+)/)?.[1];
+    const h1  = sig.match(/h1=([a-f0-9]+)/)?.[1];
+    if (!ts || !h1) return json({ error: 'Invalid signature header' }, 401, origin);
+
+    const signed = `${ts}:${body}`;
+    const keyBytes = new TextEncoder().encode(env.PADDLE_WEBHOOK_SECRET);
+    const msgBytes = new TextEncoder().encode(signed);
+    const key = await crypto.subtle.importKey('raw', keyBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sigBytes = await crypto.subtle.sign('HMAC', key, msgBytes);
+    const computed = Array.from(new Uint8Array(sigBytes)).map(b => b.toString(16).padStart(2, '0')).join('');
+    if (computed !== h1) return json({ error: 'Signature mismatch' }, 401, origin);
+  }
+
+  const event = JSON.parse(body);
+  const eventType = event?.event_type || '';
+
+  // On successful subscription, store Pro status keyed by customer email
+  if (eventType === 'subscription.activated' || eventType === 'transaction.completed') {
+    const email = event?.data?.customer?.email || event?.data?.billing_details?.email || '';
+    if (email && env.SYNC_STORE) {
+      await env.SYNC_STORE.put(`pro:${email.toLowerCase()}`, '1', { expirationTtl: 86400 * 400 });
+    }
+  }
+
+  return json({ received: true }, 200, origin);
 }
