@@ -104,6 +104,42 @@ const hap={
   error:()=>navigator.vibrate&&navigator.vibrate([50,100,50])
 };
 
+// ── RIPPLE EFFECT — adds Material-style ripple to any button click ──
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('.btn-rose,.btn-gold,.btn-ghost');
+  if(!btn) return;
+  var r = document.createElement('span');
+  r.className = 'ripple-el';
+  var rect = btn.getBoundingClientRect();
+  var size = Math.max(rect.width, rect.height);
+  r.style.cssText = 'width:'+size+'px;height:'+size+'px;left:'+(e.clientX-rect.left-size/2)+'px;top:'+(e.clientY-rect.top-size/2)+'px';
+  btn.appendChild(r);
+  setTimeout(function(){ r.remove(); }, 550);
+});
+
+// ── SKELETON LOADER helpers ──
+function skeletonCard(lines) {
+  var lns = (lines||[80,60,40]).map(function(w){
+    return '<div class="skeleton skel-line" style="width:'+w+'%"></div>';
+  }).join('');
+  return '<div class="skel-card">'+lns+'</div>';
+}
+function skeletonList(n) {
+  var html = '';
+  for(var i=0;i<(n||3);i++) html += skeletonCard([75,55,35]);
+  return html;
+}
+
+// ── EMPTY STATE v2 helper ──
+function emptyStateV2(icon, title, sub, btnLabel, btnAction) {
+  return '<div class="empty-state-v2">' +
+    '<div class="es-icon">'+icon+'</div>' +
+    '<div class="es-title">'+title+'</div>' +
+    '<div class="es-sub">'+sub+'</div>' +
+    (btnLabel ? '<button class="btn-rose" onclick="'+btnAction+'" style="max-width:240px;font-size:14px">'+btnLabel+'</button>' : '') +
+  '</div>';
+}
+
 // ══════════════════════════════════════════════════
 //  CREDITS
 // ══════════════════════════════════════════════════
@@ -406,6 +442,9 @@ function linkPartner() {
   hap.celebrate();
   T(isAr ? '🔗 جارٍ الربط...' : '🔗 Linking...');
   startPartnerSync();
+  // Show chat FAB
+  var chatFab = document.getElementById('chat-fab');
+  if(chatFab) chatFab.classList.add('show');
   setTimeout(function(){ showTab('profile'); }, 600);
 }
 
@@ -469,7 +508,13 @@ function startPartnerSync() {
         }
       }
     });
-  }, 30000); // poll every 30s
+    // Poll chat messages if sheet is open
+    if(document.getElementById('chat-sh') && document.getElementById('chat-sh').style.display !== 'none') {
+      pollChatMessages();
+    } else {
+      checkChatUnread();
+    }
+  }, 5000); // 5s near-real-time sync
 }
 
 // ══════════════════════════════════════════════════
@@ -882,13 +927,93 @@ function rMemories(el){
   </div>
   <!-- DATE ADVENTURES -->
   ${dateHist.length>0?`<div style="margin-bottom:20px"><div style="font-size:14px;font-weight:700;color:var(--text-mid);margin-bottom:12px">📍 ${isAr?'مغامراتنا':'Our Adventures'}</div>${dateHistHTML()}</div>`:''}
-  <!-- MEMORIES -->
+  <!-- MEMORIES with Timeline toggle -->
   <div style="margin-bottom:16px">
-    <div style="font-size:14px;font-weight:700;color:var(--text-mid);margin-bottom:16px">💕 ${isAr?'ذكرياتنا':'Our Memories'}</div>
-    ${memories.length>0?memories.slice().reverse().map(m=>`<div style="display:flex;gap:14px;margin-bottom:20px"><div style="display:flex;flex-direction:column;align-items:center"><div class="memory-dot"></div><div class="memory-connector"></div></div><div style="flex:1;padding-bottom:16px"><div style="font-size:11px;color:var(--rose);font-weight:700;margin-bottom:4px">${m.date} · ${m.em||'💕'}</div><div class="memory-content"><div style="font-weight:700;font-size:15px;color:var(--text);margin-bottom:4px">${esc(m.title)}</div>${m.note?`<div style="font-size:13px;color:var(--text-mid);line-height:1.6">${esc(m.note)}</div>`:''}</div><button onclick="delMemory('${m.id}')" style="background:none;border:none;color:var(--text-soft);font-size:12px;cursor:pointer">🗑 ${isAr?'حذف':'Delete'}</button></div></div>`).join(''):`<div class="empty-state"><div class="empty-icon">📖</div><h3 style="font-family:'Cormorant Garamond',serif;color:var(--rose-deep);font-size:20px;margin-bottom:8px">${isAr?'قصتنا لم تُكتب بعد':'A Story Waiting to Begin'}</h3><p style="color:var(--text-soft);font-size:14px;line-height:1.7;max-width:250px">${isAr?'كل مغامرة تبدأ بلحظة واحدة. أضف ذكرتكم الأولى.':'Every great adventure starts with a single moment. Add your first memory.'}</p><button class="btn-rose" style="max-width:200px;margin-top:16px" onclick="openAddMemory()">${isAr?'أضف ذكرى 💕':'Add Memory 💕'}</button></div>`}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:700;color:var(--text-mid)">💕 ${isAr?'ذكرياتنا':'Our Memories'}</div>
+      <div style="display:flex;gap:6px">
+        <button id="mem-view-grid" onclick="setMemView('grid')" style="background:var(--rose-glow);border:1px solid var(--rose-light);color:var(--rose);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">☰ ${isAr?'قائمة':'List'}</button>
+        <button id="mem-view-timeline" onclick="setMemView('timeline')" style="background:none;border:1px solid var(--border);color:var(--text-soft);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">⏱ ${isAr?'الجدول':'Timeline'}</button>
+      </div>
+    </div>
+    <div id="mem-content">
+    ${memories.length>0?renderMemoriesGrid(memories):emptyStateV2('📖',isAr?'قصتنا لم تُكتب بعد':'A Story Waiting to Begin',isAr?'كل مغامرة تبدأ بلحظة واحدة. أضف ذكرتكم الأولى.':'Every great adventure starts with a single moment. Add your first memory.',isAr?'أضف ذكرى 💕':'Add Memory 💕','openAddMemory()')}
+    </div>
   </div>
   </div>`;
 }
+function renderMemoriesGrid(mems) {
+  return mems.slice().reverse().map(function(m){
+    return '<div style="display:flex;gap:14px;margin-bottom:20px;animation:fadeUp .4s ease">' +
+      '<div style="display:flex;flex-direction:column;align-items:center">' +
+        '<div class="memory-dot"></div>' +
+        '<div class="memory-connector"></div>' +
+      '</div>' +
+      '<div style="flex:1;padding-bottom:16px">' +
+        '<div style="font-size:11px;color:var(--rose);font-weight:700;margin-bottom:4px">'+m.date+' · '+(m.em||'💕')+'</div>' +
+        '<div class="memory-content">' +
+          '<div style="font-weight:700;font-size:15px;color:var(--text);margin-bottom:4px">'+esc(m.title)+'</div>' +
+          (m.note?'<div style="font-size:13px;color:var(--text-mid);line-height:1.6">'+esc(m.note)+'</div>':'') +
+        '</div>' +
+        '<button onclick="delMemory(\''+m.id+'\')" style="background:none;border:none;color:var(--text-soft);font-size:12px;cursor:pointer">🗑 '+(isAr?'حذف':'Delete')+'</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderMemoriesTimeline(mems) {
+  if(!mems.length) return emptyStateV2('📖',isAr?'قصتنا لم تُكتب بعد':'A Story Waiting to Begin',isAr?'أضف أول ذكرى':'Add your first memory',isAr?'أضف ذكرى 💕':'Add Memory 💕','openAddMemory()');
+  var sorted = mems.slice().sort(function(a,b){ return new Date(a.date) - new Date(b.date); });
+  var byYear = {};
+  sorted.forEach(function(m){
+    var yr = (m.date||'').slice(0,4) || '?';
+    if(!byYear[yr]) byYear[yr] = [];
+    byYear[yr].push(m);
+  });
+  var html = '';
+  Object.keys(byYear).sort().forEach(function(yr){
+    html += '<div style="text-align:center;margin:16px 0 12px"><span style="background:linear-gradient(135deg,var(--rose),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-family:\'Cormorant Garamond\',serif;font-size:22px;font-weight:700">'+yr+'</span></div>';
+    byYear[yr].forEach(function(m){
+      html += '<div class="timeline-item" style="position:relative">' +
+        '<div style="position:relative"><div class="timeline-dot">'+(m.em||'💕')+'</div></div>' +
+        '<div class="timeline-body">' +
+          '<div style="font-size:11px;color:var(--rose);font-weight:700;margin-bottom:4px">'+m.date+'</div>' +
+          '<div style="font-weight:700;font-size:15px;color:var(--text);margin-bottom:4px">'+esc(m.title)+'</div>' +
+          (m.note?'<div style="font-size:13px;color:var(--text-mid);line-height:1.6">'+esc(m.note)+'</div>':'') +
+        '</div>' +
+      '</div>';
+    });
+  });
+  return html;
+}
+
+var _memView = 'grid';
+function setMemView(view) {
+  _memView = view;
+  var content = document.getElementById('mem-content');
+  var gridBtn = document.getElementById('mem-view-grid');
+  var tlBtn = document.getElementById('mem-view-timeline');
+  if(gridBtn) {
+    gridBtn.style.background = view==='grid' ? 'var(--rose-glow)' : 'none';
+    gridBtn.style.borderColor = view==='grid' ? 'var(--rose-light)' : 'var(--border)';
+    gridBtn.style.color = view==='grid' ? 'var(--rose)' : 'var(--text-soft)';
+  }
+  if(tlBtn) {
+    tlBtn.style.background = view==='timeline' ? 'rgba(201,149,74,.1)' : 'none';
+    tlBtn.style.borderColor = view==='timeline' ? 'var(--gold)' : 'var(--border)';
+    tlBtn.style.color = view==='timeline' ? 'var(--gold)' : 'var(--text-soft)';
+  }
+  if(content) {
+    content.style.opacity = '0';
+    content.style.transition = 'opacity .2s';
+    setTimeout(function(){
+      content.innerHTML = view==='timeline' ? renderMemoriesTimeline(memories) : (memories.length ? renderMemoriesGrid(memories) : emptyStateV2('📖',isAr?'قصتنا لم تُكتب بعد':'A Story Waiting to Begin',isAr?'أضف أول ذكرى':'Add your first memory',isAr?'أضف ذكرى 💕':'Add Memory 💕','openAddMemory()'));
+      content.style.opacity = '1';
+    }, 200);
+  }
+  hap.tap();
+}
+
 function dateHistHTML(){
   return dateHist.slice(0,10).map(d=>{
     const dt=new Date(d.ts),fmt=dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
@@ -1930,7 +2055,11 @@ function showTab(id) {
   var el = document.getElementById('tab-' + id);
   if(!el) return;
   el.classList.add('active');
-  if(_tabRenderers[id]) _tabRenderers[id](el);
+  // Show skeleton while rendering heavy tabs
+  if(_tabRenderers[id]) {
+    el.innerHTML = '<div class="container" style="padding-top:20px">'+skeletonList(3)+'</div>';
+    requestAnimationFrame(function(){ _tabRenderers[id](el); });
+  }
   window.scrollTo(0,0);
   hap.tap();
 }
@@ -2173,6 +2302,37 @@ async function doSignUp() {
   storeLead({email:email, name:n1, partner:n2, vibe:obVibe||'', wish:obWish||'', fam:fam, lang:isAr?'ar':'en', source:'signup'});
   obWish = '';
 }
+// ── ONBOARDING DEMO PREVIEW ──────────────────────────
+var _demoSlide = 1;
+var _demoTimer = null;
+function startDemoPreview() {
+  var prev = document.getElementById('ob-preview');
+  if(prev) prev.style.display = 'flex';
+  var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '0%';
+  _demoSlide = 1;
+  _demoTimer = setInterval(advanceDemoSlide, 3200);
+}
+function advanceDemoSlide() {
+  if(_demoSlide >= 3) { clearInterval(_demoTimer); _demoTimer = null; return; }
+  _demoSlide++;
+  [1,2,3].forEach(function(i){
+    var s = document.getElementById('demo-s'+i);
+    var d = document.getElementById('dd'+i);
+    if(s) s.classList.toggle('active', i === _demoSlide);
+    if(d) d.classList.toggle('active', i === _demoSlide);
+  });
+}
+function skipToLang() {
+  if(_demoTimer) { clearInterval(_demoTimer); _demoTimer = null; }
+  var prev = document.getElementById('ob-preview');
+  if(prev) { prev.style.opacity='0'; prev.style.transition='opacity .3s'; setTimeout(function(){prev.style.display='none';},300); }
+  setTimeout(function(){
+    var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '0%';
+    var obL = document.getElementById('ob-lang');
+    if(obL) obL.style.display = 'flex';
+  }, 320);
+}
+
 function setObLang(lang) {
   LS.set('aw_lang_chosen', true);
   if(lang === 'ar') {
@@ -2358,6 +2518,10 @@ function launchApp() {
     setTimeout(showRitualReveal, 700);
   }
   setTimeout(showInstallBanner, 5000);
+  // Show chat FAB if partner is linked
+  var _pc = LS.get('aw_partner_code','');
+  var chatFab = document.getElementById('chat-fab');
+  if(chatFab) chatFab.classList.toggle('show', !!_pc);
 }
 
 // ══════════════════════════════════════════════════
@@ -2599,6 +2763,147 @@ async function generateTonightAI() {
 function generateTonightSuggestion() { _tonightLock=false; generateTonightAI(); }
 
 // ══════════════════════════════════════════════════
+//  REAL-TIME CHAT
+// ══════════════════════════════════════════════════
+var _chatPollInterval = null;
+var _chatLastTs = 0;
+var _chatUnread = 0;
+
+function chatKey() {
+  var pc = LS.get('aw_partner_code','');
+  if(!pc) return null;
+  var myCode = (profile && profile.code) || 'ME';
+  var sorted = [pc, myCode].sort();
+  return 'chat:'+sorted[0]+':'+sorted[1];
+}
+
+async function sendChatMsg() {
+  var inp = document.getElementById('chat-input');
+  var text = (inp ? inp.value.trim() : '');
+  if(!text) return;
+  var pc = LS.get('aw_partner_code','');
+  if(!pc) { T(isAr?'لا يوجد شريك متصل':'No partner linked'); return; }
+  inp.value = '';
+  var msg = { ts: Date.now(), from: (profile&&profile.n1)||'Me', text: text };
+  // Optimistic render
+  appendChatBubble(msg, true);
+  // Upload to KV
+  var key = chatKey();
+  if(!key) return;
+  var existing = await fetchChatMessages(key) || [];
+  existing.push(msg);
+  if(existing.length > 100) existing = existing.slice(-100);
+  await fetch(DEFAULT_PROXY + '/sync', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ code: key, data: { msgs: existing } })
+  }).catch(function(){});
+  hap.tap();
+}
+
+async function fetchChatMessages(key) {
+  try {
+    var r = await fetch(DEFAULT_PROXY + '/partner/' + encodeURIComponent(key));
+    if(!r.ok) return null;
+    var d = await r.json();
+    return (d && d.msgs) ? d.msgs : null;
+  } catch(e) { return null; }
+}
+
+async function pollChatMessages() {
+  var key = chatKey();
+  if(!key) return;
+  var msgs = await fetchChatMessages(key);
+  if(!msgs || !msgs.length) return;
+  var container = document.getElementById('chat-messages');
+  var empty = document.getElementById('chat-empty');
+  if(empty) empty.style.display = 'none';
+  // Only render new messages since last poll
+  var newMsgs = msgs.filter(function(m){ return m.ts > _chatLastTs; });
+  if(!newMsgs.length) return;
+  newMsgs.forEach(function(m){
+    var myName = (profile&&profile.n1)||'Me';
+    var isMine = m.from === myName;
+    if(!isMine) {
+      appendChatBubble(m, false);
+      hap.tap();
+    }
+    if(m.ts > _chatLastTs) _chatLastTs = m.ts;
+  });
+  if(container) container.scrollTop = container.scrollHeight;
+}
+
+async function checkChatUnread() {
+  var key = chatKey();
+  if(!key) return;
+  var msgs = await fetchChatMessages(key);
+  if(!msgs) return;
+  var myName = (profile&&profile.n1)||'Me';
+  var unread = msgs.filter(function(m){ return m.ts > _chatLastTs && m.from !== myName; }).length;
+  if(unread > 0) {
+    _chatUnread = unread;
+    var badge = document.getElementById('chat-badge');
+    var fab = document.getElementById('chat-fab');
+    if(badge) { badge.textContent = unread; badge.style.display='flex'; }
+    if(fab) fab.style.animation = 'heartbeat 1s ease infinite';
+  }
+}
+
+function appendChatBubble(msg, isMine) {
+  var container = document.getElementById('chat-messages');
+  if(!container) return;
+  var empty = document.getElementById('chat-empty');
+  if(empty) empty.style.display = 'none';
+  var time = new Date(msg.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  var div = document.createElement('div');
+  div.className = 'msg-row ' + (isMine ? 'mine' : 'theirs');
+  div.innerHTML = '<div>' +
+    '<div class="msg-bubble">'+esc(msg.text)+'</div>' +
+    '<div class="msg-time">'+time+'</div>' +
+  '</div>';
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+async function openChatSheet() {
+  var pc = LS.get('aw_partner_code','');
+  if(!pc) { T(isAr?'اربط شريكك أولاً من الملف الشخصي':'Link your partner first from Profile'); hap.error(); return; }
+  var partnerName = document.getElementById('chat-partner-name');
+  if(partnerName) partnerName.textContent = LS.get('aw_partner_name', isAr?'شريكك':'Partner');
+  _chatUnread = 0;
+  var badge = document.getElementById('chat-badge');
+  var fab = document.getElementById('chat-fab');
+  if(badge) badge.style.display='none';
+  if(fab) fab.style.animation='';
+  // Load existing messages
+  var container = document.getElementById('chat-messages');
+  if(container) container.innerHTML = '<div class="empty-state-v2" id="chat-empty"><div class="es-icon">💌</div><div class="es-title">'+(isAr?'ابدأ محادثتكما':'Start your conversation')+'</div><div class="es-sub">'+(isAr?'الرسائل تصل لشريكك فوراً':'Messages sync instantly with your partner')+'</div></div>';
+  openSheet('chat-sh');
+  var key = chatKey();
+  if(key) {
+    var msgs = await fetchChatMessages(key);
+    if(msgs && msgs.length) {
+      var myName = (profile&&profile.n1)||'Me';
+      var empty = document.getElementById('chat-empty');
+      if(empty) empty.style.display='none';
+      msgs.forEach(function(m){
+        var isMine = m.from === myName;
+        appendChatBubble(m, isMine);
+        if(m.ts > _chatLastTs) _chatLastTs = m.ts;
+      });
+    }
+  }
+  setTimeout(function(){
+    var inp = document.getElementById('chat-input');
+    if(inp) inp.focus();
+  }, 400);
+}
+
+function closeChatSheet() {
+  closeSheet('chat-sh');
+}
+
+// ══════════════════════════════════════════════════
 //  APP INITIALISATION
 // ══════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', function() {
@@ -2642,17 +2947,17 @@ window.addEventListener('DOMContentLoaded', function() {
       obMode = 'pre'; obStep = 0; obVibe = ''; obWish = '';
       var ob = document.getElementById('onboarding');
       if(ob) ob.style.display = 'block';
-      ['ob-lang','ob-0','ob-1','ob-2','ob-3'].forEach(function(id){
+      ['ob-preview','ob-lang','ob-0','ob-1','ob-2','ob-3'].forEach(function(id){
         var el = document.getElementById(id); if(el) el.style.display = 'none';
       });
-      // If lang already chosen (returning partial session), skip lang screen
       if(LS.get('aw_lang_chosen', false)) {
+        // Returning partial session — skip preview and lang
         var ob0 = document.getElementById('ob-0');
         if(ob0) ob0.style.display = 'flex';
         var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '33%';
       } else {
-        var obL = document.getElementById('ob-lang');
-        if(obL) obL.style.display = 'flex';
+        // Brand new user — show 30-second demo preview first
+        startDemoPreview();
       }
     }
   }, 2500);

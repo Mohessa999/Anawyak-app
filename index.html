@@ -131,7 +131,75 @@
 
 <!-- ══════════════════════════════════════ ONBOARDING -->
 <div id="onboarding" style="display:none;min-height:100vh">
-  <div class="ob-bar"><div class="ob-fill" id="ob-fill" style="width:33%"></div></div>
+  <div class="ob-bar"><div class="ob-fill" id="ob-fill" style="width:0%"></div></div>
+
+  <!-- ── DEMO PREVIEW — shown first, 30-second value ── -->
+  <div id="ob-preview">
+    <div class="ob-preview-wrap" style="position:relative;width:100%;min-height:calc(100vh - 3px)">
+
+      <!-- Slide 1: AI Coach -->
+      <div class="demo-slide active" id="demo-s1">
+        <div style="font-size:48px;margin-bottom:8px;animation:heartBurst 1s ease 1s both">💬</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:30px;color:var(--rose);margin:0 0 6px">AI Relationship Coach</h2>
+        <p style="color:var(--text-mid);font-size:14px;line-height:1.7;margin:0 0 20px;max-width:300px;text-align:center">Ask anything. Your private couples therapist, 24/7.</p>
+        <div class="demo-feature-card">
+          <div style="font-size:12px;color:var(--text-soft);margin-bottom:8px">💑 You asked…</div>
+          <div style="font-size:13px;color:var(--text);margin-bottom:10px;font-style:italic">"We keep arguing about small things. How do we stop?"</div>
+          <div style="font-size:12px;color:var(--rose);font-weight:700;margin-bottom:6px">✦ Ana Wyak Coach</div>
+          <div style="font-size:13px;color:var(--text-mid);line-height:1.6">Small arguments often carry big unmet needs. Try the 24-hour rule: if it still matters tomorrow, talk it out with curiosity instead of blame…</div>
+        </div>
+      </div>
+
+      <!-- Slide 2: Tonight Decider -->
+      <div class="demo-slide" id="demo-s2">
+        <div style="font-size:48px;margin-bottom:8px">🎲</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:30px;color:var(--gold);margin:0 0 6px">Tonight Decider</h2>
+        <p style="color:var(--text-mid);font-size:14px;line-height:1.7;margin:0 0 20px;max-width:300px;text-align:center">Answer 2 questions. Get a perfect personalised date idea.</p>
+        <div class="demo-feature-card" style="border-color:rgba(201,149,74,.3)">
+          <div style="font-size:12px;color:var(--gold);font-weight:700;margin-bottom:10px">YOUR NIGHT ✦</div>
+          <div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px">Candlelit Dinner at Home</div>
+          <div style="font-size:13px;color:var(--text-mid);line-height:1.6;margin-bottom:12px">Cook together, dim the lights, put on your song. Under AED 50 and worth a lifetime memory.</div>
+          <div style="display:flex;gap:8px"><span class="chip" style="font-size:11px">🏠 At home</span><span class="chip" style="font-size:11px">💸 AED 50</span><span class="chip" style="font-size:11px">🕯 Romantic</span></div>
+        </div>
+      </div>
+
+      <!-- Slide 3: Partner Sync -->
+      <div class="demo-slide" id="demo-s3">
+        <div style="font-size:48px;margin-bottom:8px">🔗</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:30px;color:var(--rose);margin:0 0 6px">Real-Time Partner Sync</h2>
+        <p style="color:var(--text-mid);font-size:14px;line-height:1.7;margin:0 0 20px;max-width:300px;text-align:center">One code. Two phones. One shared world.</p>
+        <div style="display:flex;gap:12px;justify-content:center;margin-bottom:20px">
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;text-align:center;flex:1;max-width:140px">
+            <div style="font-size:28px">👩</div>
+            <div style="font-size:12px;font-weight:700;color:var(--rose);margin-top:4px">Sara</div>
+            <div style="font-size:10px;color:var(--text-soft)">just typed…</div>
+          </div>
+          <div style="display:flex;align-items:center;font-size:22px;animation:heartbeat 1.5s ease infinite">💕</div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;text-align:center;flex:1;max-width:140px">
+            <div style="font-size:28px">👨</div>
+            <div style="font-size:12px;font-weight:700;color:var(--gold);margin-top:4px">Ahmed</div>
+            <div style="font-size:10px;color:var(--text-soft)">replied ✓✓</div>
+          </div>
+        </div>
+        <button class="btn-rose" onclick="skipToLang()" style="max-width:300px;font-size:15px">
+          <span class="en">Create Your World →</span><span class="ar">ابدأ الآن ←</span>
+        </button>
+      </div>
+
+      <!-- Progress dots -->
+      <div class="demo-dots" style="position:absolute;bottom:32px;left:50%;transform:translateX(-50%)">
+        <div class="demo-dot active" id="dd1"></div>
+        <div class="demo-dot" id="dd2"></div>
+        <div class="demo-dot" id="dd3"></div>
+      </div>
+
+      <!-- Skip button -->
+      <button onclick="skipToLang()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text-soft);font-size:13px;cursor:pointer;font-family:inherit;padding:8px">
+        <span class="en">Skip</span><span class="ar">تخطى</span> →
+      </button>
+    </div>
+  </div>
+
   <!-- LANGUAGE SELECTOR — shown before ob-0, hidden after selection -->
   <div id="ob-lang" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;text-align:center;min-height:calc(100vh - 3px)">
     <div class="float" style="font-size:72px;margin-bottom:28px">💑</div>
@@ -224,6 +292,35 @@
     <button id="nav-memories" class="nav-btn"         onclick="showTab('memories')"><span class="nav-icon">📖</span><span class="en-i">Story</span><span class="ar-i">قصتنا</span></button>
     <button id="nav-profile"  class="nav-btn"         onclick="showTab('profile')" ><span class="nav-icon">👤</span><span class="en-i">Profile</span><span class="ar-i">الملف</span></button>
   </nav>
+</div>
+
+<!-- CHAT FAB -->
+<button class="chat-fab" id="chat-fab" onclick="openChatSheet()">💬
+  <span class="badge" id="chat-badge" style="display:none">0</span>
+</button>
+
+<!-- CHAT SHEET -->
+<div class="sheet-wrap" id="chat-sh" style="display:none">
+  <div class="sheet" style="max-height:90vh;display:flex;flex-direction:column;padding:0">
+    <div style="padding:18px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--rose);font-weight:700"><span class="en">💬 Chat with </span><span class="ar">💬 تحدث مع </span><span id="chat-partner-name">Partner</span></div>
+        <div style="font-size:11px;color:var(--text-soft)" id="chat-sync-status"><span class="en">Live sync</span><span class="ar">متزامن</span> ●</div>
+      </div>
+      <button class="sheet-x" onclick="closeChatSheet()">✕</button>
+    </div>
+    <div id="chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:2px;min-height:240px">
+      <div class="empty-state-v2" id="chat-empty">
+        <div class="es-icon">💌</div>
+        <div class="es-title"><span class="en">Start your conversation</span><span class="ar">ابدأ محادثتكما</span></div>
+        <div class="es-sub"><span class="en">Messages sync instantly with your partner.</span><span class="ar">الرسائل تصل لشريكك فوراً.</span></div>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendChatMsg()">
+      <button class="chat-send" onclick="sendChatMsg()">↑</button>
+    </div>
+  </div>
 </div>
 
 <!-- ACHIEVEMENT OVERLAY -->
