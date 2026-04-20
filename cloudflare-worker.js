@@ -60,8 +60,12 @@ export default {
 
     // Allow GET only for partner sync endpoint
     if (request.method === 'GET') {
-      const partnerMatch = path.match(/^\/partner\/([A-Z0-9]{4,10})$/i);
-      if (partnerMatch) return handleGetPartner(partnerMatch[1].toUpperCase(), env, origin);
+      const partnerMatch = path.match(/^\/partner\/(.+)$/i);
+      if (partnerMatch) {
+        // Decode URI component to handle keys like "ABC123:game:couples"
+        const code = decodeURIComponent(partnerMatch[1]).toUpperCase();
+        return handleGetPartner(code, env, origin);
+      }
       return json({ error: 'Not found' }, 404, origin);
     }
 
@@ -257,7 +261,9 @@ async function handleSync(request, env, origin) {
     return json({ error: 'Missing or invalid code' }, 400, origin);
   }
 
-  const key = `sync:${code.toUpperCase()}`;
+  // Game session keys already contain colons — preserve casing; plain codes are uppercased
+  const normalizedCode = code.includes(':') ? code : code.toUpperCase();
+  const key = `sync:${normalizedCode}`;
   const entry = { ...payload, updatedAt: new Date().toISOString() };
 
   await env.SYNC_STORE.put(key, JSON.stringify(entry), { expirationTtl: 86400 * 30 }); // 30-day TTL
@@ -270,7 +276,8 @@ async function handleGetPartner(code, env, origin) {
     return json({ ok: false, reason: 'kv_not_configured' }, 200, origin);
   }
 
-  const key = `sync:${code.toUpperCase()}`;
+  const normalizedCode = code.includes(':') ? code : code.toUpperCase();
+  const key = `sync:${normalizedCode}`;
   const raw = await env.SYNC_STORE.get(key);
 
   if (!raw) return json({ ok: false, reason: 'not_found' }, 200, origin);

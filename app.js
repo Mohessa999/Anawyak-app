@@ -18,7 +18,7 @@ function isAdmin(){ return LS.get('aw_admin','') === ADMIN_TOKEN; }
 
 // ── PADDLE BILLING ──────────────────────────────────────────
 // Get your client token: Paddle Dashboard → Developer → Authentication → Client-side token
-const PADDLE_CLIENT_TOKEN = 'live_REPLACE_WITH_YOUR_CLIENT_TOKEN'; // ← Paddle Dashboard → Developer → Authentication → Client-side token
+const PADDLE_CLIENT_TOKEN = 'live_4955cbe5e600973480a60eedc6e'; // ← Paddle Dashboard → Developer → Authentication → Client-side token
 const PADDLE_MONTHLY_PRICE = 'pri_01kpe8qnd2m40hwa5809wsjajj'; // $7.90/month · 7-day trial
 const PADDLE_ANNUAL_PRICE  = 'pri_01kpe94s1a2pe0acfpsssbk17x'; // $79.00/year · 7-day trial
 
@@ -989,12 +989,12 @@ function rProfile(el){
     <svg width="60" height="40" viewBox="0 0 200 140" class="float" style="margin-bottom:12px"><defs><linearGradient id="pgl1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F0CC70"/><stop offset="100%" stop-color="#C9954A"/></linearGradient><linearGradient id="pgl2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#E8849A"/><stop offset="100%" stop-color="#C8607A"/></linearGradient></defs><ellipse cx="75" cy="70" rx="52" ry="52" stroke="url(#pgl1)" stroke-width="16" fill="none"/><ellipse cx="125" cy="70" rx="52" ry="52" stroke="url(#pgl2)" stroke-width="16" fill="none"/></svg>
     <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--gold);margin-bottom:4px">أنا وياك Pro</div>
     <div style="font-size:13px;color:var(--text-soft);margin-bottom:14px;line-height:1.6">${isAr?'رسائل غير محدودة · وصفات · أفكار خروجات · ميزات حصرية':'Unlimited messages · Recipes · Date plans · Exclusive features'}</div>
-    <div style="font-size:28px;font-weight:800;color:var(--gold);margin-bottom:6px">$7.90 <span style="font-size:14px;font-weight:400;color:var(--text-soft)">/${isAr?'شهر':'month'}</span></div>
-    <div style="font-size:12px;color:var(--text-soft);margin-bottom:14px">${isAr?'أو $79/سنة · تجربة مجانية 7 أيام':'or $79/year · 7-day free trial'}</div>
+    <div style="font-size:28px;font-weight:800;color:var(--gold);margin-bottom:6px">${isAr?'29 درهم':'AED 29'} <span style="font-size:14px;font-weight:400;color:var(--text-soft)">/${isAr?'شهر':'month'}</span></div>
+    <div style="font-size:12px;color:var(--text-soft);margin-bottom:14px">${isAr?'أو 290 درهم/سنة · تجربة مجانية 7 أيام':'or AED 290/year · 7-day free trial'}</div>
     ${isPro()?
       `<div style="background:rgba(201,149,74,.15);border:1px solid rgba(201,149,74,.3);border-radius:50px;padding:14px;font-size:15px;font-weight:700;color:var(--gold);text-align:center">✨ ${isAr?'Pro مفعّل':'Pro Active'}</div>`:
-      `<button onclick="openPaddleCheckout(PADDLE_MONTHLY_PRICE)" class="btn-gold" style="display:block;width:100%;margin-bottom:10px;cursor:pointer;font-family:inherit;font-size:15px;padding:14px;border-radius:50px;border:none">${isAr?'ابدأ تجربتك المجانية 🚀':'Start Free Trial 🚀'}</button>
-      <button onclick="openPaddleCheckout(PADDLE_ANNUAL_PRICE)" style="display:block;width:100%;background:none;border:1px solid var(--gold);color:var(--gold);border-radius:50px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">${isAr?'السنوي $79 — الأفضل قيمة 💛':'Annual $79 — Best Value 💛'}</button>`
+      `<button onclick="openPaddleCheckout(PADDLE_MONTHLY_PRICE)" class="btn-gold" style="display:block;width:100%;margin-bottom:10px;cursor:pointer;font-family:inherit;font-size:15px;padding:14px;border-radius:50px;border:none">${isAr?'ابدأ تجربتك المجانية 7 أيام 🚀':'Start 7-Day Free Trial 🚀'}</button>
+      <button onclick="openPaddleCheckout(PADDLE_ANNUAL_PRICE)" style="display:block;width:100%;background:none;border:1px solid var(--gold);color:var(--gold);border-radius:50px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">${isAr?'السنوي 290 درهم — الأفضل قيمة 💛':'Annual AED 290 — Best Value 💛'}</button>`
     }
   </div>
   <button onclick="shareApp()" class="btn-ghost" style="margin-bottom:12px">${isAr?'📤 شارك أنا وياك':'📤 Share Ana Wyak'}</button>
@@ -1011,7 +1011,7 @@ function rProfile(el){
   }
   <button onclick="doSignOut()" style="width:100%;background:none;border:none;color:var(--rose);font-size:13px;cursor:pointer;padding:8px;font-family:inherit;font-weight:600">${isAr?'تسجيل الخروج':'Sign Out'}</button>
   <button onclick="if(confirm(isAr?'مسح كل البيانات؟':'Reset ALL data?'))localStorage.clear(),location.reload()" style="width:100%;background:none;border:none;color:var(--text-soft);font-size:12px;cursor:pointer;padding:4px;font-family:inherit">${isAr?'مسح جميع البيانات':'Reset all data'}</button>
-  <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text-soft);line-height:1.8">© 2026 أنا وياك · Ana Wyak · ${isAr?'جميع الحقوق محفوظة':'All rights reserved'}<br>${isAr?'ليس بديلاً عن الإرشاد المهني':'Not a substitute for professional counseling'}<br><a href="privacy.html" target="_blank" style="color:var(--rose)">Privacy Policy</a> · <a href="terms.html" target="_blank" style="color:var(--rose)">Terms of Service</a> · <a href="pricing.html" target="_blank" style="color:var(--rose)">Pricing</a></div>
+  <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text-soft);line-height:1.8">© 2026 أنا وياك · Ana Wyak · ${isAr?'جميع الحقوق محفوظة':'All rights reserved'}<br>${isAr?'ليس بديلاً عن الإرشاد المهني':'Not a substitute for professional counseling'}<br><button onclick="window.open('privacy.html','_blank')" style="background:none;border:none;color:var(--rose);font-size:11px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0">${isAr?'سياسة الخصوصية':'Privacy Policy'}</button> · <button onclick="window.open('terms.html','_blank')" style="background:none;border:none;color:var(--rose);font-size:11px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0">${isAr?'الشروط':'Terms'}</button> · <button onclick="window.open('pricing.html','_blank')" style="background:none;border:none;color:var(--rose);font-size:11px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0">${isAr?'الأسعار':'Pricing'}</button> · <button onclick="window.open('refund.html','_blank')" style="background:none;border:none;color:var(--rose);font-size:11px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0">${isAr?'الاسترداد':'Refunds'}</button></div>
   </div>`;
   const an=document.getElementById('ach-names');if(an&&profile)an.textContent=(profile.n1||'')+(profile.n2?' & '+profile.n2:'');
 }
@@ -1031,36 +1031,240 @@ const LL_EN=[{q:"Your partner had a tough day. You naturally:",o:["Tell them how
 const LL_AR=[{q:"شريكك كان يوماً صعباً. تتصرف:",o:["تخبره/ها كم تحبه/ها","تفعل شيئاً مفيداً له/لها","تجلس معه/ها هادئاً","تفاجئه/ها بهدية","تحتضنه/ها"],l:["words","acts","time","gifts","touch"]},{q:"تشعر بأكثر حب عندما يقوم شريكك:",o:["بمجاملتك أو قول أحبك","بأعمال مفيدة","بالتركيز عليك بدون هاتف","بتذكر شيء وإحضاره","بمسك يدك أو احتضانك"],l:["words","acts","time","gifts","touch"]},{q:"في ذكراكم، تفضل:",o:["رسالة من القلب","يخطط شريكك لكل شيء","يوم كامل أنتما فقط","هدية مدروسة","أحضان وقرب"],l:["words","acts","time","gifts","touch"]},{q:"تشعر بالانفصال عندما يقوم شريكك:",o:["بالصمت وعدم التعبير","بعدم المساعدة اليومية","بالانشغال الدائم","بنسيان المناسبات","بالابتعاد الجسدي"],l:["words","acts","time","gifts","touch"]},{q:"الأهم بالنسبة لك في العلاقة:",o:["كلمات التقدير","الدعم بالأفعال","وقت مخصص بدون تشتت","مفاجآت مدروسة","الحضور الجسدي"],l:["words","acts","time","gifts","touch"]}];
 const CONVO_EN=["If we could move anywhere, where would you want to go and why?","What childhood memory shaped who you are today?","What's something you've always wanted to tell me but never found the right moment?","What dream have you given up on that I could help you revive?","When do you feel most loved by me?","What makes you feel most seen and understood?","Describe our perfect year together.","What's one thing I do that always makes you smile?","What does home mean to you?","If we could have dinner with anyone in history, who would you choose?","What new experience would you love us to try together this year?","What's a quality you see in me that I don't see in myself?"];
 const CONVO_AR=["لو نقدر نعيش أي مكان في العالم، وين تختار ولماذا؟","ما ذكرى الطفولة التي شكّلت شخصيتك؟","ما الشيء الذي أردت دائماً إخباري به لكن لم تجد اللحظة المناسبة؟","ما الحلم الذي تخليت عنه ويمكنني مساعدتك في إحيائه؟","متى تشعر بأكثر حب من طرفي؟","ما الذي يجعلك تشعر بأنني أفهمك حقاً؟","صف سنتنا المثالية معاً.","ما الشيء الذي أفعله دائماً يجعلك تبتسم؟","ماذا يعني البيت لك؟","لو نقدر نتعشى مع أي شخص في التاريخ، من ستختار؟","ما الشيء الجديد الذي تودّ أن نجربه هذه السنة؟","ما صفة تراها فيّ ولا أراها في نفسي؟"];
+// ── COUPLE GAMES STATE ──────────────────────────────────
 let _qi=0,_qs=0,_qMode='',_llScores={words:0,acts:0,time:0,gifts:0,touch:0},_lli=0,_ci=0;
+let _syncGamePollInterval=null;
+
+// Sync this player's game result to cloud (keyed by partner code + mode)
+async function syncGameResult(mode, payload) {
+  const code = LS.get('aw_partner_code','') || getCode();
+  if(!code) return;
+  const key = code+':game:'+mode;
+  const myName = (profile&&profile.n1)||'Me';
+  try {
+    await fetch(DEFAULT_PROXY+'/sync', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({code:key, player:myName, ...payload, ts:Date.now()})
+    });
+  } catch(e){}
+}
+
+// Fetch partner's game result from cloud
+async function fetchPartnerGameResult(mode) {
+  const partnerCode = LS.get('aw_partner_code','');
+  if(!partnerCode) return null;
+  const key = partnerCode+':game:'+mode;
+  try {
+    const res = await fetch(DEFAULT_PROXY+'/partner/'+encodeURIComponent(key));
+    const d = await res.json();
+    if(d.ok && d.data && d.data.ts) return d.data;
+  } catch(e){}
+  return null;
+}
+
 function openQuiz(){
   const sh=getSheet('quiz-sh');
+  const hasPartner = !!LS.get('aw_partner_code','');
   sh.querySelector('.sheet').innerHTML=`<div class="sheet-handle"></div>
-  <h3 style="font-family:'Cormorant Garamond',serif;color:var(--rose);margin-bottom:6px;font-size:22px">${isAr?'ألعاب الأزواج 🎮':'Couples Games 🎮'}</h3>
-  <p style="font-size:13px;color:var(--text-soft);margin-bottom:20px">${isAr?'اختر نوع اللعبة:':'Choose a game:'}</p>
+  <div style="text-align:center;margin-bottom:16px">
+    <div style="font-size:40px;margin-bottom:8px">🎮</div>
+    <h3 style="font-family:'Cormorant Garamond',serif;color:var(--rose);margin:0 0 4px;font-size:22px">${isAr?'ألعاب الأزواج':'Couples Games'}</h3>
+    ${hasPartner?`<div style="font-size:11px;background:rgba(232,132,154,.1);color:var(--rose);border-radius:20px;padding:4px 12px;display:inline-block;margin-top:4px">🔗 ${isAr?'متصل بشريكك':'Connected with partner'}</div>`:
+    `<div style="font-size:11px;color:var(--text-soft);margin-top:4px">${isAr?'ربط شريكك في الملف الشخصي لمنافسة مزدوجة':'Link your partner in Profile for live sync'}</div>`}
+  </div>
   <div style="display:flex;flex-direction:column;gap:12px">
-    <div class="tap" onclick="startQuiz('couples')" style="background:var(--card2);border:1.5px solid var(--border);border-radius:16px;padding:18px;display:flex;gap:14px;align-items:center"><div style="font-size:32px">💑</div><div><div style="font-weight:700;font-size:15px;color:var(--text)">${isAr?'كم تعرفان بعض؟':'How Well Do You Know Each Other?'}</div><div style="font-size:13px;color:var(--text-soft)">${isAr?'10 أسئلة عن شريكك':'10 questions about your partner'}</div></div></div>
-    <div class="tap" onclick="startQuiz('love')" style="background:var(--card2);border:1.5px solid var(--border);border-radius:16px;padding:18px;display:flex;gap:14px;align-items:center"><div style="font-size:32px">❤️</div><div><div style="font-weight:700;font-size:15px;color:var(--text)">${isAr?'اكتشف لغة حبك':'Discover Your Love Language'}</div><div style="font-size:13px;color:var(--text-soft)">${isAr?'5 أسئلة · أي طريقة تحب؟':'5 questions · How do you love?'}</div></div></div>
-    <div class="tap" onclick="startQuiz('convo')" style="background:var(--card2);border:1.5px solid var(--border);border-radius:16px;padding:18px;display:flex;gap:14px;align-items:center"><div style="font-size:32px">💬</div><div><div style="font-weight:700;font-size:15px;color:var(--text)">${isAr?'بطاقات المحادثة العميقة':'Deep Conversation Cards'}</div><div style="font-size:13px;color:var(--text-soft)">${isAr?'أسئلة تقرب القلوب':'Questions that bring you closer'}</div></div></div>
+    <div class="tap" onclick="startQuiz('couples')" style="background:var(--card2);border:1.5px solid var(--border);border-radius:16px;padding:18px;display:flex;gap:14px;align-items:center">
+      <div style="font-size:32px">💑</div>
+      <div style="flex:1"><div style="font-weight:700;font-size:15px;color:var(--text)">${isAr?'كم تعرفان بعض؟':'How Well Do You Know Each Other?'}</div>
+      <div style="font-size:12px;color:var(--text-soft)">${isAr?'كل واحد يجيب منفرداً ثم نقارن النتائج':'Each answers alone, then compare scores'}</div></div>
+      ${hasPartner?'<span style="font-size:18px">🏆</span>':''}
+    </div>
+    <div class="tap" onclick="startQuiz('love')" style="background:var(--card2);border:1.5px solid var(--border);border-radius:16px;padding:18px;display:flex;gap:14px;align-items:center">
+      <div style="font-size:32px">❤️</div>
+      <div style="flex:1"><div style="font-weight:700;font-size:15px;color:var(--text)">${isAr?'اكتشف لغة حبك':'Discover Your Love Language'}</div>
+      <div style="font-size:12px;color:var(--text-soft)">${isAr?'كلاكما يجيب ثم نكشف نتائجكما معاً':'Both answer, then reveal together simultaneously'}</div></div>
+      ${hasPartner?'<span style="font-size:18px">💞</span>':''}
+    </div>
+    <div class="tap" onclick="startQuiz('convo')" style="background:var(--card2);border:1.5px solid var(--border);border-radius:16px;padding:18px;display:flex;gap:14px;align-items:center">
+      <div style="font-size:32px">💬</div>
+      <div style="flex:1"><div style="font-weight:700;font-size:15px;color:var(--text)">${isAr?'بطاقات المحادثة العميقة':'Deep Conversation Cards'}</div>
+      <div style="font-size:12px;color:var(--text-soft)">${isAr?'الأول يجيب، الثاني ينتظر، ثم تبادلا الإجابات':'One answers first, then swap — build intimacy'}</div></div>
+      ${hasPartner?'<span style="font-size:18px">🔄</span>':''}
+    </div>
   </div>`;
   sh.classList.add('open');hap.tap();
 }
-function startQuiz(mode){_qMode=mode;_qi=0;_qs=0;_llScores={words:0,acts:0,time:0,gifts:0,touch:0};_lli=0;_ci=Math.floor(Math.random()*CONVO_EN.length);if(mode==='convo')renderConvo();else if(mode==='love')renderLL();else renderCouplesQ()}
+
+function startQuiz(mode){
+  _qMode=mode;_qi=0;_qs=0;_llScores={words:0,acts:0,time:0,gifts:0,touch:0};_lli=0;
+  _ci=Math.floor(Math.random()*CONVO_EN.length);
+  if(_syncGamePollInterval){ clearInterval(_syncGamePollInterval); _syncGamePollInterval=null; }
+  if(mode==='convo') renderConvo();
+  else if(mode==='love') renderLL();
+  else renderCouplesQ();
+}
+
 function renderCouplesQ(){
   const sh=getSheet('quiz-sh');const Qs=isAr?QS_AR:QS_EN;
-  if(_qi>=Qs.length){const pct=Math.round(_qs/Qs.length*100);sh.querySelector('.sheet').innerHTML=`<div class="sheet-handle"></div><div style="text-align:center;padding:16px 0"><div style="font-size:60px;margin-bottom:14px">${pct>=80?'🏆':pct>=60?'💕':'🌱'}</div><h2 style="font-family:'Cormorant Garamond',serif;color:var(--rose);margin-bottom:8px">${isAr?'النتيجة: '+_qs+'/'+Qs.length:'Score: '+_qs+'/'+Qs.length}</h2><div style="font-size:36px;font-weight:800;color:var(--rose);margin-bottom:8px">${pct}%</div><div style="font-size:15px;color:var(--text-mid);margin-bottom:20px">${pct>=80?(isAr?'تعرفان بعض جداً! 🏆':'You know each other amazingly! 🏆'):pct>=60?(isAr?'معرفة جيدة! 💕':'Pretty good! 💕'):(isAr?'مجال للتطور معاً 🌱':'Room to grow together 🌱')}</div><button class="btn-rose" style="margin-bottom:12px" onclick="startQuiz('couples')">${isAr?'العب مجدداً':'Play Again'}</button><button class="btn-ghost" onclick="closeSheet('quiz-sh')">${isAr?'إنهاء':'Done'}</button></div>`;hap.celebrate();return}
+  if(_qi>=Qs.length){
+    const pct=Math.round(_qs/Qs.length*100);
+    const hasPartner=!!LS.get('aw_partner_code','');
+    // Upload my score and wait for partner
+    syncGameResult('couples',{score:_qs,pct:pct,total:Qs.length});
+    if(hasPartner){
+      sh.querySelector('.sheet').innerHTML=`<div class="sheet-handle"></div>
+      <div style="text-align:center;padding:20px 0">
+        <div style="font-size:56px;margin-bottom:12px">${pct>=80?'🏆':pct>=60?'💕':'🌱'}</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;color:var(--rose);margin-bottom:6px">${isAr?'نتيجتك: '+_qs+'/'+Qs.length:'Your Score: '+_qs+'/'+Qs.length}</h2>
+        <div style="font-size:34px;font-weight:800;color:var(--rose);margin-bottom:12px">${pct}%</div>
+        <div style="background:rgba(232,132,154,.08);border:1px solid rgba(232,132,154,.2);border-radius:14px;padding:14px;margin-bottom:16px">
+          <div style="font-size:13px;color:var(--rose);font-weight:700;margin-bottom:6px">⏳ ${isAr?'انتظار شريكك...':'Waiting for your partner...'}</div>
+          <div style="font-size:12px;color:var(--text-soft)">${isAr?'شريكك يلعب الآن. سيظهر تحديه هنا تلقائياً.':'Your partner is playing. Their result will appear here.'}</div>
+        </div>
+        <div id="partner-quiz-result" style="margin-bottom:14px"></div>
+        <button class="btn-rose" style="margin-bottom:10px" onclick="startQuiz('couples')">${isAr?'العب مجدداً':'Play Again'}</button>
+        <button class="btn-ghost" onclick="closeSheet('quiz-sh')">${isAr?'إنهاء':'Done'}</button>
+      </div>`;
+      // Poll for partner result
+      _syncGamePollInterval=setInterval(async function(){
+        var pd=await fetchPartnerGameResult('couples');
+        var el=document.getElementById('partner-quiz-result');
+        if(pd&&pd.score!==undefined&&el){
+          clearInterval(_syncGamePollInterval);
+          var pName=pd.player||(isAr?'شريكك':'Partner');
+          var myWon=_qs>pd.score,tie=_qs===pd.score;
+          el.innerHTML=`<div style="background:${tie?'rgba(201,149,74,.1)':myWon?'rgba(80,200,120,.1)':'rgba(232,132,154,.1)'};border:1.5px solid ${tie?'var(--gold)':myWon?'#50c878':'var(--rose)'};border-radius:14px;padding:14px">
+            <div style="font-size:20px;margin-bottom:6px">${tie?'🤝':myWon?'🥇':'🥈'}</div>
+            <div style="font-weight:700;font-size:13px;color:var(--text);margin-bottom:6px">${pName}: ${pd.score}/${pd.total} (${pd.pct}%)</div>
+            <div style="font-size:12px;color:var(--text-soft)">${tie?(isAr?'تعادل مثالي! 🤝':'Perfect tie! 🤝'):myWon?(isAr?'أنت الفائز! 🏆':'You win! 🏆'):(isAr?pName+' يفوز! حاول مجدداً 💪':pName+' wins! Try again 💪')}</div>
+          </div>`;
+          hap.celebrate();
+        }
+      },3000);
+    } else {
+      sh.querySelector('.sheet').innerHTML=`<div class="sheet-handle"></div><div style="text-align:center;padding:16px 0"><div style="font-size:60px;margin-bottom:14px">${pct>=80?'🏆':pct>=60?'💕':'🌱'}</div><h2 style="font-family:'Cormorant Garamond',serif;color:var(--rose);margin-bottom:8px">${isAr?'النتيجة: '+_qs+'/'+Qs.length:'Score: '+_qs+'/'+Qs.length}</h2><div style="font-size:36px;font-weight:800;color:var(--rose);margin-bottom:8px">${pct}%</div><div style="font-size:15px;color:var(--text-mid);margin-bottom:8px">${pct>=80?(isAr?'تعرفان بعض جداً! 🏆':'You know each other amazingly! 🏆'):pct>=60?(isAr?'معرفة جيدة! 💕':'Pretty good! 💕'):(isAr?'مجال للتطور معاً 🌱':'Room to grow together 🌱')}</div><div style="font-size:12px;color:var(--text-soft);margin-bottom:16px">${isAr?'ربط شريكك في الملف الشخصي للمنافسة المزدوجة':'Link your partner in Profile for head-to-head competition'}</div><button class="btn-rose" style="margin-bottom:12px" onclick="startQuiz('couples')">${isAr?'العب مجدداً':'Play Again'}</button><button class="btn-ghost" onclick="closeSheet('quiz-sh')">${isAr?'إنهاء':'Done'}</button></div>`;
+      hap.celebrate();
+    }
+    return;
+  }
   const q=Qs[_qi];
-  sh.querySelector('.sheet').innerHTML=`<div class="sheet-handle"></div><div style="display:flex;justify-content:space-between;margin-bottom:16px"><span style="font-size:12px;font-weight:700;color:var(--text-soft)">${isAr?'سؤال':'Q'} ${_qi+1}/${Qs.length}</span><span style="font-size:12px;font-weight:700;color:var(--rose)">🏆 ${_qs}</span></div><div class="quiz-card" style="margin-bottom:20px"><div style="font-size:36px;margin-bottom:14px">🤔</div><div style="font-size:17px;font-weight:700;color:var(--text);line-height:1.5">${q.q}</div></div><div>${q.o.map((o,i)=>`<div class="quiz-opt" onclick="answerQ(this)">${o}</div>`).join('')}</div>`;
+  sh.querySelector('.sheet').innerHTML=`<div class="sheet-handle"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <span style="font-size:12px;font-weight:700;color:var(--text-soft)">${isAr?'سؤال':'Q'} ${_qi+1}/${Qs.length}</span>
+    <span style="font-size:12px;font-weight:700;color:var(--rose)">🏆 ${_qs}</span>
+  </div>
+  <div class="quiz-card" style="margin-bottom:20px"><div style="font-size:36px;margin-bottom:14px">🤔</div><div style="font-size:17px;font-weight:700;color:var(--text);line-height:1.5">${q.q}</div></div>
+  <div>${q.o.map((o)=>`<div class="quiz-opt" onclick="answerQ(this)">${o}</div>`).join('')}</div>`;
 }
 function answerQ(el){el.classList.add('sel');_qs++;hap.success();setTimeout(()=>{_qi++;renderCouplesQ()},700)}
+
 function renderLL(){
   const sh=getSheet('quiz-sh');const Qs=isAr?LL_AR:LL_EN;
-  if(_lli>=Qs.length){const top=Object.entries(_llScores).sort((a,b)=>b[1]-a[1])[0][0];const names_en={words:'Words of Affirmation 💬',acts:'Acts of Service 🤝',time:'Quality Time ⏰',gifts:'Gift Giving 🎁',touch:'Physical Touch 💕'};const names_ar={words:'كلمات التأكيد 💬',acts:'أعمال الخدمة 🤝',time:'الوقت الجيد ⏰',gifts:'الهدايا 🎁',touch:'اللمسة الجسدية 💕'};const desc_en={words:'You feel most loved through kind words, compliments, and verbal appreciation.',acts:'Love shown through helpful actions and support means the most to you.',time:'Undivided attention and focused time together means everything.',gifts:'Thoughtful presents and remembered moments speak to your heart.',touch:'Physical affection — hugs, holding hands — keeps you connected.'};const desc_ar={words:'تشعر بأكثر حب من خلال الكلمات الطيبة والتقدير.',acts:'الحب الظاهر بالأفعال المفيدة يعني لك الأكثر.',time:'الاهتمام الكامل والوقت المركز معاً يعني كل شيء.',gifts:'الهدايا المدروسة وتذكر اللحظات تصل لقلبك.',touch:'المودة الجسدية طريقتك للتواصل.'};sh.querySelector('.sheet').innerHTML=`<div class="sheet-handle"></div><div style="text-align:center;padding:16px 0"><div style="font-size:52px;margin-bottom:14px">❤️</div><div style="font-size:13px;color:var(--text-soft);margin-bottom:6px">${isAr?'لغة حبك:':'Your Love Language:'}</div><h2 style="font-family:'Cormorant Garamond',serif;color:var(--rose);font-size:24px;margin-bottom:14px">${isAr?names_ar[top]:names_en[top]}</h2><div style="background:var(--rose-pale);border-radius:16px;padding:16px;margin-bottom:14px;font-size:14px;color:var(--text-mid);line-height:1.7">${isAr?desc_ar[top]:desc_en[top]}</div><div style="font-size:11px;color:var(--text-soft);margin-bottom:16px;background:var(--card2);border-radius:10px;padding:10px;line-height:1.5">${isAr?'⚠️ هذا للتأمل الذاتي فقط. أنا وياك ليس تطبيق مواعدة.':'⚠️ For self-reflection only. Ana Wyak is not a matchmaking service.'}</div><button class="btn-rose" style="margin-bottom:12px" onclick="startQuiz('love')">${isAr?'اختبر مجدداً':'Try Again'}</button><button class="btn-ghost" onclick="closeSheet('quiz-sh')">${isAr?'إنهاء':'Done'}</button></div>`;hap.celebrate();return}
-  const q=Qs[_lli];sh.querySelector('.sheet').innerHTML=`<div class="sheet-handle"></div><div style="display:flex;justify-content:space-between;margin-bottom:16px"><span style="font-size:12px;font-weight:700;color:var(--text-soft)">${isAr?'سؤال':'Q'} ${_lli+1}/5</span><span style="font-size:12px;color:var(--rose)">❤️ ${isAr?'لغة الحب':'Love Language'}</span></div><div class="quiz-card" style="margin-bottom:20px;min-height:120px"><div style="font-size:16px;font-weight:700;color:var(--text);line-height:1.6">${q.q}</div></div><div>${q.o.map((o,i)=>`<div class="quiz-opt" onclick="answerLL(this,'${q.l[i]}')">${o}</div>`).join('')}</div>`;
+  const NAMES_EN={words:'Words of Affirmation 💬',acts:'Acts of Service 🤝',time:'Quality Time ⏰',gifts:'Gift Giving 🎁',touch:'Physical Touch 💕'};
+  const NAMES_AR={words:'كلمات التأكيد 💬',acts:'أعمال الخدمة 🤝',time:'الوقت الجيد ⏰',gifts:'الهدايا 🎁',touch:'اللمسة الجسدية 💕'};
+  const DESC_EN={words:'You feel most loved through kind words, compliments, and verbal appreciation.',acts:'Love shown through helpful actions and support means the most to you.',time:'Undivided attention and focused time together means everything.',gifts:'Thoughtful presents and remembered moments speak to your heart.',touch:'Physical affection — hugs, holding hands — keeps you connected.'};
+  const DESC_AR={words:'تشعر بأكثر حب من خلال الكلمات الطيبة والتقدير.',acts:'الحب الظاهر بالأفعال المفيدة يعني لك الأكثر.',time:'الاهتمام الكامل والوقت المركز معاً يعني كل شيء.',gifts:'الهدايا المدروسة وتذكر اللحظات تصل لقلبك.',touch:'المودة الجسدية طريقتك للتواصل.'};
+  if(_lli>=Qs.length){
+    const top=Object.entries(_llScores).sort((a,b)=>b[1]-a[1])[0][0];
+    const hasPartner=!!LS.get('aw_partner_code','');
+    syncGameResult('love',{lang:top,langName:isAr?NAMES_AR[top]:NAMES_EN[top]});
+    if(hasPartner){
+      sh.querySelector('.sheet').innerHTML=`<div class="sheet-handle"></div>
+      <div style="text-align:center;padding:16px 0">
+        <div style="font-size:52px;margin-bottom:12px">❤️</div>
+        <div style="font-size:13px;color:var(--text-soft);margin-bottom:4px">${isAr?'لغة حبك:':'Your Love Language:'}</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;color:var(--rose);font-size:22px;margin-bottom:12px">${isAr?NAMES_AR[top]:NAMES_EN[top]}</h2>
+        <div style="background:rgba(232,132,154,.08);border:1px solid rgba(232,132,154,.2);border-radius:14px;padding:14px;margin-bottom:14px">
+          <div style="font-size:13px;color:var(--rose);font-weight:700;margin-bottom:6px">⏳ ${isAr?'انتظار شريكك...':'Waiting for partner...'}</div>
+          <div style="font-size:12px;color:var(--text-soft)">${isAr?'شريكك يكمل الاختبار. إجابتاكما ستظهران معاً!':'Partner is finishing. Both results will reveal together!'}</div>
+        </div>
+        <div id="partner-love-result"></div>
+        <button class="btn-ghost" style="margin-top:12px" onclick="closeSheet('quiz-sh')">${isAr?'إنهاء':'Done'}</button>
+      </div>`;
+      _syncGamePollInterval=setInterval(async function(){
+        var pd=await fetchPartnerGameResult('love');
+        var el=document.getElementById('partner-love-result');
+        if(pd&&pd.lang&&el){
+          clearInterval(_syncGamePollInterval);
+          var pName=pd.player||(isAr?'شريكك':'Partner');
+          el.innerHTML=`<div style="display:grid;gap:10px">
+            <div style="background:rgba(201,149,74,.08);border:1px solid rgba(201,149,74,.3);border-radius:14px;padding:14px">
+              <div style="font-size:11px;color:var(--gold);font-weight:700;margin-bottom:6px">${pName} ${isAr?'يحب:':'loves via:'}</div>
+              <div style="font-size:16px;font-weight:700;color:var(--text)">${isAr?NAMES_AR[pd.lang]:NAMES_EN[pd.lang]}</div>
+              <div style="font-size:12px;color:var(--text-soft);margin-top:6px">${isAr?DESC_AR[pd.lang]:DESC_EN[pd.lang]}</div>
+            </div>
+            ${top===pd.lang?`<div style="background:rgba(80,200,120,.1);border-radius:12px;padding:12px;font-size:13px;font-weight:700;color:#50c878;text-align:center">💞 ${isAr?'لغة حبكما واحدة! 💞':'Same love language! 💞'}</div>`:
+            `<div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px;font-size:12px;color:var(--text-soft);text-align:center">${isAr?'لغتان مختلفتان — سراً وجميلاً 💕':'Different languages — the beauty of complementing each other 💕'}</div>`}
+          </div>`;
+          hap.celebrate();
+        }
+      },3000);
+    } else {
+      sh.querySelector('.sheet').innerHTML=`<div class="sheet-handle"></div><div style="text-align:center;padding:16px 0"><div style="font-size:52px;margin-bottom:14px">❤️</div><div style="font-size:13px;color:var(--text-soft);margin-bottom:6px">${isAr?'لغة حبك:':'Your Love Language:'}</div><h2 style="font-family:'Cormorant Garamond',serif;color:var(--rose);font-size:24px;margin-bottom:14px">${isAr?NAMES_AR[top]:NAMES_EN[top]}</h2><div style="background:var(--rose-pale);border-radius:16px;padding:16px;margin-bottom:14px;font-size:14px;color:var(--text-mid);line-height:1.7">${isAr?DESC_AR[top]:DESC_EN[top]}</div><button class="btn-rose" style="margin-bottom:12px" onclick="startQuiz('love')">${isAr?'اختبر مجدداً':'Try Again'}</button><button class="btn-ghost" onclick="closeSheet('quiz-sh')">${isAr?'إنهاء':'Done'}</button></div>`;
+      hap.celebrate();
+    }
+    return;
+  }
+  const q=Qs[_lli];
+  sh.querySelector('.sheet').innerHTML=`<div class="sheet-handle"></div>
+  <div style="display:flex;justify-content:space-between;margin-bottom:16px">
+    <span style="font-size:12px;font-weight:700;color:var(--text-soft)">${isAr?'سؤال':'Q'} ${_lli+1}/5</span>
+    <span style="font-size:12px;color:var(--rose)">❤️ ${isAr?'لغة الحب':'Love Language'}</span>
+  </div>
+  <div class="quiz-card" style="margin-bottom:20px;min-height:120px"><div style="font-size:16px;font-weight:700;color:var(--text);line-height:1.6">${q.q}</div></div>
+  <div>${q.o.map((o,i)=>`<div class="quiz-opt" onclick="answerLL(this,'${q.l[i]}')">${o}</div>`).join('')}</div>`;
 }
 function answerLL(el,lang){_llScores[lang]++;el.classList.add('sel');hap.success();setTimeout(()=>{_lli++;renderLL()},700)}
+
 function renderConvo(){
   const sh=getSheet('quiz-sh');const cards=isAr?CONVO_AR:CONVO_EN;
-  sh.querySelector('.sheet').innerHTML=`<div class="sheet-handle"></div><div style="text-align:center;margin-bottom:16px"><span style="font-size:11px;font-weight:800;color:var(--text-soft);text-transform:uppercase;letter-spacing:.07em">${isAr?'بطاقة محادثة عميقة':'Deep Conversation Card'}</span></div><div class="quiz-card" style="min-height:180px;margin-bottom:20px"><div style="font-size:36px;margin-bottom:16px">💬</div><div style="font-size:17px;font-weight:700;color:var(--text);line-height:1.6">"${cards[_ci%cards.length]}"</div></div><div style="display:flex;gap:10px"><button class="btn-ghost" style="padding:12px" onclick="_ci--;hap.tap();renderConvo()">← ${isAr?'السابق':'Prev'}</button><button class="btn-rose" style="padding:12px" onclick="_ci++;hap.tap();renderConvo()">${isAr?'التالي':'Next'} →</button></div><button class="btn-ghost" style="margin-top:10px;padding:10px;font-size:13px" onclick="closeSheet('quiz-sh')">${isAr?'إنهاء':'Done'}</button>`;
+  const hasPartner=!!LS.get('aw_partner_code','');
+  const myName=(profile&&profile.n1)||(isAr?'أنا':'Me');
+  const partnerName=(profile&&profile.n2)||(isAr?'شريكك':'Partner');
+  const card=cards[_ci%cards.length];
+  const myTurn=(_ci%2===0);
+  sh.querySelector('.sheet').innerHTML=`<div class="sheet-handle"></div>
+  <div style="text-align:center;margin-bottom:12px">
+    <span style="font-size:11px;font-weight:800;color:var(--text-soft);text-transform:uppercase;letter-spacing:.07em">${isAr?'بطاقة محادثة عميقة':'Deep Conversation Card'}</span>
+    ${hasPartner?`<div style="margin-top:6px;font-size:11px;color:${myTurn?'var(--rose)':'var(--gold)'};font-weight:700">${myTurn?(isAr?'🎤 دورك للإجابة':'🎤 Your turn to answer'):(isAr?'🎤 دور شريكك للإجابة':'🎤 Partner\'s turn to answer')}</div>`:''}
+  </div>
+  <div class="quiz-card" style="min-height:160px;margin-bottom:16px">
+    <div style="font-size:32px;margin-bottom:14px">💬</div>
+    <div style="font-size:17px;font-weight:700;color:var(--text);line-height:1.6">"${card}"</div>
+  </div>
+  ${hasPartner?`<div style="background:rgba(232,132,154,.06);border-radius:14px;padding:12px;margin-bottom:14px">
+    <div style="font-size:12px;color:var(--text-soft);margin-bottom:8px">${myTurn?(isAr?myName+' يجيب أولاً، ثم يشارك مع '+partnerName:myName+' answers first, then shares with '+partnerName):(isAr?partnerName+' يجيب الآن، ثم أنت':partnerName+' answers now, then you')}</div>
+    <textarea id="convo-answer" placeholder="${isAr?'إجابتك هنا...':'Your answer here...'}" style="width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;font-size:14px;font-family:inherit;color:var(--text);min-height:80px;resize:none;box-sizing:border-box"></textarea>
+    <button class="btn-rose" style="width:100%;margin-top:8px;padding:10px;font-size:13px" onclick="shareConvoAnswer('${card.replace(/'/g,'\\\'')}')">${isAr?'شارك إجابتي 💕':'Share My Answer 💕'}</button>
+  </div>`:''}
+  <div id="shared-convo-answers"></div>
+  <div style="display:flex;gap:10px;margin-top:4px">
+    <button class="btn-ghost" style="flex:1;padding:12px" onclick="_ci--;hap.tap();renderConvo()">← ${isAr?'السابق':'Prev'}</button>
+    <button class="btn-rose" style="flex:1;padding:12px" onclick="_ci++;hap.tap();renderConvo()">${isAr?'التالي':'Next'} →</button>
+  </div>
+  <button class="btn-ghost" style="width:100%;margin-top:10px;padding:10px;font-size:12px" onclick="closeSheet('quiz-sh')">${isAr?'إنهاء':'Done'}</button>`;
+  // Check for partner's shared answers
+  if(hasPartner) {
+    fetchPartnerGameResult('convo:'+(_ci%cards.length)).then(function(pd){
+      var el=document.getElementById('shared-convo-answers');
+      if(pd&&pd.answer&&el){
+        var pName=pd.player||(isAr?'شريكك':'Partner');
+        el.innerHTML=`<div style="background:rgba(201,149,74,.08);border:1px solid rgba(201,149,74,.2);border-radius:12px;padding:12px;margin-bottom:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px">💬 ${pName}:</div>
+          <div style="font-size:13px;color:var(--text-mid);line-height:1.6">${pd.answer}</div>
+        </div>`;
+      }
+    });
+  }
+}
+async function shareConvoAnswer(cardText) {
+  const ans=document.getElementById('convo-answer')?.value.trim();
+  if(!ans){T(isAr?'اكتب إجابتك أولاً':'Write your answer first');return;}
+  await syncGameResult('convo:'+(_ci%((isAr?CONVO_AR:CONVO_EN).length)),{answer:ans,question:cardText});
+  hap.success();
+  T(isAr?'تمت المشاركة! 💕':'Shared with partner! 💕');
+  renderConvo();
 }
 
 // ══════════════════════════════════════════════════
@@ -1152,10 +1356,10 @@ function showPaywall(){
     '<div style="font-size:13px;color:var(--text-soft);margin-bottom:16px">'+(isAr?'استخدمت رسائلك اليوم. تتجدد خلال '+timeUntilMidnight()+' 🌙':'Daily free messages used. Resets in '+timeUntilMidnight()+' 🌙')+'</div>'+
     features.map(function(b){ return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);text-align:left;font-size:13px">'+b+'</div>'; }).join('')+
     '<div style="font-size:14px;color:var(--text-soft);margin-bottom:4px;margin-top:16px">'+(isAr?'عرض الإطلاق':'Launch offer')+'</div>'+
-    '<div style="font-size:28px;font-weight:800;color:var(--rose);margin:12px 0 4px">$7.90<span style="font-size:15px;font-weight:400;color:var(--text-soft)">/'+(isAr?'شهر':'month')+'</span></div>'+
-    '<div style="font-size:14px;color:var(--text-soft);margin-bottom:16px">'+(isAr?'أو سنوي $79 فقط — وفر 17٪ · تجربة مجانية 7 أيام':'or annual $79 only — save 17% · 7-day free trial')+'</div>'+
-    '<button class="btn-gold" onclick="openPaddleCheckout(PADDLE_MONTHLY_PRICE)" style="display:block;width:100%;margin-bottom:10px;cursor:pointer;font-family:inherit;font-size:15px;padding:14px;border-radius:50px;border:none">'+(isAr?'ابدأ تجربتك المجانية 🚀':'Start Free Trial 🚀')+'</button>'+
-    '<button onclick="openPaddleCheckout(PADDLE_ANNUAL_PRICE)" style="display:block;width:100%;background:none;border:1px solid var(--gold);color:var(--gold);border-radius:50px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:16px">'+(isAr?'السنوي $79 — الأفضل قيمة 💛':'Annual $79 — Best Value 💛')+'</button>'+
+    '<div style="font-size:28px;font-weight:800;color:var(--rose);margin:12px 0 4px">'+(isAr?'':'AED ')+'29'+(isAr?' درهم':'')+'<span style="font-size:15px;font-weight:400;color:var(--text-soft)">/'+(isAr?'شهر':'month')+'</span></div>'+
+    '<div style="font-size:14px;color:var(--text-soft);margin-bottom:16px">'+(isAr?'أو سنوي 290 درهم — وفر 17٪ · تجربة مجانية 7 أيام':'or annual AED 290 — save 17% · 7-day free trial')+'</div>'+
+    '<button class="btn-gold" onclick="openPaddleCheckout(PADDLE_MONTHLY_PRICE)" style="display:block;width:100%;margin-bottom:10px;cursor:pointer;font-family:inherit;font-size:15px;padding:14px;border-radius:50px;border:none">'+(isAr?'ابدأ تجربتك المجانية 7 أيام 🚀':'Start 7-Day Free Trial 🚀')+'</button>'+
+    '<button onclick="openPaddleCheckout(PADDLE_ANNUAL_PRICE)" style="display:block;width:100%;background:none;border:1px solid var(--gold);color:var(--gold);border-radius:50px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:16px">'+(isAr?'السنوي 290 درهم — الأفضل قيمة 💛':'Annual AED 290 — Best Value 💛')+'</button>'+
     '<button onclick="document.getElementById(\'pw\').classList.remove(\'open\')" style="background:none;border:none;color:var(--text-soft);font-size:14px;cursor:pointer;font-family:inherit">'+(isAr?'لاحقاً':'Maybe later')+'</button>'+
     '</div></div>';
   document.body.appendChild(pw);
@@ -1918,6 +2122,28 @@ async function doSignUp() {
   storeLead({email:email, name:n1, partner:n2, vibe:obVibe||'', wish:obWish||'', fam:fam, lang:isAr?'ar':'en', source:'signup'});
   obWish = '';
 }
+function setObLang(lang) {
+  LS.set('aw_lang_chosen', true);
+  if(lang === 'ar') {
+    isAr = true;
+    LS.set('aw_lang', true);
+    document.body.classList.add('rtl');
+    document.documentElement.dir = 'rtl';
+  } else {
+    isAr = false;
+    LS.set('aw_lang', false);
+    document.body.classList.remove('rtl');
+    document.documentElement.dir = 'ltr';
+  }
+  hap.tap();
+  var obL = document.getElementById('ob-lang');
+  if(obL) { obL.style.opacity='0'; obL.style.transition='opacity .3s'; setTimeout(function(){ obL.style.display='none'; },300); }
+  setTimeout(function(){
+    var ob0 = document.getElementById('ob-0');
+    if(ob0) ob0.style.display = 'flex';
+    var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '33%';
+  }, 320);
+}
 function selectObVibe(v,el){
   obVibe = v;
   document.querySelectorAll('.ob-vibe-card').forEach(function(card){
@@ -2174,71 +2400,152 @@ function selectTonightMood(id,el){
   if(el){ el.style.borderColor='var(--gold)'; el.style.color='var(--rose)'; el.style.background='rgba(240,204,112,.15)'; }
   hap.tap();
 }
+// Tonight — psychological 2-question wizard + AI-powered personalised suggestion
+var _tnEnergy = ‘’, _tnNeed = ‘’;
+var _tnEnergyOptions = [
+  {id:’high’, en:’⚡ Full of energy’, ar:’⚡ مليء بالطاقة’},
+  {id:’medium’, en:’😊 Balanced & ready’, ar:’😊 متوازن ومستعد’},
+  {id:’cozy’, en:’🛋️ Cozy & relaxed’, ar:’🛋️ مرتاح وهادئ’},
+  {id:’tired’, en:’😴 A little tired’, ar:’😴 تعبان شوي’},
+  {id:’stressed’, en:’😤 Need to unwind’, ar:’😤 أحتاج للاسترخاء’},
+  {id:’excited’, en:’🎉 Excited & playful’, ar:’🎉 متحمس ومرح’}
+];
+var _tnNeedOptions = [
+  {id:’romance’, en:’💕 Deep romance’, ar:’💕 رومانسية عميقة’},
+  {id:’adventure’, en:’🌟 Excitement & adventure’, ar:’🌟 إثارة ومغامرة’},
+  {id:’calm’, en:’🌙 Peace & calm’, ar:’🌙 هدوء وسكينة’},
+  {id:’laugh’, en:’😂 Laughter & fun’, ar:’😂 ضحك ومرح’},
+  {id:’talk’, en:’💬 Deep conversation’, ar:’💬 حديث عميق’},
+  {id:’surprise’, en:’🎲 Surprise us!’, ar:’🎲 فاجئونا!’},
+  {id:’luxury’, en:’👑 Luxury experience’, ar:’👑 تجربة فاخرة’},
+  {id:’homey’, en:’🏠 Stay-in & cozy’, ar:’🏠 في البيت وهادئ’}
+];
+function _tnSelectBtn(cls, id) {
+  document.querySelectorAll(‘.’+cls).forEach(function(b){
+    b.style.borderColor=’rgba(255,255,255,.1)’; b.style.background=’var(--card2)’; b.style.color=’var(--text-soft)’;
+  });
+  var sel = document.querySelector(‘.’+cls+’[data-id="’+id+’"]’);
+  if(sel){ sel.style.borderColor=’var(--rose)’; sel.style.background=’rgba(232,132,154,.12)’; sel.style.color=’var(--rose)’; }
+}
 function openTonight() {
   if(_tonightLock) return;
-  tonightHistory = [];
-  var sh = getSheet('tn-sh');
-  sh.querySelector('.sheet').innerHTML =
-    '<div class="sheet-handle"></div>' +
-    '<div style="text-align:center;padding:12px 0">' +
-      '<div style="font-size:48px;margin-bottom:12px;animation:bounceIn .4s ease">🎲</div>' +
-      '<div style="font-family:\'Cormorant Garamond\',serif;color:var(--rose);font-size:22px;font-weight:700;margin-bottom:8px">' + (isAr?'وش جوّكم اليوم؟':'What mood is tonight?') + '</div>' +
-      '<div style="font-size:14px;color:var(--text-mid);line-height:1.7;margin-bottom:18px">' + (isAr?'اختر المنطقة، الميزانية، والمزاج لنقدّم لك اقتراحاً محلياً فاخراً':'Choose region, budget, and mood for a curated local suggestion') + '</div>' +
-      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px">' +
-        TONIGHT_REGIONS.map(function(r){ return '<button class="tn-region" onclick="selectTonightRegion(\''+r.id+'\',this)" style="border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:12px;font-size:12px;cursor:pointer;background:var(--card2);color:var(--text-soft)">'+(isAr?r.ar:r.en)+'</button>'; }).join('') +
-      '</div>' +
-      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px">' +
-        TONIGHT_BUDGETS.map(function(b){ return '<button class="tn-budget" onclick="selectTonightBudget(\''+b.id+'\',this)" style="border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:12px;font-size:12px;cursor:pointer;background:var(--card2);color:var(--text-soft)">'+(isAr?b.ar:b.en)+'</button>'; }).join('') +
-      '</div>' +
-      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px">' +
-        TONIGHT_MOODS.map(function(m){ return '<button class="tn-mood" onclick="selectTonightMood(\''+m.id+'\',this)" style="border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:12px;font-size:12px;cursor:pointer;background:var(--card2);color:var(--text-soft)">'+(isAr?m.ar:m.en)+'</button>'; }).join('') +
-      '</div>' +
-      '<button class="btn-gold" style="width:100%;padding:14px;font-size:15px;font-weight:800" onclick="generateTonightSuggestion()">' + (isAr?'اقترح لي الليلة':'Suggest tonight') + '</button>' +
-    '</div>';
-  sh.classList.add('open');
-  // Highlight defaults
-  setTimeout(function(){ document.querySelectorAll('.tn-region, .tn-budget, .tn-mood').forEach(function(btn){ btn.style.borderColor='rgba(255,255,255,.12)'; btn.style.background='var(--card2)'; btn.style.color='var(--text-soft)'; }); if(document.querySelector('.tn-region')){ document.querySelectorAll('.tn-region')[0].style.borderColor='var(--gold)'; document.querySelectorAll('.tn-region')[0].style.color='var(--rose)'; document.querySelectorAll('.tn-region')[0].style.background='rgba(240,204,112,.15)'; } if(document.querySelector('.tn-budget')){ document.querySelectorAll('.tn-budget')[1].style.borderColor='var(--rose)'; document.querySelectorAll('.tn-budget')[1].style.color='var(--rose)'; document.querySelectorAll('.tn-budget')[1].style.background='rgba(232,132,154,.14)'; } if(document.querySelector('.tn-mood')){ document.querySelectorAll('.tn-mood')[0].style.borderColor='var(--gold)'; document.querySelectorAll('.tn-mood')[0].style.color='var(--rose)'; document.querySelectorAll('.tn-mood')[0].style.background='rgba(240,204,112,.15)'; } }, 50);
+  _tnEnergy=’’; _tnNeed=’’; tonightHistory=[];
+  var sh = getSheet(‘tn-sh’);
+  sh.querySelector(‘.sheet’).innerHTML =
+    ‘<div class="sheet-handle"></div>’ +
+    ‘<div style="padding:8px 0 16px">’ +
+      ‘<div style="text-align:center;margin-bottom:20px">’ +
+        ‘<div style="font-size:44px;margin-bottom:10px">🎲</div>’ +
+        ‘<div style="font-family:\’Cormorant Garamond\’,serif;color:var(--rose);font-size:22px;font-weight:700;margin-bottom:6px">’+(isAr?’وش جوّكم الليلة؟’:’What\’s your vibe tonight?’)+’</div>’ +
+        ‘<div style="font-size:13px;color:var(--text-soft)">’+(isAr?’سؤالان فقط — واقترح الذكاء الاصطناعي ليلتكما المثالية’:’2 quick questions → AI crafts your perfect night’)+’</div>’ +
+      ‘</div>’ +
+      ‘<div style="font-size:12px;font-weight:800;color:var(--text-soft);letter-spacing:.06em;margin-bottom:10px">’+(isAr?’١. كيف طاقتكما الآن؟’:’1. HOW IS YOUR ENERGY RIGHT NOW?’)+’</div>’ +
+      ‘<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">’ +
+        _tnEnergyOptions.map(function(o){
+          return ‘<button class="tn-energy-btn" data-id="’+o.id+’" onclick="selectTnEnergy(\’’+o.id+’\’,this)" style="border:1.5px solid rgba(255,255,255,.1);border-radius:16px;padding:12px 8px;font-size:13px;cursor:pointer;background:var(--card2);color:var(--text-soft);font-family:inherit;text-align:center;transition:all .15s">’+(isAr?o.ar:o.en)+’</button>’;
+        }).join(‘’) +
+      ‘</div>’ +
+      ‘<div style="font-size:12px;font-weight:800;color:var(--text-soft);letter-spacing:.06em;margin-bottom:10px">’+(isAr?’٢. ما يحتاجه قلبكما الليلة؟’:’2. WHAT DOES YOUR HEART NEED TONIGHT?’)+’</div>’ +
+      ‘<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:22px">’ +
+        _tnNeedOptions.map(function(o){
+          return ‘<button class="tn-need-btn" data-id="’+o.id+’" onclick="selectTnNeed(\’’+o.id+’\’,this)" style="border:1.5px solid rgba(255,255,255,.1);border-radius:16px;padding:12px 8px;font-size:13px;cursor:pointer;background:var(--card2);color:var(--text-soft);font-family:inherit;text-align:center;transition:all .15s">’+(isAr?o.ar:o.en)+’</button>’;
+        }).join(‘’) +
+      ‘</div>’ +
+      ‘<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px">’ +
+        TONIGHT_REGIONS.map(function(r){
+          return ‘<button class="tn-region" data-id="’+r.id+’" onclick="selectTonightRegion(\’’+r.id+’\’,this)" style="border:1.5px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 6px;font-size:11px;cursor:pointer;background:var(--card2);color:var(--text-soft);font-family:inherit;transition:all .15s">’+(isAr?r.ar:r.en)+’</button>’;
+        }).join(‘’) +
+      ‘</div>’ +
+      ‘<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:22px">’ +
+        TONIGHT_BUDGETS.map(function(b){
+          return ‘<button class="tn-budget" data-id="’+b.id+’" onclick="selectTonightBudget(\’’+b.id+’\’,this)" style="border:1.5px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 6px;font-size:11px;cursor:pointer;background:var(--card2);color:var(--text-soft);font-family:inherit;transition:all .15s">’+(isAr?b.ar:b.en)+’</button>’;
+        }).join(‘’) +
+      ‘</div>’ +
+      ‘<button class="btn-gold" style="width:100%;padding:15px;font-size:15px;font-weight:800" onclick="generateTonightAI()">’+(isAr?’✨ اقترح ليلتنا’:’✨ Craft Our Night’)+’</button>’ +
+    ‘</div>’;
+  sh.classList.add(‘open’);
+  // Default selections
+  setTimeout(function(){
+    selectTonightRegion(‘UAE’, document.querySelector(‘.tn-region[data-id="UAE"]’));
+    selectTonightBudget(‘Medium’, document.querySelector(‘.tn-budget[data-id="Medium"]’));
+  }, 80);
 }
-function generateTonightSuggestion() {
+function selectTnEnergy(id, el) {
+  _tnEnergy = id;
+  document.querySelectorAll(‘.tn-energy-btn’).forEach(function(b){
+    b.style.borderColor=’rgba(255,255,255,.1)’; b.style.background=’var(--card2)’; b.style.color=’var(--text-soft)’;
+  });
+  if(el){ el.style.borderColor=’var(--gold)’; el.style.background=’rgba(240,204,112,.12)’; el.style.color=’var(--gold)’; }
+  hap.tap();
+}
+function selectTnNeed(id, el) {
+  _tnNeed = id;
+  document.querySelectorAll(‘.tn-need-btn’).forEach(function(b){
+    b.style.borderColor=’rgba(255,255,255,.1)’; b.style.background=’var(--card2)’; b.style.color=’var(--text-soft)’;
+  });
+  if(el){ el.style.borderColor=’var(--rose)’; el.style.background=’rgba(232,132,154,.12)’; el.style.color=’var(--rose)’; }
+  hap.tap();
+}
+async function generateTonightAI() {
   if(_tonightLock) return;
+  if(!_tnEnergy || !_tnNeed) { T(isAr?’اختر الطاقة والحاجة أولاً’:’Please answer both questions first’); hap.error(); return; }
   _tonightLock = true;
-  var candidates = DATE_VENUES.filter(function(v){ return v.region === tonightRegion && v.budget === tonightBudget && v.moods.includes(tonightMood); });
-  if(!candidates.length) {
-    candidates = DATE_VENUES.filter(function(v){ return v.region === tonightRegion && v.budget === tonightBudget; });
+  var sh = getSheet(‘tn-sh’);
+  sh.querySelector(‘.sheet’).innerHTML =
+    ‘<div class="sheet-handle"></div>’ +
+    ‘<div style="text-align:center;padding:40px 20px">’ +
+      ‘<div style="font-size:52px;margin-bottom:16px;animation:pulse 1.2s ease infinite">✨</div>’ +
+      ‘<div style="font-family:\’Cormorant Garamond\’,serif;color:var(--rose);font-size:20px;font-weight:700">’+(isAr?’يُصمَّم اقتراحكما...’:’Crafting your perfect night...’)+’</div>’ +
+      ‘<div style="font-size:13px;color:var(--text-soft);margin-top:8px">’+(isAr?’الذكاء الاصطناعي يحلل مزاجكما 🧠’:’AI is reading your vibe 🧠’)+’</div>’ +
+    ‘</div>’;
+  sh.classList.add(‘open’);
+  var p = profile || {};
+  var energyLabel = _tnEnergyOptions.find(function(o){return o.id===_tnEnergy;});
+  var needLabel = _tnNeedOptions.find(function(o){return o.id===_tnNeed;});
+  var budgetLabel = TONIGHT_BUDGETS.find(function(b){return b.id===tonightBudget;});
+  var regionLabel = TONIGHT_REGIONS.find(function(r){return r.id===tonightRegion;});
+  var prompt = ‘You are a luxury couples experience curator for Gulf families. Create ONE perfect, highly specific date night idea.\n\nCOUPLE PROFILE:\n- Names: ‘+(p.n1||’Partner A’)+’ & ‘+(p.n2||’Partner B’)+’\n- Vibe preference: ‘+(p.vibe||’Romantic’)+’\n- Region: ‘+(regionLabel?(isAr?regionLabel.ar:regionLabel.en):’UAE’)+’\n- Budget: ‘+(budgetLabel?(isAr?budgetLabel.ar:budgetLabel.en):’Medium’)+’\n\nTONIGHT\’S MOOD ASSESSMENT:\n- Energy level: ‘+(energyLabel?(isAr?energyLabel.ar:energyLabel.en):_tnEnergy)+’\n- Heart\’s need: ‘+(needLabel?(isAr?needLabel.ar:needLabel.en):_tnNeed)+’\n\nDeliver in ‘+(isAr?’Arabic (العربية)’:’English’)+’ using this EXACT format:\n🌹 [Specific place/activity name]\n📍 [Exact location/area]\n⏰ [Best time to go]\n💰 [Estimated cost in AED]\n✨ [One romantic sentence to say to your partner]\n💕 [Why this is PERFECT for their exact energy+need tonight — 2 sentences max]\n\nBe VERY specific. Name real places if UAE/KSA/Qatar. Never repeat previous suggestions. Make it feel like a top-tier concierge recommendation.’;
+  try {
+    var reply = await callAI([{role:’user’,content:prompt}], ‘claude-haiku-4-5-20251001’);
+    sh.querySelector(‘.sheet’).innerHTML =
+      ‘<div class="sheet-handle"></div>’ +
+      ‘<div style="padding:12px 0">’ +
+        ‘<div style="text-align:center;margin-bottom:18px">’ +
+          ‘<div style="font-size:44px;margin-bottom:10px">✨</div>’ +
+          ‘<div style="font-family:\’Cormorant Garamond\’,serif;color:var(--rose);font-size:22px;font-weight:700">’+(isAr?’اقتراح الليلة’:’Tonight\’s Perfect Plan’)+’</div>’ +
+        ‘</div>’ +
+        ‘<div style="background:linear-gradient(135deg,rgba(232,132,154,.08),rgba(201,149,74,.06));border:1px solid rgba(232,132,154,.2);border-radius:20px;padding:20px;margin-bottom:18px;font-size:14px;line-height:1.9;color:var(--text-mid);white-space:pre-line">’+reply.replace(/</g,’&lt;’).replace(/>/g,’&gt;’)+’</div>’ +
+        ‘<button class="btn-gold" style="width:100%;padding:14px;font-size:15px;font-weight:800;margin-bottom:10px" onclick="closeSheet(\’tn-sh\’);T(isAr?\’استمتعا بليلتكما! 💕\’:\’Enjoy your perfect night! 💕\’)">’+(isAr?’رائع! لنذهب 💕’:’Perfect! Let\’s go 💕’)+’</button>’ +
+        ‘<button class="btn-ghost" style="width:100%;padding:12px;font-size:13px" onclick="_tonightLock=false;openTonight()">’+(isAr?’جرب اقتراحاً آخر 🎲’:’Try a different idea 🎲’)+’</button>’ +
+      ‘</div>’;
+    sh.classList.add(‘open’);
+    hap.celebrate();
+  } catch(e) {
+    // Fallback to curated venues if AI fails
+    var candidates = DATE_VENUES.filter(function(v){ return v.region === tonightRegion && v.budget === tonightBudget; });
+    if(!candidates.length) candidates = DATE_VENUES.filter(function(v){ return v.region===tonightRegion; });
+    if(!candidates.length) candidates = DATE_VENUES;
+    var available = candidates.filter(function(v){ return tonightHistory.indexOf(v.place)===-1; });
+    if(!available.length){ tonightHistory=[]; available=candidates; }
+    var choice = available[Math.floor(Math.random()*available.length)];
+    tonightHistory.push(choice.place);
+    sh.querySelector(‘.sheet’).innerHTML =
+      ‘<div class="sheet-handle"></div>’ +
+      ‘<div style="padding:12px 0">’ +
+        ‘<div style="text-align:center;margin-bottom:16px"><div style="font-size:44px">✨</div><div style="font-family:\’Cormorant Garamond\’,serif;color:var(--rose);font-size:22px;font-weight:700">’+(isAr?’اقتراح الليلة’:’Tonight\’s Suggestion’)+’</div></div>’ +
+        ‘<div style="background:rgba(255,255,255,.04);border:1px solid rgba(232,132,154,.14);border-radius:20px;padding:18px;margin-bottom:16px">’ +
+          ‘<div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px">’+choice.place+’ · ‘+choice.city+’</div>’ +
+          ‘<div style="font-size:14px;color:var(--text-soft);line-height:1.7">’+(isAr?choice.ar:choice.en)+’</div>’ +
+        ‘</div>’ +
+        ‘<button class="btn-gold" style="width:100%;padding:14px;margin-bottom:10px" onclick="closeSheet(\’tn-sh\’)">’+(isAr?’لنذهب 💕’:’Let\’s go 💕’)+’</button>’ +
+        ‘<button class="btn-ghost" style="width:100%;padding:12px" onclick="_tonightLock=false;generateTonightAI()">’+(isAr?’جرب آخر’:’Try another’)+’</button>’ +
+      ‘</div>’;
+    sh.classList.add(‘open’);
+    hap.celebrate();
   }
-  if(!candidates.length) {
-    candidates = DATE_VENUES.filter(function(v){ return v.region === tonightRegion; });
-  }
-  if(!candidates.length) {
-    candidates = DATE_VENUES;
-  }
-  var available = candidates.filter(function(v){ return tonightHistory.indexOf(v.place) === -1; });
-  if(!available.length){ tonightHistory = []; available = candidates; }
-  var choice = available[Math.floor(Math.random() * available.length)];
-  tonightHistory.push(choice.place);
-  var sh = getSheet('tn-sh');
-  sh.querySelector('.sheet').innerHTML =
-    '<div class="sheet-handle"></div>' +
-    '<div style="text-align:center;padding:18px 12px">' +
-      '<div style="font-size:52px;margin-bottom:12px">✨</div>' +
-      '<div style="font-family:\'Cormorant Garamond\',serif;color:var(--rose);font-size:22px;font-weight:700;margin-bottom:10px">' + (isAr?'اقتراح الليلة':'Tonight’s suggestion') + '</div>' +
-      '<div style="font-size:14px;color:var(--text-mid);line-height:1.8;margin-bottom:20px">' + (isAr?'هذا المكان مُختار بعناية من أفضل تجارب الخليج.':'This venue is handpicked from top Gulf experiences.') + '</div>' +
-      '<div style="text-align:left;background:rgba(255,255,255,.04);border:1px solid rgba(232,132,154,.14);border-radius:22px;padding:18px;margin-bottom:18px">' +
-        '<div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px">' + choice.place + ' · ' + choice.city + '</div>' +
-        '<div style="font-size:14px;color:var(--text-soft);line-height:1.7;margin-bottom:10px">' + (isAr?choice.ar:choice.en) + '</div>' +
-        '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--text-soft)">' +
-          '<span>' + (isAr?'التقييم':'Rating') + ': ' + choice.rating + ' ⭐</span>' +
-          '<span>' + (isAr?'مصدر':'Source') + ': ' + choice.source + '</span>' +
-          '<span>' + (isAr?'ميزانية':'Budget') + ': ' + (isAr? (choice.budget==='High'?'فاخر':choice.budget==='Medium'?'متوسط':'اقتصادي') : choice.budget) + '</span>' +
-        '</div>' +
-      '</div>' +
-      '<button class="btn-gold" style="width:100%;padding:14px;font-size:15px;font-weight:800;margin-bottom:10px" onclick="closeSheet(\'tn-sh\');T(isAr?\'استمتعا بليلتكما! 💕\':\'Enjoy your night! 💕\')">' + (isAr?'احفظ الفكرة':'Save the idea') + '</button>' +
-      '<button class="btn-ghost" style="width:100%;padding:14px;font-size:14px" onclick="generateTonightSuggestion()">' + (isAr?'جرب اقتراحاً آخر':'Try another idea') + '</button>' +
-    '</div>';
-  sh.classList.add('open');
-  hap.celebrate();
   _tonightLock = false;
 }
+function generateTonightSuggestion() { _tonightLock=false; generateTonightAI(); }
 
 // ══════════════════════════════════════════════════
 //  APP INITIALISATION
@@ -2270,16 +2577,21 @@ window.addEventListener('DOMContentLoaded', function() {
         setTimeout(function(){ showTab(startTab); }, 300);
       }
     } else {
-      // Show pre-auth hook questions first — sign-up is the "gotcha"
       obMode = 'pre'; obStep = 0; obVibe = ''; obWish = '';
       var ob = document.getElementById('onboarding');
       if(ob) ob.style.display = 'block';
-      ['ob-0','ob-1','ob-2','ob-3'].forEach(function(id){
+      ['ob-lang','ob-0','ob-1','ob-2','ob-3'].forEach(function(id){
         var el = document.getElementById(id); if(el) el.style.display = 'none';
       });
-      var ob0 = document.getElementById('ob-0');
-      if(ob0) ob0.style.display = 'flex';
-      var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '33%';
+      // If lang already chosen (returning partial session), skip lang screen
+      if(LS.get('aw_lang_chosen', false)) {
+        var ob0 = document.getElementById('ob-0');
+        if(ob0) ob0.style.display = 'flex';
+        var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '33%';
+      } else {
+        var obL = document.getElementById('ob-lang');
+        if(obL) obL.style.display = 'flex';
+      }
     }
   }, 2500);
 });

@@ -132,6 +132,25 @@
 <!-- ══════════════════════════════════════ ONBOARDING -->
 <div id="onboarding" style="display:none;min-height:100vh">
   <div class="ob-bar"><div class="ob-fill" id="ob-fill" style="width:33%"></div></div>
+  <!-- LANGUAGE SELECTOR — shown before ob-0, hidden after selection -->
+  <div id="ob-lang" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;text-align:center;min-height:calc(100vh - 3px)">
+    <div class="float" style="font-size:72px;margin-bottom:28px">💑</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:700;color:var(--rose);margin-bottom:4px">أنا وياك</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:16px;letter-spacing:4px;color:var(--gold);margin-bottom:32px">ANA WYAK</div>
+    <p style="color:var(--text-mid);font-size:15px;line-height:1.8;margin-bottom:32px;max-width:340px">اختر لغتك — Choose your language</p>
+    <div style="display:flex;flex-direction:column;gap:14px;width:100%;max-width:320px">
+      <button onclick="setObLang('ar')" style="background:linear-gradient(135deg,rgba(232,132,154,.15),rgba(201,149,74,.1));border:1.5px solid rgba(232,132,154,.4);border-radius:20px;padding:20px 24px;cursor:pointer;font-family:inherit;transition:all .2s">
+        <div style="font-size:28px;margin-bottom:6px">🇦🇪</div>
+        <div style="font-size:20px;font-weight:700;color:var(--rose);font-family:'Cairo',sans-serif">العربية</div>
+        <div style="font-size:12px;color:var(--text-soft);margin-top:4px">Arabic</div>
+      </button>
+      <button onclick="setObLang('en')" style="background:linear-gradient(135deg,rgba(201,149,74,.1),rgba(232,132,154,.08));border:1.5px solid rgba(201,149,74,.4);border-radius:20px;padding:20px 24px;cursor:pointer;font-family:inherit;transition:all .2s">
+        <div style="font-size:28px;margin-bottom:6px">🇬🇧</div>
+        <div style="font-size:20px;font-weight:700;color:var(--gold)">English</div>
+        <div style="font-size:12px;color:var(--text-soft);margin-top:4px">الإنجليزية</div>
+      </button>
+    </div>
+  </div>
   <div id="ob-0" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;text-align:center;min-height:calc(100vh - 3px)">
     <div class="float" style="font-size:84px;margin-bottom:24px">💌</div>
     <h1 style="font-size:30px;color:var(--rose);margin-bottom:12px;line-height:1.3"><span class="en">Build your signature love ritual</span><span class="ar">ابنوا طقس حبكم الخاص</span></h1>
