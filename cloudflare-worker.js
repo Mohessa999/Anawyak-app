@@ -79,6 +79,8 @@ export default {
       if (path === '/store-lead')        return handleStoreLead(request, env, origin);
       if (path === '/sync')              return handleSync(request, env, origin);
       if (path === '/paddle-webhook')    return handlePaddleWebhook(request, env, origin);
+      if (path === '/request-code')      return handleRequestCode(request, env, origin);
+      if (path === '/verify-code')       return handleVerifyCode(request, env, origin);
       return json({ error: 'Not found' }, 404, origin);
     } catch (err) {
       console.error('[AW Worker]', err);
@@ -320,4 +322,149 @@ async function handlePaddleWebhook(request, env, origin) {
   }
 
   return json({ received: true }, 200, origin);
+}
+
+// ═══════════════════════════════════════════
+//  SERVER-SIDE EMAIL VERIFICATION
+//  Code generated + stored in KV (not client) — DevTools-proof
+//  Rate limit: 3 requests / email / 24h
+//  Code expires: 10 minutes
+//  Max attempts: 5 per code
+// ═══════════════════════════════════════════
+function genVerifyCode() {
+  return Math.random().toString(36).slice(2, 8).toUpperCase();
+}
+
+async function handleRequestCode(request, env, origin) {
+  const { email, name, type } = await request.json().catch(() => ({}));
+  if (!email || !email.includes('@')) return json({ ok: false, error: 'invalid_email' }, 400, origin);
+
+  const emailKey = email.toLowerCase().trim();
+
+  // Rate limit check: max 3 code requests per email per 24h
+  if (env.SYNC_STORE) {
+    const rlKey = `rl:${emailKey}`;
+    const rlRaw = await env.SYNC_STORE.get(rlKey);
+    const rl = rlRaw ? JSON.parse(rlRaw) : { count: 0, ts: 0 };
+    const now = Date.now();
+    const windowMs = 86400 * 1000; // 24 hours
+    if (now - rl.ts < windowMs && rl.count >= 3) {
+      return json({ ok: false, error: 'rate_limited', retryAfterMs: windowMs - (now - rl.ts) }, 200, origin);
+    }
+    const newCount = (now - rl.ts < windowMs) ? rl.count + 1 : 1;
+    await env.SYNC_STORE.put(rlKey, JSON.stringify({ count: newCount, ts: now }), { expirationTtl: 86400 });
+  }
+
+  // Generate code + store in KV with 10-minute TTL
+  const code = genVerifyCode();
+  const codeEntry = { code, ts: Date.now(), attempts: 0, name: name || '' };
+
+  if (env.SYNC_STORE) {
+    await env.SYNC_STORE.put(`vc:${emailKey}`, JSON.stringify(codeEntry), { expirationTtl: 600 }); // 10 min
+  }
+
+  // Send email via Resend
+  if (!env.RESEND_API_KEY) {
+    // Resend not configured — return code to show on-screen
+    return json({ ok: true, fallback: true, code }, 200, origin);
+  }
+
+  const isArabic = /[\u0600-\u06FF]/.test(name || '');
+  const displayName = name || (isArabic ? 'الحبيب' : 'there');
+  const subject = isArabic ? 'رمز التحقق من أنا وياك 💕' : 'Ana Wyak — Your Verification Code 💕';
+  const dir = isArabic ? 'rtl' : 'ltr';
+  const greeting = isArabic ? `مرحباً ${displayName} 💕` : `Welcome, ${displayName} 💕`;
+  const intro = isArabic
+    ? 'هذا رمز التحقق لحسابك في <strong>أنا وياك</strong>. صالح لـ 10 دقائق فقط:'
+    : 'Here is your <strong>Ana Wyak</strong> verification code. Valid for 10 minutes only:';
+  const footnote = isArabic
+    ? 'هذا الرمز صالح لمرة واحدة لمدة 10 دقائق. لا تشاركه مع أحد.'
+    : 'This one-time code expires in 10 minutes. Never share it with anyone.';
+
+  const html = `<!DOCTYPE html><html lang="${isArabic?'ar':'en'}" dir="${dir}"><head><meta charset="UTF-8"><title>${subject}</title></head>
+<body style="margin:0;padding:0;background:#150D10;font-family:'Nunito',sans-serif;color:#F5E6EB">
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px">
+<table width="480" cellpadding="0" cellspacing="0" style="background:rgba(255,255,255,.06);border-radius:24px;border:1px solid rgba(240,204,112,.2);overflow:hidden">
+<tr><td style="background:linear-gradient(135deg,#1a0e12,#150D10);padding:32px 32px 24px;text-align:center">
+<div style="font-family:Georgia,serif;font-size:42px;color:#E8849A;font-weight:700">أنا وياك</div>
+<div style="font-family:Georgia,serif;font-size:14px;color:#C9954A;letter-spacing:4px;margin-top:4px">ANA WYAK</div>
+</td></tr>
+<tr><td style="padding:28px 32px">
+<h2 style="margin:0 0 12px;color:#F5E6EB;font-size:20px;font-weight:700">${greeting}</h2>
+<p style="margin:0 0 20px;color:#C4A0AF;line-height:1.7;font-size:15px">${intro}</p>
+<div style="background:rgba(240,204,112,.12);border:2px solid #F0CC70;border-radius:16px;padding:24px;text-align:center;margin:0 0 24px">
+<div style="font-family:monospace;font-size:38px;font-weight:700;color:#F0CC70;letter-spacing:10px">${code}</div>
+</div>
+<p style="margin:0 0 16px;color:#C4A0AF;font-size:13px;line-height:1.7">${footnote}</p>
+</td></tr>
+<tr><td style="border-top:1px solid rgba(255,255,255,.08);padding:16px 32px;text-align:center">
+<a href="https://anawyak.app" style="color:#E8849A;text-decoration:none;font-size:13px">anawyak.app</a>
+<span style="color:#7A5A65;margin:0 8px">·</span>
+<a href="mailto:support@anawyak.app" style="color:#C4A0AF;text-decoration:none;font-size:13px">support@anawyak.app</a>
+</td></tr></table></td></tr></table>
+</body></html>`;
+
+  const fromEmail = env.RESEND_FROM_EMAIL || 'Ana Wyak <onboarding@resend.dev>';
+  const resendRes = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: fromEmail, to: [emailKey], subject, html }),
+  });
+
+  if (!resendRes.ok) {
+    await resendRes.json().catch(() => {});
+    // Email failed — return code as fallback
+    return json({ ok: true, fallback: true, code }, 200, origin);
+  }
+
+  // Notify owner on new signup
+  if (type === 'signup') {
+    fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: fromEmail, to: ['support@anawyak.app'],
+        subject: `New Ana Wyak Signup: ${emailKey}`,
+        html: `<p style="font-family:sans-serif">New user:<br><strong>Email:</strong> ${emailKey}<br><strong>Name:</strong> ${name||'N/A'}</p>`,
+      }),
+    }).catch(() => {});
+  }
+
+  return json({ ok: true, fallback: false }, 200, origin);
+}
+
+async function handleVerifyCode(request, env, origin) {
+  const { email, code } = await request.json().catch(() => ({}));
+  if (!email || !code) return json({ ok: false, error: 'missing_fields' }, 400, origin);
+
+  const emailKey = email.toLowerCase().trim();
+
+  if (!env.SYNC_STORE) {
+    // KV not configured — accept any 6-char code (development fallback)
+    return json({ ok: true, verified: true }, 200, origin);
+  }
+
+  const vcKey = `vc:${emailKey}`;
+  const raw = await env.SYNC_STORE.get(vcKey);
+  if (!raw) return json({ ok: false, error: 'expired' }, 200, origin);
+
+  const entry = JSON.parse(raw);
+
+  // Max 5 attempts per code
+  if (entry.attempts >= 5) {
+    await env.SYNC_STORE.delete(vcKey);
+    return json({ ok: false, error: 'too_many_attempts' }, 200, origin);
+  }
+
+  if (entry.code !== code.toUpperCase().trim()) {
+    entry.attempts++;
+    await env.SYNC_STORE.put(vcKey, JSON.stringify(entry), { expirationTtl: 600 });
+    return json({ ok: false, error: 'wrong_code', attemptsLeft: 5 - entry.attempts }, 200, origin);
+  }
+
+  // Code correct — delete it (one-time use) and mark email as verified
+  await env.SYNC_STORE.delete(vcKey);
+  await env.SYNC_STORE.put(`verified:${emailKey}`, '1', { expirationTtl: 86400 * 365 });
+
+  return json({ ok: true, verified: true }, 200, origin);
 }

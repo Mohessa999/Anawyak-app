@@ -245,16 +245,33 @@ async function callAI(msgs,sys,fastMode){
   }
 }
 // ── VERIFICATION EMAIL — sends via Cloudflare Worker → Resend ──
-async function sendVerificationEmail(email, code, name) {
+// Request a server-generated verification code (rate-limited, stored in KV)
+async function requestVerificationCode(email, name, type) {
   try {
-    var r = await fetch('https://anawyak.moh-essa.workers.dev/send-email', {
+    var r = await fetch(DEFAULT_PROXY + '/request-code', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({email: email, code: code, name: name || '', type: 'signup'})
+      body: JSON.stringify({email: email, name: name || '', type: type || 'signup'})
     });
     var d = await r.json().catch(function(){ return {}; });
-    return d.ok === true;
-  } catch(e) { return false; }
+    // d.ok = true always if request succeeded
+    // d.fallback = true + d.code = code when email failed (show on screen)
+    // d.error = 'rate_limited' when too many attempts
+    return d;
+  } catch(e) { return {ok: false, error: 'network_error'}; }
+}
+
+// Verify a code against the server (one-time, expires in 10 min)
+async function verifyCodeOnServer(email, code) {
+  try {
+    var r = await fetch(DEFAULT_PROXY + '/verify-code', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email: email, code: code})
+    });
+    var d = await r.json().catch(function(){ return {}; });
+    return d; // {ok, verified, error, attemptsLeft}
+  } catch(e) { return {ok: false, error: 'network_error'}; }
 }
 
 // ── LEAD STORAGE — stores to Supabase via Worker for marketing ──
@@ -1479,6 +1496,13 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(_partnerCode) startPartnerSync(_partnerCode);
   setTimeout(()=>{const hdr=document.querySelector('.app-header');if(hdr)hdr.addEventListener('click',()=>{_tapCount++;clearTimeout(_tapTimer);_tapTimer=setTimeout(()=>_tapCount=0,1200);if(_tapCount>=5){_tapCount=0;openTestPanel()}})},3000);
   if(new URLSearchParams(window.location.search).get('test')==='1')setTimeout(openTestPanel,3000);
+  // Auto-activate admin mode via URL param (founder link)
+  const _founderParam=new URLSearchParams(window.location.search).get('founder');
+  if(_founderParam===ADMIN_TOKEN){
+    LS.set('aw_admin',ADMIN_TOKEN);
+    history.replaceState(null,'',window.location.pathname);
+    setTimeout(()=>{T(isAr?'مرحباً بك يا مؤسس 👑':'Welcome, founder 👑');hap.celebrate();},800);
+  }
 });
 
 function openTestPanel(){
@@ -2024,17 +2048,30 @@ function openVerifySheet(email, code) {
     '<button class="btn-ghost" style="padding:14px;font-size:14px" onclick="resendVerificationCode(\'' + email + '\')">' + (isAr?'إعادة إرسال الرمز':'Resend code') + '</button>';
   sh.classList.add('open');
 }
-function verifySignupCode(email) {
-  var input = (document.getElementById('verify-code')||{}).value.trim();
+async function verifySignupCode(email) {
+  var input = ((document.getElementById('verify-code')||{}).value||'').trim().toUpperCase();
   if(!input){ T(isAr?'أدخل رمز التحقق':'Enter the verification code'); hap.error(); return; }
   var accounts = LS.get('aw_accounts', []);
   var account = accounts.find(function(a){ return a.email === email; });
   if(!account){ T(isAr?'حساب غير موجود':'Account not found'); hap.error(); return; }
-  if(input !== account.verifyCode){ T(isAr?'رمز غير صحيح':'Wrong code'); hap.error(); return; }
+  var btn = document.getElementById('verify-btn');
+  if(btn){ btn.disabled = true; btn.textContent = isAr?'جاري التحقق...':'Verifying...'; }
+  var res = await verifyCodeOnServer(email, input);
+  if(btn){ btn.disabled = false; btn.textContent = isAr?'تأكيد':'Confirm'; }
+  if(res.error === 'expired'){
+    T(isAr?'انتهت صلاحية الرمز، اطلب رمزاً جديداً':'Code expired — request a new one'); hap.error(); return;
+  }
+  if(res.error === 'too_many_attempts'){
+    T(isAr?'تجاوزت عدد المحاولات المسموحة':'Too many attempts — request a new code'); hap.error(); return;
+  }
+  if(res.error === 'wrong_code'){
+    var left = res.attemptsLeft != null ? ' ('+res.attemptsLeft+' '+(isAr?'محاولات متبقية':'left')+')' : '';
+    T((isAr?'رمز غير صحيح':'Wrong code')+left); hap.error(); return;
+  }
+  if(!res.verified){ T(isAr?'فشل التحقق، حاول مجدداً':'Verification failed, try again'); hap.error(); return; }
   account.verified = true;
   LS.set('aw_accounts', accounts);
   profile = account.profile;
-  // Preserve pre-auth choices (vibe + wish) into profile
   if(obVibe) { profile.vibe = obVibe; }
   if(obWish) { profile.firstWish = obWish; }
   LS.set('aw_profile', profile);
@@ -2042,7 +2079,6 @@ function verifySignupCode(email) {
   T(isAr?'تم التحقق بنجاح 💕':'Verified successfully 💕');
   hap.celebrate();
   document.getElementById('auth-screen').style.display = 'none';
-  // Post-auth: show names step (ob-1) then anniversary (ob-3)
   obMode = 'post';
   obStep = 0;
   document.getElementById('onboarding').style.display = 'block';
@@ -2055,25 +2091,25 @@ function verifySignupCode(email) {
   var n1el = document.getElementById('ob-n1'); if(n1el) n1el.value = profile.n1 || '';
   var n2el = document.getElementById('ob-n2'); if(n2el) n2el.value = profile.n2 || '';
 }
-function resendVerificationCode(email) {
+async function resendVerificationCode(email) {
   var accounts = LS.get('aw_accounts', []);
   var account = accounts.find(function(a){ return a.email === email; });
   if(!account){ T(isAr?'حساب غير موجود':'Account not found'); hap.error(); return; }
-  account.verifyCode = genCode();
-  account.verified = false;
-  LS.set('aw_accounts', accounts);
-  var newCode = account.verifyCode;
   var name = (account.profile && account.profile.n1) || '';
   T(isAr?'جاري الإرسال...':'Sending...'); hap.tap();
-  sendVerificationEmail(email, newCode, name).then(function(sent) {
-    closeSheet('verify-sh');
-    openVerifySheet(email, sent ? null : newCode);
-    if(sent){
-      T(isAr?'تم الإرسال! تحقق من بريدك 📧':'Sent! Check your email 📧'); hap.success();
-    } else {
-      T(isAr?'انسخ الرمز الجديد أدناه':'Copy the new code below'); hap.tap();
-    }
-  });
+  var result = await requestVerificationCode(email, name, 'resend');
+  if(result.error === 'rate_limited'){
+    var mins = result.retryAfterMs ? Math.ceil(result.retryAfterMs/60000) : 60;
+    T(isAr?('تجاوزت الحد. انتظر '+mins+' دقيقة'):('Limit reached. Try again in '+mins+' min')); hap.error(); return;
+  }
+  if(!result.ok){ T(isAr?'فشل الإرسال، حاول لاحقاً':'Failed to send, try later'); hap.error(); return; }
+  closeSheet('verify-sh');
+  openVerifySheet(email, (result.fallback && result.code) ? result.code : null);
+  if(!result.fallback){
+    T(isAr?'تم الإرسال! تحقق من بريدك 📧':'Sent! Check your email 📧'); hap.success();
+  } else {
+    T(isAr?'انسخ الرمز الجديد أدناه':'Copy the new code below'); hap.tap();
+  }
 }
 async function doSignUp() {
   var n1    = ((document.getElementById('su-n1')||{}).value||'').trim();
@@ -2087,38 +2123,53 @@ async function doSignUp() {
   if(pass.length < 6){ T(isAr?'كلمة المرور قصيرة (6+ أحرف)':'Password too short (6+ chars)'); hap.error(); return; }
   if(!email.includes('@')){ T(isAr?'بريد إلكتروني غير صحيح':'Invalid email'); hap.error(); return; }
   if(btn) btn.innerHTML = '<span class="spinner"></span>';
+
   var accounts = LS.get('aw_accounts', []);
   var existing = accounts.find(function(a){ return a.email === email; });
   if(existing) {
     if(btn) btn.innerHTML = btnLabel;
     if(!existing.verified) {
-      // Account exists but not yet verified — generate fresh code and resend
-      existing.verifyCode = genCode();
-      LS.set('aw_accounts', accounts);
-      var resent = await sendVerificationEmail(email, existing.verifyCode, existing.profile.n1 || n1);
-      openVerifySheet(email, resent ? null : existing.verifyCode);
+      // Unverified — request fresh server-side code
+      var resend = await requestVerificationCode(email, existing.profile.n1 || n1, 'signup');
+      if(resend.error === 'rate_limited') {
+        var mins = Math.ceil((resend.retryAfterMs || 86400000) / 60000);
+        T(isAr?'تم الوصول للحد — انتظر '+mins+' دقيقة':'Rate limited — try again in '+mins+' min'); hap.error(); return;
+      }
+      openVerifySheet(email, (resend.fallback && resend.code) ? resend.code : null);
       T(isAr?'الحساب موجود — تم إرسال رمز جديد 📧':'Account exists — new code sent 📧');
     } else {
       T(isAr?'البريد مستخدم — سجّل دخولك':'Email registered — sign in instead'); hap.error();
     }
     return;
   }
+
+  // New account — request server-side code BEFORE saving locally
+  var result = await requestVerificationCode(email, n1, 'signup');
+  if(btn) btn.innerHTML = btnLabel;
+
+  if(result.error === 'rate_limited') {
+    var mins2 = Math.ceil((result.retryAfterMs || 86400000) / 60000);
+    T(isAr?'محاولات كثيرة — انتظر '+mins2+' دقيقة':'Too many attempts — try again in '+mins2+' min'); hap.error(); return;
+  }
+  if(!result.ok) {
+    T(isAr?'خطأ في الشبكة — حاول مجدداً':'Network error — please try again'); hap.error(); return;
+  }
+
   var hash = await hashPw(pass);
-  var code = genCode();
   var newProfile = { n1:n1, n2:n2, fam:fam, code:genCode(), firstWish:obWish||'', ann:'', vibe:obVibe||'' };
-  accounts.push({ email:email, hash:hash, profile:newProfile, verified:false, verifyCode:code });
+  // Store account WITHOUT the code (code lives on server only)
+  accounts.push({ email:email, hash:hash, profile:newProfile, verified:false });
   LS.set('aw_accounts', accounts);
   profile = newProfile;
   LS.set('aw_profile', profile);
-  if(btn) btn.innerHTML = btnLabel;
   hap.celebrate();
-  // Send verification email (falls back to showing code on screen if Resend not configured)
-  var emailSent = await sendVerificationEmail(email, code, n1);
-  openVerifySheet(email, emailSent ? null : code);
-  T(emailSent
-    ? (isAr?'تم الإنشاء! تحقق من بريدك 📧':'Created! Check your email inbox 📧')
-    : (isAr?'تم الإنشاء! انسخ الرمز أدناه وأدخله':'Created! Copy the code and enter it'));
-  // Store lead for marketing — fire and forget
+
+  // Show verify sheet: null = email sent to inbox; code string = fallback on-screen
+  openVerifySheet(email, (result.fallback && result.code) ? result.code : null);
+  T(result.fallback
+    ? (isAr?'تم الإنشاء! انسخ الرمز أدناه':'Created! Copy the code below')
+    : (isAr?'تم الإنشاء! تحقق من بريدك 📧':'Created! Check your email inbox 📧'));
+
   storeLead({email:email, name:n1, partner:n2, vibe:obVibe||'', wish:obWish||'', fam:fam, lang:isAr?'ar':'en', source:'signup'});
   obWish = '';
 }
