@@ -2619,6 +2619,16 @@ window.addEventListener('DOMContentLoaded', function() {
       setTimeout(function(){ splash.style.display='none'; }, 500);
     }
     profile = LS.get('aw_profile', null);
+    // Founder link: if admin param activated but no profile, auto-create founder profile
+    if(!profile && isAdmin()){
+      profile = {n1:'Founder',n2:'Ana Wyak',rel:'couple',vibe:'romantic',code:'FOUNDER',verified:true};
+      LS.set('aw_profile', profile);
+      var founderAcct = {email:'founder@anawyak.app',hash:'',profile:profile,verified:true};
+      var accts = LS.get('aw_accounts',[]);
+      if(!accts.find(function(a){return a.email===founderAcct.email;})) accts.push(founderAcct);
+      LS.set('aw_accounts', accts);
+      LS.set('aw_lang_chosen', true);
+    }
     if(profile) {
       launchApp();
       // Handle manifest shortcut deeplinks (?tab=coach etc.)
@@ -2627,6 +2637,7 @@ window.addEventListener('DOMContentLoaded', function() {
       if(startTab && ['home','coach','cook','dates','memories','profile'].includes(startTab)) {
         setTimeout(function(){ showTab(startTab); }, 300);
       }
+      if(isAdmin()) setTimeout(function(){ T('👑 Welcome, Founder — Admin Mode Active',3000); hap.celebrate(); }, 600);
     } else {
       obMode = 'pre'; obStep = 0; obVibe = ''; obWish = '';
       var ob = document.getElementById('onboarding');
