@@ -61,7 +61,7 @@ const LS={
 function purgeChatCache(){
   try{
     const msgs=LS.get('aw_chat',[]);
-    if(msgs.length>40){LS.set('aw_chat',msgs.slice(-40));console.log('[AW] Chat trimmed to 40 msgs');}
+    if(msgs.length>40){LS.set('aw_chat',msgs.slice(-40));}
   }catch(e){}
 }
 
