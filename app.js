@@ -272,15 +272,19 @@ async function callAI(msgs,sys,fastMode){
     if(!d){ return isAr?'لا يوجد رد.':'No response.'; }
     if(d.error || d.type==='error'){
       const e=d.error||d;
-      const msg=(e.message||'').toLowerCase();
+      // e can be a string (Worker error) or object (Anthropic error)
+      const msg=(typeof e==='string'?e:(e.message||'')).toLowerCase();
+      if(msg.includes('anthropic_api_key') || msg.includes('not set') || msg.includes('not configured'))
+        return isAr?'🔑 مفتاح Anthropic غير مضاف في Cloudflare. اذهب إلى Workers → Settings → Variables → أضف ANTHROPIC_API_KEY كـ Secret.':'🔑 ANTHROPIC_API_KEY not set in Cloudflare Worker. Go to Workers → Settings → Variables → Add ANTHROPIC_API_KEY as a Secret, then redeploy.';
       if(msg.includes('exceeded') || r.status===429)
         return isAr?'⏰ تجاوز الحد. يتجدد خلال '+timeUntilMidnight()+' 💕':'⏰ Limit reached. Renews in '+timeUntilMidnight()+' 💕';
-      if(msg.includes('api_key') || msg.includes('auth') || r.status===401)
+      if(msg.includes('api_key') || msg.includes('auth') || msg.includes('invalid') || r.status===401)
         return isAr?'🔑 مفتاح API غير صحيح. تحقق من ANTHROPIC_API_KEY في Cloudflare Secrets.':'🔑 Invalid API key. Check ANTHROPIC_API_KEY in Cloudflare Secrets.';
       if(msg.includes('overloaded') || r.status===529)
         return isAr?'⏳ Anthropic مشغول الآن. انتظر دقيقة وأعد المحاولة.':'⏳ Anthropic busy. Wait a minute and retry.';
       console.error('[AW] Anthropic error:', e);
-      return isAr?'خطأ: '+(e.message||'حاول مجدداً'):'Error: '+(e.message||'try again');
+      const errText = typeof e==='string' ? e : (e.message||'try again');
+      return isAr?'خطأ: '+errText:'Error: '+errText;
     }
 
     const reply = d.content?.[0]?.text || '...';
@@ -384,17 +388,20 @@ function initPaddle() {
 }
 
 function openPaddleCheckout(priceId) {
-  if(!PADDLE_CLIENT_TOKEN || PADDLE_CLIENT_TOKEN.includes('REPLACE')) {
-    // Fallback: open Paddle payment link in browser
-    var monthlyLink = 'https://buy.paddle.com/product/'+PADDLE_MONTHLY_PRICE;
-    var annualLink  = 'https://buy.paddle.com/product/'+PADDLE_ANNUAL_PRICE;
-    var link = priceId === PADDLE_ANNUAL_PRICE ? annualLink : monthlyLink;
-    window.open(link, '_blank');
+  // Direct Paddle checkout links (always work as fallback)
+  var isAnnual = priceId === PADDLE_ANNUAL_PRICE;
+  var directLink = isAnnual
+    ? 'https://buy.paddle.com/product/' + PADDLE_ANNUAL_PRICE
+    : 'https://buy.paddle.com/product/' + PADDLE_MONTHLY_PRICE;
+
+  if(!PADDLE_CLIENT_TOKEN || PADDLE_CLIENT_TOKEN.includes('REPLACE') || PADDLE_CLIENT_TOKEN.length < 10) {
+    window.open(directLink, '_blank');
     T(isAr ? 'جارٍ فتح صفحة الدفع...' : 'Opening payment page...'); return;
   }
   if(typeof Paddle === 'undefined') {
     T(isAr ? 'جارٍ تحميل نظام الدفع...' : 'Loading payment...'); hap.tap();
-    setTimeout(function(){ openPaddleCheckout(priceId); }, 1200); return;
+    setTimeout(function(){ openPaddleCheckout(priceId); }, 1500);
+    return;
   }
   var customerEmail = '';
   var accounts = LS.get('aw_accounts', []);
@@ -406,13 +413,46 @@ function openPaddleCheckout(priceId) {
     Paddle.Checkout.open({
       items: [{ priceId: priceId, quantity: 1 }],
       customer: customerEmail ? { email: customerEmail } : {},
-      settings: { displayMode: 'overlay', theme: 'dark', locale: isAr ? 'ar' : 'en' }
+      settings: { displayMode: 'overlay', theme: 'dark', locale: isAr ? 'ar' : 'en' },
+      successUrl: window.location.origin + window.location.pathname + '?paddle_success=1'
     });
     hap.tap();
   } catch(e) {
     console.error('[AW Paddle]', e);
-    paywallContact();
+    // Paddle SDK failed — open direct link + show contact
+    showCheckoutFallback(directLink, isAnnual);
   }
+}
+
+function showCheckoutFallback(link, isAnnual){
+  var existing = document.getElementById('checkout-fallback');
+  if(existing) existing.remove();
+  var price = isAnnual ? (isAr?'290 درهم/سنة':'AED 290/year') : (isAr?'29 درهم/شهر':'AED 29/month');
+  var div = document.createElement('div');
+  div.id = 'checkout-fallback';
+  div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:9998;display:flex;align-items:flex-end;justify-content:center';
+  div.onclick = function(e){ if(e.target===div) div.remove(); };
+  div.innerHTML =
+    '<div style="background:var(--card);border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:480px">' +
+      '<div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px"></div>' +
+      '<div style="text-align:center;margin-bottom:20px">' +
+        '<div style="font-size:40px;margin-bottom:8px">💳</div>' +
+        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:22px;font-weight:700;color:var(--gold);margin-bottom:6px">أنا وياك Pro</div>' +
+        '<div style="font-size:24px;font-weight:800;color:var(--rose);margin-bottom:4px">' + price + '</div>' +
+        '<div style="font-size:12px;color:var(--text-soft);margin-bottom:16px">' + (isAr?'تجربة مجانية 7 أيام — لا رسوم الآن':'7-day free trial — no charge today') + '</div>' +
+      '</div>' +
+      '<a href="' + link + '" target="_blank" onclick="document.getElementById(\'checkout-fallback\').remove()" class="btn-gold" style="display:block;text-align:center;padding:16px;font-size:15px;font-weight:800;text-decoration:none;margin-bottom:12px;border-radius:50px">' +
+        (isAr?'🚀 اشترك الآن':'🚀 Subscribe Now') +
+      '</a>' +
+      '<button onclick="showContactModal();document.getElementById(\'checkout-fallback\').remove()" style="width:100%;background:none;border:1px solid rgba(232,132,154,.3);color:var(--rose);border-radius:20px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:12px">' +
+        (isAr?'📧 تواصل مع الدعم':'📧 Contact Support') +
+      '</button>' +
+      '<button onclick="document.getElementById(\'checkout-fallback\').remove()" style="width:100%;background:none;border:none;color:var(--text-soft);font-size:13px;cursor:pointer;font-family:inherit;padding:8px">' +
+        (isAr?'لاحقاً':'Maybe later') +
+      '</button>' +
+    '</div>';
+  document.body.appendChild(div);
+  hap.tap();
 }
 
 function checkPaddleSuccess() {
@@ -1160,25 +1200,34 @@ function rProfile(el){
     <div style="margin-top:12px;font-size:11px;color:var(--text-soft);text-align:center">${isAr?'أكمل التحدي لوسام الوفاق · 30 يوم لوسام البطل · 10 ذكريات لوسام الحافظ':'Complete challenge · 30-day streak · 10 memories'}</div>
   </div>
   <!-- PARTNER CODE -->
-  <div class="card" style="padding:16px;margin-bottom:16px">
-    <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px">🔗 ${isAr?'كود الشريك':'Partner Code'}</div>
-    <div style="font-size:12px;color:var(--text-soft);margin-bottom:10px">${isAr?'شارك كودك مع شريكك لمزامنة المناسبات والوصفات والرموز السرية':'Share your code with your partner to sync occasions, recipes & secret language'}</div>
-    <div style="font-size:11px;color:var(--text-soft);margin-bottom:6px;font-weight:600">${isAr?'كودك:':'Your code:'}</div>
-    <div style="background:var(--rose-pale);border-radius:12px;padding:14px;text-align:center;font-size:26px;font-weight:800;color:var(--rose);letter-spacing:5px;margin-bottom:10px;font-family:'Cormorant Garamond',serif">${getCode()}</div>
-    <button onclick="copyCode()" class="btn-ghost" style="padding:10px;font-size:13px;margin-bottom:12px">${isAr?'📋 نسخ الكود':'📋 Copy Code'}</button>
-    <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
-      <div style="font-size:11px;color:var(--text-soft);margin-bottom:6px;font-weight:600">${isAr?'أدخل كود شريكك:':'Enter partner\'s code:'}</div>
+  <div class="card" style="padding:20px;margin-bottom:16px;border:1px solid rgba(201,149,74,.25)">
+    <div style="font-size:11px;font-weight:800;color:var(--gold-light);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px">🔗 ${isAr?'كود الشريك':'Partner Code'}</div>
+    <div style="font-size:12px;color:var(--text-soft);margin-bottom:14px;line-height:1.6">${isAr?'شارك كودك مع شريكك — تُزامن المناسبات والمحادثة والرموز السرية فوراً':'Share with your partner — syncs occasions, chat & secret language instantly'}</div>
+    <div style="font-size:11px;font-weight:700;color:var(--text-soft);margin-bottom:8px">${isAr?'كودك الخاص:':'Your unique code:'}</div>
+    <div onclick="copyCode()" style="background:linear-gradient(135deg,rgba(201,149,74,.12),rgba(232,132,154,.08));border:2px solid rgba(201,149,74,.35);border-radius:16px;padding:18px;text-align:center;cursor:pointer;margin-bottom:12px">
+      <div style="font-size:32px;font-weight:800;color:var(--gold);letter-spacing:8px;font-family:'Cormorant Garamond',serif">${getCode()}</div>
+      <div style="font-size:11px;color:var(--text-soft);margin-top:6px">${isAr?'اضغط للنسخ 📋':'Tap to copy 📋'}</div>
+    </div>
+    <button onclick="copyCode()" class="btn-gold" style="padding:12px;font-size:13px;margin-bottom:16px;width:100%">${isAr?'📋 نسخ الكود':'📋 Copy My Code'}</button>
+    <div style="border-top:1px solid var(--border);padding-top:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--text-soft);margin-bottom:10px">${isAr?'أدخل كود شريكك للربط:':'Enter your partner\'s code to link:'}</div>
       ${LS.get('aw_partner_code','')?
-        `<div style="display:flex;align-items:center;gap:8px;background:rgba(232,132,154,.08);border:1px solid rgba(232,132,154,.2);border-radius:12px;padding:10px 12px;margin-bottom:8px">
-          <span style="font-size:13px;font-weight:700;color:var(--rose);letter-spacing:2px">${LS.get('aw_partner_code','')}</span>
-          <span style="flex:1"></span>
-          <span style="font-size:11px;color:var(--text-soft)">🔄 ${isAr?'متزامن':'Synced'}</span>
+        `<div style="background:rgba(232,132,154,.08);border:1.5px solid rgba(232,132,154,.3);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="flex:1">
+            <div style="font-size:11px;color:var(--text-soft);margin-bottom:4px">${isAr?'كود شريكك:':'Partner code:'}</div>
+            <div style="font-size:20px;font-weight:800;color:var(--rose);letter-spacing:4px">${LS.get('aw_partner_code','')}</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:18px">🔄</div>
+            <div style="font-size:10px;color:#4CAF50;font-weight:700">${isAr?'متزامن':'Synced'}</div>
+          </div>
         </div>
-        <button onclick="unlinkPartner()" style="background:none;border:1px solid rgba(232,132,154,.3);color:var(--rose);border-radius:12px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;width:100%;font-family:inherit">${isAr?'إلغاء الربط 🔗':'Unlink Partner 🔗'}</button>`:
+        <button onclick="unlinkPartner()" style="background:none;border:1px solid rgba(232,132,154,.3);color:var(--rose);border-radius:12px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;width:100%;font-family:inherit">${isAr?'إلغاء الربط':'Unlink Partner'}</button>`:
         `<div style="display:flex;gap:8px">
-          <input id="partner-code-inp" placeholder="${isAr?'كود شريكك…':'Partner\'s code…'}" maxlength="8" style="flex:1;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:14px;font-family:inherit;color:var(--text);letter-spacing:2px;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
-          <button onclick="linkPartner()" class="btn-rose" style="padding:10px 16px;font-size:13px;white-space:nowrap">${isAr?'ربط':'Link'}</button>
-        </div>`
+          <input id="partner-code-inp" placeholder="${isAr?'الكود هنا…':'Code here…'}" maxlength="8" style="flex:1;background:var(--card2);border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;font-size:16px;font-family:inherit;color:var(--text);letter-spacing:4px;text-transform:uppercase;font-weight:700" oninput="this.value=this.value.toUpperCase()">
+          <button onclick="linkPartner()" class="btn-rose" style="padding:12px 18px;font-size:14px;font-weight:800;white-space:nowrap">${isAr?'ربط':'Link'}</button>
+        </div>
+        <div style="font-size:11px;color:var(--text-soft);text-align:center;margin-top:8px">${isAr?'اطلب من شريكك مشاركة كوده من نفس التطبيق':'Ask your partner to share their code from the same app'}</div>`
       }
     </div>
   </div>
@@ -1216,6 +1265,15 @@ function rProfile(el){
     }
   </div>
   <button onclick="shareApp()" class="btn-ghost" style="margin-bottom:12px">${isAr?'📤 شارك أنا وياك':'📤 Share Ana Wyak'}</button>
+  <!-- CONTACT US -->
+  <div class="card" style="padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;cursor:pointer" onclick="showContactModal()">
+    <div style="font-size:28px">💌</div>
+    <div style="flex:1">
+      <div style="font-weight:700;font-size:14px;color:var(--text)">${isAr?'تواصل معنا':'Contact Us'}</div>
+      <div style="font-size:12px;color:var(--text-soft)">support@anawyak.app</div>
+    </div>
+    <div style="color:var(--rose);font-size:18px">→</div>
+  </div>
   <!-- ADMIN MODE TOGGLE (invisible to regular users) -->
   ${isAdmin()?
     `<div class="card-gold" style="padding:14px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
@@ -1229,7 +1287,13 @@ function rProfile(el){
   }
   <button onclick="doSignOut()" style="width:100%;background:none;border:none;color:var(--rose);font-size:13px;cursor:pointer;padding:8px;font-family:inherit;font-weight:600">${isAr?'تسجيل الخروج':'Sign Out'}</button>
   <button onclick="if(confirm(isAr?'مسح كل البيانات؟':'Reset ALL data?'))localStorage.clear(),location.reload()" style="width:100%;background:none;border:none;color:var(--text-soft);font-size:12px;cursor:pointer;padding:4px;font-family:inherit">${isAr?'مسح جميع البيانات':'Reset all data'}</button>
-  <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text-soft);line-height:1.8">© 2026 أنا وياك · Ana Wyak · ${isAr?'جميع الحقوق محفوظة':'All rights reserved'}<br>${isAr?'ليس بديلاً عن الإرشاد المهني':'Not a substitute for professional counseling'}<br><button onclick="window.open('privacy.html','_blank')" style="background:none;border:none;color:var(--rose);font-size:11px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0">${isAr?'سياسة الخصوصية':'Privacy Policy'}</button> · <button onclick="window.open('terms.html','_blank')" style="background:none;border:none;color:var(--rose);font-size:11px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0">${isAr?'الشروط':'Terms'}</button> · <button onclick="window.open('pricing.html','_blank')" style="background:none;border:none;color:var(--rose);font-size:11px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0">${isAr?'الأسعار':'Pricing'}</button> · <button onclick="window.open('refund.html','_blank')" style="background:none;border:none;color:var(--rose);font-size:11px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0">${isAr?'الاسترداد':'Refunds'}</button></div>
+  <div style="text-align:center;margin-top:16px;padding-bottom:8px;font-size:11px;color:var(--text-soft);line-height:2">
+    © 2026 أنا وياك · Ana Wyak<br>
+    <a href="privacy.html" style="color:var(--rose);text-decoration:none;font-size:11px">${isAr?'سياسة الخصوصية':'Privacy Policy'}</a> ·
+    <a href="terms.html" style="color:var(--rose);text-decoration:none;font-size:11px">${isAr?'الشروط':'Terms'}</a> ·
+    <a href="pricing.html" style="color:var(--rose);text-decoration:none;font-size:11px">${isAr?'الأسعار':'Pricing'}</a> ·
+    <a href="refund.html" style="color:var(--rose);text-decoration:none;font-size:11px">${isAr?'الاسترداد':'Refunds'}</a>
+  </div>
   </div>`;
   const an=document.getElementById('ach-names');if(an&&profile)an.textContent=(profile.n1||'')+(profile.n2?' & '+profile.n2:'');
 }
@@ -1550,17 +1614,36 @@ function closePairModal(){const m=document.getElementById('pair-modal');m.classL
 //  PAYWALL
 // ══════════════════════════════════════════════════
 function paywallContact(){
-  var email='support@anawyak.app';
-  var subject=encodeURIComponent('Ana Wyak Pro Access');
-  // Try mailto in new tab; always show the email for copy as fallback
-  try { window.open('mailto:'+email+'?subject='+subject,'_blank'); } catch(e){}
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(email).then(function(){
-      T(isAr?'📧 تم نسخ البريد: '+email:'📧 Email copied: '+email, 3000);
-    }).catch(function(){ T(email, 4000); });
-  } else {
-    T(email, 4000);
-  }
+  showContactModal();
+}
+
+function showContactModal(){
+  var existing = document.getElementById('contact-modal');
+  if(existing) existing.remove();
+  var email = 'support@anawyak.app';
+  var div = document.createElement('div');
+  div.id = 'contact-modal';
+  div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:9998;display:flex;align-items:flex-end;justify-content:center';
+  div.onclick = function(e){ if(e.target===div) div.remove(); };
+  div.innerHTML =
+    '<div style="background:var(--card);border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:480px;box-shadow:0 -8px 40px rgba(0,0,0,.3)">' +
+      '<div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px"></div>' +
+      '<div style="text-align:center;margin-bottom:20px">' +
+        '<div style="font-size:40px;margin-bottom:10px">💌</div>' +
+        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:22px;font-weight:700;color:var(--rose);margin-bottom:6px">' + (isAr?'تواصل معنا':'Contact Us') + '</div>' +
+        '<div style="font-size:13px;color:var(--text-soft);line-height:1.6">' + (isAr?'فريقنا يرد خلال ساعات. نحن هنا لمساعدتك.':'Our team replies within hours. We\'re here for you.') + '</div>' +
+      '</div>' +
+      '<div style="background:var(--rose-pale);border-radius:16px;padding:16px;text-align:center;margin-bottom:16px">' +
+        '<div style="font-size:11px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Email</div>' +
+        '<div style="font-size:17px;font-weight:800;color:var(--rose);margin-bottom:10px">' + email + '</div>' +
+        '<button onclick="navigator.clipboard?.writeText(\''+email+'\').then(function(){document.getElementById(\'cp-ok\').style.opacity=1;setTimeout(function(){document.getElementById(\'cp-ok\').style.opacity=0},1500)}).catch(function(){});hap.success()" style="background:var(--rose);color:#fff;border:none;border-radius:20px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">' + (isAr?'📋 نسخ البريد':'📋 Copy Email') + '</button>' +
+        '<div id="cp-ok" style="font-size:12px;color:#4CAF50;font-weight:700;margin-top:8px;opacity:0;transition:opacity .3s">' + (isAr?'✓ تم النسخ':'✓ Copied') + '</div>' +
+      '</div>' +
+      '<a href="mailto:'+email+'?subject='+encodeURIComponent('Ana Wyak Support')+'" style="display:block;text-align:center;background:none;border:1px solid rgba(232,132,154,.3);color:var(--rose);border-radius:20px;padding:12px;font-size:14px;font-weight:700;text-decoration:none;margin-bottom:12px">' + (isAr?'📧 فتح تطبيق البريد':'📧 Open Mail App') + '</a>' +
+      '<button onclick="document.getElementById(\'contact-modal\').remove()" style="width:100%;background:none;border:none;color:var(--text-soft);font-size:14px;cursor:pointer;font-family:inherit;padding:8px">' + (isAr?'إغلاق':'Close') + '</button>' +
+    '</div>';
+  document.body.appendChild(div);
+  hap.tap();
 }
 function showPaywall(){
   let pw=document.getElementById('pw');
