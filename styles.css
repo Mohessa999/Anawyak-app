@@ -228,6 +228,7 @@ body.rtl .secret-input{direction:rtl}
 @keyframes popIn{0%{transform:scale(0);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
 @keyframes heartBurst{0%{transform:scale(1)}20%{transform:scale(1.4)}40%{transform:scale(.9)}60%{transform:scale(1.2)}80%{transform:scale(.95)}100%{transform:scale(1)}}
 @keyframes ripple{to{transform:scale(4);opacity:0}}
+@keyframes milestoneIn{0%{transform:translate(-50%,-50%) scale(.6);opacity:0}70%{transform:translate(-50%,-50%) scale(1.08)}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
 @keyframes slideInRight{from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes slideInLeft{from{transform:translateX(-40px);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes countUp{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}

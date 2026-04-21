@@ -283,10 +283,29 @@ async function callAI(msgs,sys,fastMode){
       return isAr?'خطأ: '+(e.message||'حاول مجدداً'):'Error: '+(e.message||'try again');
     }
 
-    return d.content?.[0]?.text || '...';
+    const reply = d.content?.[0]?.text || '...';
+
+  // Offline AI cache: keep last 5 responses
+  try {
+    var cache = LS.get('aw_ai_cache', []);
+    cache.unshift({q: JSON.stringify(msgs.slice(-1)), a: reply, t: Date.now()});
+    LS.set('aw_ai_cache', cache.slice(0, 5));
+  } catch(ce) {}
+
+  return reply;
 
   } catch(e){
     console.error('[AW] callAI exception:', e.message);
+
+    // Serve from offline cache when network is unavailable
+    try {
+      var cached = LS.get('aw_ai_cache', []);
+      if(cached.length){
+        var offline = cached[0].a;
+        return (isAr ? '📴 وضع بلا إنترنت — آخر رد:\n\n' : '📴 Offline mode — last response:\n\n') + offline;
+      }
+    } catch(ce2) {}
+
     if(e.message && e.message.includes('fetch'))
       return isAr?'لا يمكن الوصول للـ Worker. تأكد من رفع الكود على Cloudflare.':'Cannot reach Worker. Make sure worker code is deployed on Cloudflare.';
     return isAr?'مشكلة في الاتصال: '+e.message:'Connection error: '+e.message;
@@ -418,6 +437,7 @@ function getShareableState() {
     n1:        profile ? profile.n1 : '',
     n2:        profile ? profile.n2 : '',
     vibe:      profile ? profile.vibe : '',
+    profile:   profile ? { n1: profile.n1, n2: profile.n2, fam: profile.fam, rel: profile.rel } : {},
     occasions: occasions.slice(0, 15),
     grocery:   grocery.slice(0, 30),
     secretLang: secretLang,
@@ -482,6 +502,14 @@ function applyPartnerData(data) {
   if(newItems.length) {
     grocery = grocery.concat(newItems);
     LS.set('aw_grocery', grocery);
+  }
+  // Update partner name if available
+  if(data.profile && data.profile.n1) {
+    LS.set('aw_partner_name', data.profile.n1);
+  }
+  // Track partner online status
+  if(data.lastSeen) {
+    LS.set('aw_partner_last_active', new Date(data.lastSeen).getTime());
   }
   // Update last seen
   if(data.lastSeen !== _partnerLastSeen) {
@@ -1047,8 +1075,44 @@ function rProfile(el){
   const p=profile||{};const streak=getStreak();const chatCount=LS.get('aw_chat',[]).length;
   let days=0;if(p.ann)days=Math.floor((Date.now()-new Date(p.ann))/864e5);
   const gratDays=gratState.days||[];const h7=gratDays.length>=7;const h30=streak>=30;const h10=memories.length>=10;
+  const partnerCode=LS.get('aw_partner_code','');
+  const partnerName=LS.get('aw_partner_name',isAr?'شريكك':'Partner');
+  const isOnline=Date.now()-LS.get('aw_partner_last_active',0)<120000; // 2 min
+  const coupleCard = partnerCode ? `
+  <div class="card" style="padding:20px;margin-bottom:20px;background:linear-gradient(135deg,rgba(201,149,74,.08),rgba(232,132,154,.06));border:1px solid rgba(201,149,74,.25);text-align:center">
+    <div style="font-size:11px;font-weight:800;color:var(--gold-light);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px">${isAr?'عالمنا المشترك':'Our Shared World'}</div>
+    <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:14px">
+      <div style="text-align:center">
+        <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--rose),var(--rose-deep));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;font-family:'Cormorant Garamond',serif;margin:0 auto 4px">${(p.n1||'A')[0].toUpperCase()}</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text)">${p.n1||'You'}</div>
+        <div style="font-size:9px;color:#4CAF50;font-weight:700">● ${isAr?'أنت':'You'}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="font-size:20px">💕</div>
+        <div style="font-size:10px;color:${isOnline?'#4CAF50':'var(--text-soft)'};font-weight:700">${isOnline?(isAr?'متصل':'Online'):(isAr?'آخر ظهور':'Seen recently')}</div>
+      </div>
+      <div style="text-align:center">
+        <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#C9954A,#A07030);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;font-family:'Cormorant Garamond',serif;margin:0 auto 4px">${(partnerName||'B')[0].toUpperCase()}</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text)">${partnerName}</div>
+        <div style="font-size:9px;color:${isOnline?'#4CAF50':'var(--text-soft)'};font-weight:700">● ${isOnline?(isAr?'متصل':'Online'):(isAr?'غير متصل':'Offline')}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px">
+      <span style="background:rgba(232,132,154,.12);color:var(--rose);border:1px solid rgba(232,132,154,.25);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700">🔥 ${streak} ${isAr?'يوم':'days'}</span>
+      <span style="background:rgba(201,149,74,.12);color:var(--gold);border:1px solid rgba(201,149,74,.25);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700">📖 ${memories.length} ${isAr?'ذكريات':'memories'}</span>
+      ${days>0?`<span style="background:rgba(201,149,74,.12);color:var(--gold);border:1px solid rgba(201,149,74,.25);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700">💍 ${days} ${isAr?'يوم':'days'}</span>`:''}
+    </div>
+    <button onclick="openChatSheet()" class="btn-rose" style="padding:10px 20px;font-size:13px;font-weight:700">${isAr?'💬 محادثة الآن':'💬 Chat Now'}</button>
+  </div>` : `
+  <div class="card" style="padding:20px;margin-bottom:20px;border:1px dashed rgba(201,149,74,.3);text-align:center">
+    <div style="font-size:32px;margin-bottom:8px">🔗</div>
+    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">${isAr?'ابنوا عالماً مشتركاً':'Build a shared world'}</div>
+    <div style="font-size:12px;color:var(--text-soft);margin-bottom:12px">${isAr?'اربط حساب شريكك لمزامنة الذكريات والمناسبات فوراً':'Link your partner\'s code to sync memories and occasions in real time'}</div>
+    <button onclick="document.getElementById('partner-code-inp')?.focus();document.getElementById('partner-code-inp')?.scrollIntoView({behavior:\'smooth\'})" class="btn-gold" style="padding:10px 20px;font-size:13px">${isAr?'ربط الآن':'Link Now'}</button>
+  </div>`;
   el.innerHTML=`<div class="container">
   <button class="back-btn" onclick="showTab('home')">← ${isAr?'رجوع':'Back'}</button>
+  ${coupleCard}
   <!-- HERO -->
   <div class="card-rose" style="padding:24px;text-align:center;margin-bottom:20px">
     <div style="display:flex;justify-content:center;align-items:center;gap:16px;margin-bottom:16px">
@@ -1529,6 +1593,59 @@ function streakDots(s){let h='';for(let i=6;i>=0;i--){const done=i<s,today=i===0
 function dailyQuote(){const q=isAr?['الأسرة السعيدة تبنى على الحب والتفاهم يومياً.','القلب السليم يسكن في البيت المليء بالمحبة.','الحب الحقيقي يُبنى يوماً بيوم بالعطاء والاهتمام.','أقوى الأسر هي التي تواجه التحديات معاً.','كلمة طيبة تبني بيوتاً وتصلح قلوباً.']:['A happy family is built on love, trust, and daily effort. 💕','Small daily moments of connection make the strongest bonds.','Growing together is the greatest adventure you can share.','Kindness is the foundation of every happy home.','A relationship thrives when both partners feel truly seen. ✨'];return q[new Date().getDate()%q.length]}
 function getOccasions(){const res=[];const today=new Date();today.setHours(0,0,0,0);const p=profile||{};if(p.ann){const a=new Date(p.ann);const next=new Date(today.getFullYear(),a.getMonth(),a.getDate());if(next<today)next.setFullYear(today.getFullYear()+1);res.push({n:isAr?'ذكرى الزواج':'Anniversary',em:'💍',d:Math.ceil((next-today)/864e5),dateStr:next.toLocaleDateString()})}occasions.forEach(o=>{if(!o.d)return;const d=new Date(o.d);const next=new Date(today.getFullYear(),d.getMonth(),d.getDate());if(next<today)next.setFullYear(today.getFullYear()+1);res.push({n:o.n,em:o.e||'🎉',d:Math.ceil((next-today)/864e5),dateStr:next.toLocaleDateString()})});return res.sort((a,b)=>a.d-b.d)}
 function habitStreak(h){const c=h.c||[];let s=0;let d=new Date();for(let i=0;i<30;i++){if(c.includes(d.toDateString()))s++;else if(i>0)break;d.setDate(d.getDate()-1)}return s}
+
+// ── 5D FEATURES ──────────────────────────────────────────────────────────────
+
+function getOnThisDay(){
+  var today=new Date(),mm=today.getMonth(),dd=today.getDate(),yr=today.getFullYear(),found=[];
+  memories.forEach(function(m){
+    if(!m.date)return;
+    var d=new Date(m.date);
+    if(d.getMonth()===mm&&d.getDate()===dd&&d.getFullYear()<yr)
+      found.push({mem:m,yearsAgo:yr-d.getFullYear()});
+  });
+  var p=profile||{};
+  if(p.ann){var a=new Date(p.ann);if(a.getMonth()===mm&&a.getDate()===dd&&a.getFullYear()<yr)
+    found.push({mem:{title:isAr?'ذكرى الزواج':'Anniversary',em:'💍',note:''},yearsAgo:yr-a.getFullYear()});}
+  return found;
+}
+
+function showMilestoneCelebration(days){
+  var msg=isAr?'🎉 '+days+' يوم متواصل!\nأنتما رائعان 💕':'🎉 '+days+' day streak!\nYou two are amazing 💕';
+  var icon=days>=100?'🏆':days>=30?'💎':'⭐';
+  var div=document.createElement('div');
+  div.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);background:linear-gradient(135deg,#C9954A,#E8849A);color:#fff;border-radius:24px;padding:32px 40px;text-align:center;z-index:9999;box-shadow:0 20px 60px rgba(0,0,0,.35);font-family:inherit;animation:milestoneIn .45s cubic-bezier(.175,.885,.32,1.275) forwards';
+  div.innerHTML='<div style="font-size:52px;margin-bottom:12px">'+icon+'</div>'+
+    '<div style="font-size:17px;font-weight:800;line-height:1.5;white-space:pre-line">'+msg+'</div>'+
+    '<button onclick="this.parentNode.remove()" style="margin-top:20px;background:rgba(255,255,255,.22);border:none;color:#fff;padding:10px 24px;border-radius:20px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit">'+(isAr?'شكراً 💕':'Awesome! 💕')+'</button>';
+  document.body.appendChild(div);
+  hap.success();
+  setTimeout(function(){if(div.parentNode)div.remove();},7000);
+}
+
+function checkStreakMilestone(streak){
+  var last=LS.get('aw_streak_milestone',0);
+  var milestones=[7,30,100];
+  var hit=milestones.slice().reverse().find(function(m){return streak>=m&&last<m;});
+  if(hit){LS.set('aw_streak_milestone',hit);setTimeout(function(){showMilestoneCelebration(hit);},900);}
+}
+
+function scheduleRitualPush(){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  var last=LS.get('aw_ritual_ts',0);
+  if(Date.now()-last<23*3600*1000)return;
+  LS.set('aw_ritual_ts',Date.now());
+  var now=new Date();
+  var target=new Date(now.getFullYear(),now.getMonth(),now.getDate(),20,30,0);
+  if(target<=now)target.setDate(target.getDate()+1);
+  var ms=target-now;
+  setTimeout(function(){
+    try{new Notification(isAr?'وقت إضافي معاً 💕':'Time together tonight 💕',{
+      body:isAr?'ماذا تخططان الليلة؟ افتحا التطبيق 🌹':'What are you doing together tonight? Open the app 🌹',
+      icon:'./icons/icon-192.png',badge:'./icons/icon-192.png'
+    });}catch(e){}
+  },ms);
+}
 function genCode(){return Math.random().toString(36).substr(2,6).toUpperCase()}
 function getCode(){if(!profile)return'------';if(!profile.code){profile.code=genCode();LS.set('aw_profile',profile)}return profile.code}
 function copyCode(){navigator.clipboard?.writeText(getCode());hap.success();T(isAr?'تم نسخ الكود! 📋':'Code copied! 📋')}
@@ -1778,6 +1895,10 @@ function closeSheet(id) {
 function rHome(el) {
   var p = profile || {};
   var streak = getStreak();
+  // Check streak milestones after render
+  setTimeout(function(){ checkStreakMilestone(streak); }, 400);
+  // Schedule evening ritual push
+  scheduleRitualPush();
   var today = new Date().toDateString();
   // record daily check-in for streak
   var checkins = LS.get('aw_checkins', []);
@@ -1845,7 +1966,55 @@ function rHome(el) {
       '</div>';
   }
 
+  // ON THIS DAY
+  var onThisDay = getOnThisDay();
+  var onThisDayCard = '';
+  if (onThisDay.length) {
+    var m0 = onThisDay[0];
+    var yearsLabel = isAr ? ('منذ ' + m0.yearsAgo + (m0.yearsAgo === 1 ? ' سنة' : ' سنوات')) : (m0.yearsAgo + (m0.yearsAgo === 1 ? ' year ago' : ' years ago'));
+    onThisDayCard =
+      '<div class="card" onclick="showTab(\'memories\')" style="padding:18px;margin-bottom:16px;cursor:pointer;background:linear-gradient(135deg,rgba(201,149,74,.12),rgba(232,132,154,.08));border:1px solid rgba(201,149,74,.28);animation:fadeUp .4s ease">' +
+        '<div style="display:flex;align-items:center;gap:12px">' +
+          '<div style="font-size:36px">' + (m0.mem.em || '📸') + '</div>' +
+          '<div style="flex:1">' +
+            '<div style="font-size:11px;font-weight:800;color:var(--gold-light);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">' +
+              (isAr ? '🕰️ في مثل هذا اليوم' : '🕰️ On This Day') +
+            '</div>' +
+            '<div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px">' + esc(m0.mem.title) + '</div>' +
+            '<div style="font-size:12px;color:var(--text-soft)">' + yearsLabel + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  // PROMINENT STREAK HERO (milestone-aware)
+  var streakColor = streak >= 100 ? '#FFD700' : streak >= 30 ? '#C9954A' : streak >= 7 ? 'var(--rose)' : 'var(--text-mid)';
+  var streakIcon = streak >= 100 ? '🏆' : streak >= 30 ? '💎' : streak >= 7 ? '🔥' : '✨';
+  var streakMsg = '';
+  if (streak >= 100) streakMsg = isAr ? 'أسطوريان! 💕' : 'Legendary! 💕';
+  else if (streak >= 30) streakMsg = isAr ? 'شهر من الحب 💎' : 'A month of love 💎';
+  else if (streak >= 7) streakMsg = isAr ? 'أسبوع رائع 🔥' : 'Amazing week 🔥';
+  else if (streak >= 1) streakMsg = isAr ? 'استمرا 💪' : 'Keep going 💪';
+  else streakMsg = isAr ? 'ابدأا اليوم ✨' : 'Start today ✨';
+
+  var streakHero =
+    '<div class="card" style="padding:20px;margin-bottom:16px;text-align:center;animation:fadeUp .35s ease;border:1px solid rgba(201,149,74,.2)">' +
+      '<div style="font-size:48px;line-height:1">' + streakIcon + '</div>' +
+      '<div style="font-size:42px;font-weight:800;color:' + streakColor + ';font-family:\'Cormorant Garamond\',serif;margin:4px 0">' + streak + '</div>' +
+      '<div style="font-size:12px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:.1em">' + (isAr ? 'يوم متواصل' : 'Day Streak') + '</div>' +
+      '<div style="font-size:13px;color:var(--text-mid);margin:6px 0 10px">' + streakMsg + '</div>' +
+      '<div style="display:flex;justify-content:center;gap:5px">' + streakDots(streak) + '</div>' +
+      (streak > 0 ?
+        '<div style="margin-top:10px;font-size:11px;color:var(--text-soft)">' +
+          (isAr ? 'الهدف التالي: ' : 'Next milestone: ') +
+          (streak < 7 ? '7 🔥' : streak < 30 ? '30 💎' : streak < 100 ? '100 🏆' : (isAr ? 'أنتما أبطال! 🏆' : 'You\'re legends! 🏆')) +
+        '</div>' : '') +
+    '</div>';
+
   el.innerHTML = '<div class="container" style="padding-top:20px">' +
+
+  onThisDayCard +
+  streakHero +
 
   // HERO CARD
   '<div class="card-rose" style="padding:18px;margin-bottom:20px;animation:fadeUp .5s ease">' +
@@ -1908,27 +2077,14 @@ function rHome(el) {
     '</div>' +
   '</div>' +
 
-  // STREAK + COUNTDOWN
-  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">' +
-    '<div class="card" style="padding:16px;text-align:center">' +
-      '<div style="font-size:26px">🔥</div>' +
-      '<div style="font-size:28px;font-weight:800;color:var(--rose);font-family:\'Cormorant Garamond\',serif">' + streak + '</div>' +
-      '<div style="font-size:11px;color:var(--text-soft)">' + (isAr?'يوم متواصل':'Day Streak') + '</div>' +
-      '<div style="margin-top:6px">' + streakDots(streak) + '</div>' +
-    '</div>' +
-    (nextOcc ?
-      '<div class="countdown-card ' + (nextOcc.d<=7?'urgent':'') + '" style="flex-direction:column;text-align:center;justify-content:center">' +
-        '<div style="font-size:22px">' + nextOcc.em + '</div>' +
-        '<div class="countdown-days">' + nextOcc.d + '</div>' +
-        '<div style="font-size:11px;color:var(--text-soft);padding:0 8px">' + nextOcc.n + '</div>' +
-      '</div>' :
-      '<div class="card" style="padding:16px;text-align:center;display:flex;flex-direction:column;justify-content:center;align-items:center">' +
-        '<div style="font-size:26px">💍</div>' +
-        '<div style="font-size:11px;color:var(--text-soft);margin-top:4px">' + (isAr?'أضف مناسبتك':'Add an occasion') + '</div>' +
-        '<button onclick="showTab(\'memories\')" style="background:none;border:1px solid var(--rose);color:var(--rose);border-radius:12px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px">+ ' + (isAr?'أضف':'Add') + '</button>' +
-      '</div>'
-    ) +
-  '</div>' +
+  // COUNTDOWN TO NEXT OCCASION
+  (nextOcc ?
+  '<div class="countdown-card ' + (nextOcc.d<=7?'urgent':'') + '" style="margin-bottom:20px;flex-direction:column;text-align:center;justify-content:center;padding:16px">' +
+    '<div style="font-size:13px;font-weight:700;color:var(--text-soft);margin-bottom:6px">' + (isAr?'القادم قريباً':'Coming Up') + '</div>' +
+    '<div style="font-size:22px">' + nextOcc.em + '</div>' +
+    '<div class="countdown-days">' + nextOcc.d + '</div>' +
+    '<div style="font-size:12px;color:var(--text-soft);padding:0 8px">' + nextOcc.n + '</div>' +
+  '</div>' : '') +
 
   // QUICK ACTIONS
   '<div style="margin-bottom:20px">' +
