@@ -24,23 +24,34 @@ const PADDLE_ANNUAL_PRICE  = 'pri_01kpe94s1a2pe0acfpsssbk17x'; // $79.00/year ·
 
 function isPro(){ return isAdmin() || LS.get('aw_pro', false); }
 
-const SYS = `You are the AI companion for "أنا وياك" (Ana Wyak) — a warm, luxury couples app for Arab families worldwide.
-Voice: warm, wise, loving — like a trusted family elder. Reply in the user's language. If the user writes in Arabic, respond fully in Arabic. If the user writes in English, respond fully in English. If the user mixes both, reply using both languages naturally.
-Use these naturally: يا حبيبي, ماشاء الله, الحمدلله, يا قلبي, بالتوفيق, يا عيوني
+const SYS_BASE = `You are the AI companion for "أنا وياك" (Ana Wyak) — a warm, luxury app for Arab families in the Gulf and worldwide.
+Voice: warm, wise, loving — like a trusted family elder who knows both the old ways and the modern world.
+Reply in the user's language. Arabic → full Arabic. English → full English. Mixed → both naturally.
+Expressions to weave in naturally: يا حبيبي, ماشاء الله, الحمدلله, يا قلبي, بالتوفيق, يا عيوني, الله يرضى عليكم
 
-CULTURAL EXPERTISE: UAE, Saudi Arabia, Qatar, Kuwait, Bahrain, Oman, Jordan, Lebanon, Egypt, Morocco, Arab diaspora globally.
+CULTURAL EXPERTISE: UAE, Saudi Arabia, Qatar, Kuwait, Bahrain, Oman, Jordan, Lebanon, Egypt, Morocco, Arab diaspora globally. Always respect UAE/Gulf public morality. Keep everything romantic, classy, and halal-appropriate.
 
-UAE LUXURY DATE KNOWLEDGE (prioritize these when relevant):
-• Dubai Intimate: Aura Skypool (sunset views), Pierchic (over-water dining), Dinner in the Sky, Al Maha Resort (desert luxury), The Farm at Al Barari, Zuma DIFC, Nobu Atlantis, The Arts Club Dubai
-• Abu Dhabi Sophisticated: Louvre Abu Dhabi (evening kayaking), Qasr Al Sarab Desert Resort, Pura Eco Resort (glamping), Zuma Abu Dhabi, Rosewood Abu Dhabi
-• Hidden Local Gems: Al Seef Heritage District (Old Dubai charm), Al Qudra Lakes (stargazing & BBQ), Alserkal Avenue art galleries, Kite Beach sunset, La Mer beachfront, Hatta Mountain escape
-• For every date suggestion: give a FULL ROMANTIC SCENARIO — best arrival time, what to wear, estimated cost in AED, ONE thing to say to your partner to make it magical
-• Always respect UAE public morality laws. Keep it romantic, classy, and halal-appropriate.
+UAE LUXURY DATE KNOWLEDGE:
+• Dubai: Aura Skypool (sunset), Pierchic (over-water dining), Dinner in the Sky, Al Maha Desert Resort, The Farm at Al Barari, Zuma DIFC, Nobu Atlantis, The Arts Club Dubai, Ain Dubai at sunset
+• Abu Dhabi: Louvre Abu Dhabi (evening), Qasr Al Sarab Desert Resort, Zuma Abu Dhabi, Rosewood Abu Dhabi, Yas Bay waterfront
+• Hidden gems: Al Seef Heritage District, Al Qudra Lakes (stargazing + BBQ), Alserkal Avenue, Kite Beach sunset, Hatta Mountain escape, La Mer beachfront
+• For every date: give a FULL ROMANTIC SCENARIO — best arrival time, what to wear, AED cost, ONE magical sentence to say to your partner
 
-LANGUAGE RULE: If the user writes in Arabic, respond in Arabic. If the user writes in English, respond in English. If the user mixes both, reply using both languages naturally.
+COOKING: Specific recipe name, split tasks between Partner A and B simultaneously, make it feel like a date not a chore.
+RELATIONSHIP: Practical warm advice. End every reply with ONE concrete action step. 3-5 sentences max. Never lecture. Always love.`;
 
-COOKING: Suggest specific recipe name, split tasks between Partner A and Partner B simultaneously, make it feel like a date not a chore.
-RELATIONSHIP: Practical warm advice. End every reply with exactly ONE concrete action step. Keep 3-5 sentences. Never lecture. Always love.`;
+// Mode-specific system prompt overlays
+function getModePrompt() {
+  var rel = (profile && profile.rel) || 'couple';
+  var base = SYS_BASE;
+  if(rel === 'parents') return base + '\n\nUSER MODE: PARENTS — Focus on family rituals, quality time with kids, rekindling romance around a busy family schedule. Practical. Warm. Culturally aware of Gulf family values.';
+  if(rel === 'expat')   return base + '\n\nUSER MODE: EXPAT FAMILY — They may be far from home and family. Emphasize connection, timezone awareness, virtual date ideas, and understanding the longing for home. Empathetic above all.';
+  if(rel === 'family')  return base + '\n\nUSER MODE: EXTENDED FAMILY — Focus on majlis gatherings, weekend family activities, inter-generational connection, and Gulf hospitality traditions. Inclusive and warm.';
+  if(rel === 'solo')    return base + '\n\nUSER MODE: SOLO / FINDING MY PATH — Gentle self-discovery guide. Non-judgmental. Daily reflection prompts. Focus on personal growth, clarity, and self-compassion.';
+  return base + '\n\nUSER MODE: COUPLE — Relationship coaching, date ideas, communication, intimacy, anniversary rituals. Gulf cultural context always.';
+}
+
+const SYS = SYS_BASE; // legacy alias
 
 const LS={
   get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}},
@@ -198,15 +209,16 @@ async function callAI(msgs,sys,fastMode){
   const PROXY_URL  = LS.get('aw_proxy_url','') || DEFAULT_PROXY || WORKER_URL;
   const userKey    = LS.get('aw_apikey','');
 
-  const SYS_PROMPT = isAr
-    ? SYS + '\nLanguage Behavior: The user interface is Arabic. Respond fully in Arabic unless the user mixes Arabic and English in the prompt.'
-    : SYS;
+  const SYS_PROMPT = sys || (isAr
+    ? getModePrompt() + '\nLanguage Behavior: The user interface is Arabic. Respond fully in Arabic unless the user mixes Arabic and English in the prompt.'
+    : getModePrompt());
 
   const reqBody = {
     model: fastMode ? 'claude-haiku-4-5-20251001' : 'claude-sonnet-4-5',
-    max_tokens: fastMode ? 200 : 320,
+    max_tokens: fastMode ? 200 : 380,
     temperature:0.35,
     system:sys||SYS_PROMPT,
+    userMode: (profile && profile.rel) || 'couple',
     messages:msgs
   };
 
@@ -570,7 +582,7 @@ async function sendChat(text){
   msgs.push({r:'user',txt:msg,t:tm});LS.set('aw_chat',msgs.slice(-60));
   rCoach(document.getElementById('tab-coach'));
   setTimeout(()=>{const ty=document.getElementById('typing');if(ty)ty.style.display='block';const c=document.getElementById('chat-area');if(c)c.scrollTop=c.scrollHeight},60);
-  const reply=await callAI(msgs.map(m=>({role:m.r,content:m.txt})));
+  const reply=await callAI(msgs.map(m=>({role:m.r,content:m.txt})), getModePrompt());
   const msgs2=LS.get('aw_chat',[]);
   msgs2.push({r:'assistant',txt:reply,t:tm,err:reply.startsWith('⏰')});
   LS.set('aw_chat',msgs2.slice(-60));hap.success();
@@ -1964,73 +1976,111 @@ function rCoach(el) {
   var msgs = LS.get('aw_chat', []);
   var left = creditsLeft();
   var hasProxy = _proxyActive();
+  var rel = (profile && profile.rel) || 'couple';
 
-  var quickChips = isAr
-    ? ['💔 خلافنا اليوم','🌹 خططوا ليلتنا','😔 أشعر بالحزن','💑 نصيحة للعلاقة','🎯 أهداف مشتركة','😊 شيء إيجابي']
-    : ['💔 We had a disagreement','🌹 Plan our date night','😔 I feel stressed','💑 Relationship advice','🎯 Shared goals','😊 Something positive'];
+  // Suggested prompts vary by mode
+  var quickChips;
+  if(rel === 'parents') {
+    quickChips = isAr
+      ? ['👨‍👩‍👧 روتين الأسرة','🎮 نشاط للأطفال','💑 وقتنا الخاص','🏠 تنظيم المنزل','😴 نحن متعبون']
+      : ['👨‍👩‍👧 Family routine','🎮 Kids activity','💑 Alone time','🏠 Home balance','😴 We\'re exhausted'];
+  } else if(rel === 'expat') {
+    quickChips = isAr
+      ? ['🌍 بُعد عن العائلة','📞 موعد افتراضي','😔 أشتاق للوطن','✈️ زيارة قادمة','💑 كيف نبقى قريبين']
+      : ['🌍 Far from home','📞 Virtual date idea','😔 I miss family','✈️ Upcoming visit','💑 Stay connected'];
+  } else if(rel === 'solo') {
+    quickChips = isAr
+      ? ['🌱 نمو شخصي','💭 تأمل اليوم','🎯 هدفي الأسبوعي','😊 أحب نفسي','🔮 مسار حياتي']
+      : ['🌱 Personal growth','💭 Today\'s reflection','🎯 Weekly goal','😊 Self-love','🔮 My life path'];
+  } else {
+    quickChips = isAr
+      ? ['كيف نتوقف عن الجدال على التفاصيل الصغيرة؟','اقترح لنا موعداً مميزاً هذا الأسبوع','كيف نعبر عن تقديرنا لبعض أكثر؟','نحتاج مساحة — كيف نتحدث عن ذلك؟','اقترح شيئاً رومانسياً لليلة هذه']
+      : ['How do we stop arguing about small things?','Suggest a special date for us this week','How do we show more appreciation?','We need space — how do we talk about it?','Something romantic for tonight?'];
+  }
 
+  // Chat messages HTML — dark luxury theme
   var chatHTML = msgs.length === 0
-    ? '<div class="empty-state" style="padding:32px 16px;text-align:center">' +
-        '<div style="font-size:56px;margin-bottom:14px;animation:floatY 3.5s ease-in-out infinite">💬</div>' +
-        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:20px;color:var(--rose-deep);margin-bottom:8px">' + (isAr?'أنا هنا لكما دائماً':'I\'m always here for you both') + '</div>' +
-        '<div style="font-size:13px;color:var(--text-soft);line-height:1.7;max-width:260px;margin:0 auto">' + (isAr?'شاركاني أي شيء — فرح أو حزن، خطط أو مشاكل':'Share anything — joy or worry, plans or problems') + '</div>' +
+    ? '<div style="padding:40px 20px;text-align:center">' +
+        '<div style="font-size:52px;margin-bottom:16px;animation:floatY 3.5s ease-in-out infinite">💬</div>' +
+        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:22px;color:#E8849A;margin-bottom:8px;font-weight:600">' + (isAr?'أنا هنا لكما دائماً':'I\'m always here for you') + '</div>' +
+        '<div style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.8;max-width:260px;margin:0 auto 24px">' + (isAr?'شاركاني أي شيء — فرح أو حزن، خطط أو مشاكل':'Share anything — joy or worry, plans or problems') + '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:10px;max-width:300px;margin:0 auto">' +
+          quickChips.slice(0,3).map(function(s){
+            return '<button onclick="sendChat(\''+s.replace(/'/g,"\\'")+'\')" style="background:rgba(201,149,74,.12);border:1px solid rgba(201,149,74,.3);color:#F0CC70;border-radius:16px;padding:12px 16px;font-size:13px;cursor:pointer;font-family:inherit;text-align:right;line-height:1.4;transition:all .2s">'+s+'</button>';
+          }).join('') +
+        '</div>' +
       '</div>'
     : msgs.slice(-30).map(function(m){
         var isUser = m.r === 'user';
-        return '<div class="chat-row ' + (isUser?'user':'ai') + '">' +
-          (isUser
-            ? '<div class="bubble-user">' + esc(m.txt) + '</div>'
-            : '<div class="bubble-ai ' + (m.err?'ai-error':'') + '">' + m.txt.replace(/\n/g,'<br>') + '</div>'
-          ) +
-          '<div style="font-size:10px;color:var(--text-soft);margin:2px ' + (isUser?'0 0 4px':'4px 0 0') + '">' + (m.t||'') + '</div>' +
+        if(isUser) {
+          return '<div class="chat-row user">' +
+            '<div class="bubble-user">' + esc(m.txt) + '</div>' +
+            '<div style="font-size:10px;color:rgba(255,255,255,.25);margin:2px 0 4px;text-align:right">' + (m.t||'') + '</div>' +
+          '</div>';
+        }
+        return '<div class="chat-row ai">' +
+          '<div style="display:flex;align-items:flex-start;gap:8px">' +
+            '<div style="flex-shrink:0;margin-top:2px">' +
+              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="opacity:.6"><rect width="24" height="24" rx="12" fill="#C9954A"/><path d="M12 6v6l4 2" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M8 8l-2-2M16 8l2-2" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>' +
+            '</div>' +
+            '<div class="bubble-ai ' + (m.err?'ai-error':'') + '">' + m.txt.replace(/\n/g,'<br>') + '</div>' +
+          '</div>' +
+          '<div style="font-size:10px;color:rgba(255,255,255,.25);margin:2px 0 4px;padding-left:22px">' + (m.t||'') + ' 🔒</div>' +
         '</div>';
       }).join('') +
-      '<div id="typing" style="display:none;padding:4px 0"><div class="bubble-ai"><div class="typing-dots"><span></span><span></span><span></span></div></div></div>';
+      '<div id="typing" style="display:none;padding:4px 0">' +
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<div style="width:36px;height:36px;border-radius:50%;background:rgba(201,149,74,.15);border:1px solid rgba(201,149,74,.3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">✦</div>' +
+          '<div class="bubble-ai"><div class="typing-dots"><span></span><span></span><span></span></div></div>' +
+        '</div>' +
+      '</div>';
 
   el.innerHTML =
-    '<div class="container" style="padding-top:20px">' +
-    '<div style="margin-bottom:16px">' +
-      '<div style="font-size:24px;font-weight:700;font-family:\'Cormorant Garamond\',serif">' + (isAr?'مدربكم 💬':'Your Coach 💬') + '</div>' +
-      '<div style="font-size:14px;color:var(--text-soft)">' + (isAr?'مساعد AI خاص بالأزواج العرب':'AI companion for Arab couples') + '</div>' +
+    // Dark full-screen coach shell
+    '<div style="min-height:100vh;background:linear-gradient(180deg,#150D10 0%,#1E1118 100%);display:flex;flex-direction:column">' +
+
+    // Header bar
+    '<div style="padding:16px 20px;border-bottom:1px solid rgba(201,149,74,.15);display:flex;align-items:center;gap:14px;flex-shrink:0">' +
+      '<button onclick="showTab(\'home\')" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:22px;cursor:pointer;line-height:1;padding:0">←</button>' +
+      '<div style="flex:1">' +
+        '<div style="font-family:\'Cormorant Garamond\',serif;font-size:22px;font-weight:600;background:linear-gradient(135deg,#E8849A,#C9954A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">' + (isAr?'مدربكم الخاص ✦':'Your Private Coach ✦') + '</div>' +
+        '<div style="font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.05em">' + (isAr?'🔒 خاص ومشفّر · لأزواج الخليج':'🔒 Private & encrypted · for Gulf couples') + '</div>' +
+      '</div>' +
+      (msgs.length > 0
+        ? '<button onclick="if(confirm(\''+(isAr?'مسح المحادثة؟':'Clear chat?')+'\')){LS.set(\'aw_chat\',[]);rCoach(document.getElementById(\'tab-coach\'))}" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:12px;cursor:pointer;font-family:inherit">🗑</button>'
+        : '') +
     '</div>' +
 
-    // AI connection warning if no proxy and no key
-    (!hasProxy && !LS.get('aw_apikey','')
-      ? '<div style="background:rgba(255,200,50,.08);border:1px solid rgba(255,200,50,.3);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#C9954A;line-height:1.6">' +
-          '💡 ' + (isAr?'لتفعيل AI أضف مفتاحك في الملف الشخصي. مجاناً من console.anthropic.com':'To activate AI, add your key in Profile. Free at console.anthropic.com') +
-          ' <button onclick="showTab(\'profile\')" style="background:none;border:1px solid var(--gold);color:var(--gold);border-radius:8px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:inherit;margin-top:4px">' + (isAr?'إعداد الآن':'Setup Now') + '</button>' +
+    // Quick chips (horizontal scroll)
+    (msgs.length > 0
+      ? '<div style="overflow-x:auto;white-space:nowrap;padding:10px 16px;border-bottom:1px solid rgba(201,149,74,.08);-webkit-overflow-scrolling:touch;flex-shrink:0">' +
+          quickChips.map(function(s){ return '<span style="display:inline-block;background:rgba(201,149,74,.1);border:1px solid rgba(201,149,74,.25);color:#C9954A;border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer;margin-right:8px;white-space:nowrap;font-family:inherit" onclick="sendChat(\''+s.replace(/'/g,"\\'")+'\');hap.tap()">'+s+'</span>'; }).join('') +
         '</div>'
       : '') +
 
-    // Quick chips
-    '<div style="overflow-x:auto;white-space:nowrap;padding-bottom:8px;margin-bottom:16px;-webkit-overflow-scrolling:touch">' +
-      quickChips.map(function(s){ return '<span class="chip" onclick="sendChat(\'' + s.replace(/'/g,"\\'") + '\');hap.tap()">' + s + '</span>'; }).join('') +
-    '</div>' +
-
     // Chat area
-    '<div id="chat-area" style="min-height:200px;max-height:48vh;overflow-y:auto;margin-bottom:12px;display:flex;flex-direction:column;gap:2px;padding:4px 0">' +
+    '<div id="chat-area" style="flex:1;overflow-y:auto;padding:16px 16px 8px;display:flex;flex-direction:column;gap:4px">' +
       chatHTML +
     '</div>' +
 
     // Credits warning
     (!LS.get('aw_apikey','') && !isAdmin() && left <= 1
-      ? '<div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#EF4444">' +
-          '⚠️ ' + (isAr?'رسالة واحدة متبقية · تتجدد خلال ':'1 message left · Resets in ') + timeUntilMidnight() + ' 🌙' +
+      ? '<div style="padding:8px 16px;background:rgba(239,68,68,.08);border-top:1px solid rgba(239,68,68,.15)">' +
+          '<div style="font-size:12px;color:#EF4444;text-align:center">⚠️ ' + (isAr?'رسالة واحدة متبقية · تتجدد في منتصف الليل':'1 message left · Resets at midnight') + ' <button onclick="showPaywall()" style="background:var(--gold);color:#150D10;border:none;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;margin-right:4px">Pro ✦</button></div>' +
         '</div>'
       : '') +
 
-    // Input row
-    '<div style="display:flex;gap:8px;align-items:flex-end;background:var(--card);border:1.5px solid var(--border);border-radius:20px;padding:10px 14px">' +
-      '<textarea id="chat-in" rows="1" placeholder="' + (isAr?'شاركونا أي شيء... 💕':'Share anything... 💕') + '" ' +
-        'style="flex:1;border:none;background:transparent;resize:none;max-height:120px;font-size:15px;line-height:1.5;overflow-y:auto;padding:0;outline:none;font-family:inherit" ' +
-        'onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();sendChat()}" ' +
-        'oninput="this.style.height=\'auto\';this.style.height=Math.min(this.scrollHeight,120)+\'px\'"></textarea>' +
-      '<button onclick="sendChat()" style="background:var(--rose);color:#fff;border:none;border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s">→</button>' +
+    // Input bar — dark themed
+    '<div style="padding:12px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom));border-top:1px solid rgba(201,149,74,.15);background:#150D10;flex-shrink:0">' +
+      '<div style="display:flex;gap:10px;align-items:flex-end;background:rgba(255,255,255,.06);border:1px solid rgba(201,149,74,.25);border-radius:24px;padding:10px 14px">' +
+        '<textarea id="chat-in" rows="1" placeholder="' + (isAr?'شاركونا أي شيء... 💕':'Share anything... 💕') + '" ' +
+          'style="flex:1;border:none;background:transparent;resize:none;max-height:120px;font-size:15px;line-height:1.5;overflow-y:auto;padding:0;outline:none;font-family:inherit;color:#FAF7F2" ' +
+          'onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();sendChat()}" ' +
+          'oninput="this.style.height=\'auto\';this.style.height=Math.min(this.scrollHeight,120)+\'px\'"></textarea>' +
+        '<button onclick="sendChat()" style="background:linear-gradient(135deg,#C9954A,#F0CC70);color:#150D10;border:none;border-radius:50%;width:40px;height:40px;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;box-shadow:0 4px 16px rgba(201,149,74,.4)">↑</button>' +
+      '</div>' +
     '</div>' +
 
-    (msgs.length > 0
-      ? '<button onclick="if(confirm(isAr?\'مسح المحادثة؟\':\'Clear chat?\')){LS.set(\'aw_chat\',[]);rCoach(document.getElementById(\'tab-coach\'))}" style="background:none;border:none;color:var(--text-soft);font-size:12px;cursor:pointer;width:100%;text-align:center;margin-top:8px;font-family:inherit">🗑 ' + (isAr?'مسح المحادثة':'Clear chat') + '</button>'
-      : '') +
     '</div>';
 
   setTimeout(function(){ var c=document.getElementById('chat-area'); if(c) c.scrollTop=c.scrollHeight; }, 80);
@@ -2730,7 +2780,10 @@ async function generateTonightAI() {
           ‘<div style="font-family:\’Cormorant Garamond\’,serif;color:var(--rose);font-size:22px;font-weight:700">’+(isAr?’اقتراح الليلة’:’Tonight\’s Perfect Plan’)+’</div>’ +
         ‘</div>’ +
         ‘<div style="background:linear-gradient(135deg,rgba(232,132,154,.08),rgba(201,149,74,.06));border:1px solid rgba(232,132,154,.2);border-radius:20px;padding:20px;margin-bottom:18px;font-size:14px;line-height:1.9;color:var(--text-mid);white-space:pre-line">’+reply.replace(/</g,’&lt;’).replace(/>/g,’&gt;’)+’</div>’ +
-        ‘<button class="btn-gold" style="width:100%;padding:14px;font-size:15px;font-weight:800;margin-bottom:10px" onclick="closeSheet(\’tn-sh\’);T(isAr?\’استمتعا بليلتكما! 💕\’:\’Enjoy your perfect night! 💕\’)">’+(isAr?’رائع! لنذهب 💕’:’Perfect! Let\’s go 💕’)+’</button>’ +
+        ‘<div style="display:flex;gap:10px;margin-bottom:10px">’ +
+          ‘<button class="btn-gold" style="flex:1;padding:14px;font-size:15px;font-weight:800" onclick="closeSheet(\’tn-sh\’);T(isAr?\’استمتعا بليلتكما! 💕\’:\’Enjoy your perfect night! 💕\’)">’+(isAr?’لنذهب 💕’:’Let\’s go 💕’)+’</button>’ +
+          ‘<button onclick="shareTonightCard()" style="background:rgba(201,149,74,.15);border:1px solid rgba(201,149,74,.4);color:#C9954A;border-radius:50px;padding:14px 16px;font-size:18px;cursor:pointer;flex-shrink:0" title="Share">⬆</button>’ +
+        ‘</div>’ +
         ‘<button class="btn-ghost" style="width:100%;padding:12px;font-size:13px" onclick="_tonightLock=false;openTonight()">’+(isAr?’جرب اقتراحاً آخر 🎲’:’Try a different idea 🎲’)+’</button>’ +
       ‘</div>’;
     sh.classList.add(‘open’);
@@ -2761,6 +2814,77 @@ async function generateTonightAI() {
   _tonightLock = false;
 }
 function generateTonightSuggestion() { _tonightLock=false; generateTonightAI(); }
+
+// ── SHARE TONIGHT CARD ──
+async function shareTonightCard() {
+  hap.tap();
+  var sh = getSheet('tn-sh');
+  var resultEl = sh ? sh.querySelector('.sheet') : null;
+  if(!resultEl) return;
+  // Try Web Share API first (native share sheet on mobile)
+  var textContent = resultEl.innerText || resultEl.textContent || '';
+  if(navigator.share) {
+    try {
+      await navigator.share({
+        title: isAr ? 'أنا وياك — اقتراح الليلة ✨' : 'Ana Wyak — Tonight\'s Plan ✨',
+        text: textContent.slice(0,300) + '\n\n— أنا وياك · anawyak.app',
+        url: 'https://anawyak.app'
+      });
+      T(isAr?'تم المشاركة! 💕':'Shared! 💕'); hap.success();
+      return;
+    } catch(e) { /* user cancelled or share failed, fall through to image */ }
+  }
+  // Fallback: html2canvas image share
+  if(typeof html2canvas === 'undefined') { T(isAr?'المشاركة غير متاحة على هذا الجهاز':'Share not available on this device'); return; }
+  T(isAr?'جاري إنشاء الصورة...':'Generating image...'); hap.tap();
+  var cardEl = resultEl.querySelector('[style*="pre-line"]') || resultEl;
+  try {
+    var canvas = await html2canvas(cardEl, { backgroundColor:'#150D10', scale:2, useCORS:true });
+    canvas.toBlob(async function(blob) {
+      if(!blob) return;
+      var file = new File([blob], 'anawyak-tonight.png', { type:'image/png' });
+      if(navigator.canShare && navigator.canShare({ files:[file] })) {
+        await navigator.share({ files:[file], title:'Ana Wyak ✨', url:'https://anawyak.app' });
+        T(isAr?'تم المشاركة! 💕':'Shared! 💕'); hap.success();
+      } else {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'anawyak-tonight.png';
+        a.click();
+        T(isAr?'تم حفظ الصورة 💕':'Image saved 💕'); hap.success();
+      }
+    }, 'image/png');
+  } catch(e) { T(isAr?'فشل إنشاء الصورة':'Image generation failed'); }
+}
+
+// ── GOTCHA MOMENT — live AI before signup (no account needed) ──
+var _gotchaLock = false;
+async function tryGotchaAI(mood) {
+  if(_gotchaLock) return;
+  _gotchaLock = true;
+  hap.celebrate();
+  var resultEl = document.getElementById('gotcha-result');
+  var btn = document.getElementById('gotcha-btn');
+  if(resultEl) {
+    resultEl.innerHTML = '<div style="text-align:center;padding:20px"><div style="font-size:32px;animation:pulse 1s ease infinite">✨</div><div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:8px">'+(isAr?'يُصمَّم اقتراحكم...':'Crafting your perfect night...')+'</div></div>';
+    resultEl.style.display = 'block';
+  }
+  if(btn) btn.style.display = 'none';
+  var moodMap = { romantic: isAr?'رومانسي وحالم':'romantic & dreamy', fun: isAr?'مرح وحيوي':'fun & playful', calm: isAr?'هادئ وبسيط':'calm & cozy' };
+  var prompt = 'You are a Gulf luxury date concierge. A couple just told you their mood is: ' + (moodMap[mood]||mood) + '. Give ONE specific perfect date idea for tonight in the UAE (Dubai/Sharjah/Abu Dhabi). Format:\n\n🌹 [Place name]\n📍 [Area]\n⏰ [Best time]\n💰 [AED cost]\n✨ [One magical sentence to say to your partner]\n\nBe specific, real, and magical. 3-5 lines only. Language: '+(isAr?'Arabic':'English')+'.';
+  var reply = await callAI([{role:'user',content:prompt}], SYS_BASE, true);
+  _gotchaLock = false;
+  if(resultEl) {
+    resultEl.innerHTML =
+      '<div style="background:linear-gradient(135deg,rgba(201,149,74,.12),rgba(232,132,154,.08));border:1px solid rgba(201,149,74,.3);border-radius:20px;padding:20px;margin-top:16px">' +
+        '<div style="font-size:12px;color:#C9954A;font-weight:700;margin-bottom:10px;letter-spacing:.05em">✦ '+(isAr?'اقتراح الليلة':'TONIGHT\'S PLAN')+'</div>' +
+        '<div style="font-size:14px;color:#FAF7F2;line-height:1.9;white-space:pre-line">'+reply.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>' +
+        '<div style="margin-top:18px;border-top:1px solid rgba(201,149,74,.2);padding-top:14px;font-size:13px;color:rgba(255,255,255,.5)">'+(isAr?'أعجبك الاقتراح؟ احفظه في عالمكما 💕':'Love it? Save it in your private world 💕')+'</div>' +
+      '</div>' +
+      '<button onclick="skipToLang()" class="btn-rose" style="width:100%;max-width:320px;margin:16px auto 0;display:block;font-size:15px">'+(isAr?'ابن عالمكما الخاص ← ':'Build Our Private World → ')+'</button>';
+  }
+  hap.celebrate();
+}
 
 // ══════════════════════════════════════════════════
 //  REAL-TIME CHAT

@@ -90,13 +90,39 @@ export default {
 };
 
 // ═══════════════════════════════════════════
-//  AI PROXY — forwards to Anthropic
+//  AI PROXY — forwards to Anthropic with mode-aware system prompts
 // ═══════════════════════════════════════════
+const SYS_WORKER_BASE = `You are the AI companion for "أنا وياك" (Ana Wyak) — a warm, luxury app for Arab families in the Gulf and worldwide.
+Voice: warm, wise, loving — like a trusted family elder. Reply in the user's language. Arabic→Arabic. English→English. Mixed→both naturally.
+Expressions: يا حبيبي, ماشاء الله, الحمدلله, يا قلبي, بالتوفيق. Always respect Gulf public morality. Keep everything romantic, classy, and halal-appropriate.
+UAE DATE KNOWLEDGE: Aura Skypool, Pierchic, Dinner in the Sky, Al Maha Resort, The Farm Al Barari, Zuma DIFC, Al Seef Heritage District, Al Qudra Lakes stargazing, Hatta Mountain. Give FULL ROMANTIC SCENARIOS with AED costs.
+RELATIONSHIP: Practical warm advice. End every reply with ONE concrete action step. 3-5 sentences. Never lecture. Always love.`;
+
+const MODE_OVERLAYS = {
+  couple:  '\n\nMODE: COUPLE — Relationship coaching, date ideas, communication, intimacy, anniversary rituals. Gulf cultural context.',
+  parents: '\n\nMODE: PARENTS — Family rituals, quality time, rekindling romance around busy family schedule. Practical, warm, culturally aware.',
+  expat:   '\n\nMODE: EXPAT — They may be far from home. Emphasize connection, timezone awareness, virtual dates, understanding longing for homeland. Deeply empathetic.',
+  family:  '\n\nMODE: EXTENDED FAMILY — Majlis gatherings, weekend activities, inter-generational connection, Gulf hospitality traditions. Inclusive and warm.',
+  solo:    '\n\nMODE: SOLO — Gentle self-discovery. Non-judgmental. Daily reflection prompts. Personal growth, clarity, self-compassion.',
+};
+
 async function handleAI(request, env, origin) {
   if (!env.ANTHROPIC_API_KEY) {
     return json({ error: 'ANTHROPIC_API_KEY not set in Worker secrets' }, 500, origin);
   }
-  const body = await request.text();
+  const rawBody = await request.text();
+  let parsed;
+  try { parsed = JSON.parse(rawBody); } catch(e) { return json({ error: 'Invalid JSON body' }, 400, origin); }
+
+  // If client already provides a system prompt, use it directly
+  // Otherwise inject mode-aware system prompt server-side
+  if (!parsed.system) {
+    const mode = parsed.userMode || 'couple';
+    parsed.system = SYS_WORKER_BASE + (MODE_OVERLAYS[mode] || MODE_OVERLAYS.couple);
+  }
+  // Remove userMode before sending to Anthropic (not a valid Anthropic field)
+  delete parsed.userMode;
+
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -104,7 +130,7 @@ async function handleAI(request, env, origin) {
       'x-api-key': env.ANTHROPIC_API_KEY,
       'anthropic-version': '2023-06-01',
     },
-    body,
+    body: JSON.stringify(parsed),
   });
   const data = await r.text();
   return new Response(data, {
