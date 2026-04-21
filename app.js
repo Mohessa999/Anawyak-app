@@ -2525,7 +2525,7 @@ function showRitualReveal() {
   var icon = '✨';
   var target = 'dates';
   if(p.firstWish === 'Date') { icon = '🌹'; action = isAr ? 'عرض خطتنا' : 'Open Date Plan'; target = 'dates'; }
-  if(p.firstWish === 'Cook') { icon = '👩‍🍳'; action = isAr ? 'لنطبخ' : 'Let’s Cook'; target = 'cook'; }
+  if(p.firstWish === 'Cook') { icon = '👩‍🍳'; action = isAr ? 'لنطبخ' : "Let's Cook"; target = 'cook'; }
   if(p.firstWish === 'Memories') { icon = '📖'; action = isAr ? 'سجل ذكرى' : 'Save a Memory'; target = 'memories'; }
 
   var sh = getSheet('launch-sh');
@@ -2637,7 +2637,7 @@ var tonightMood = 'Romantic';
 var DATE_VENUES = [
   {region:'UAE',budget:'High',moods:['Romantic','Luxury'],place:'The Farm at Al Barari',city:'Dubai',rating:'4.7','source':'Instagram gem',en:'A private dinner in a green oasis with candlelit paths, rosewater desserts and luxury service.',ar:'عشاء خاص في واحة خضراء مع دروب من الشموع، حلويات بالماء الورد، وخدمة فاخرة.'},
   {region:'UAE',budget:'Medium',moods:['Cozy','Romantic'],place:'Horse & Flower Café',city:'Dubai',rating:'4.6','source':'Google review',en:'A farm-style café between horses and flower gardens, perfect for coffee and sunset stories.',ar:'مقهى ريفي بين الخيول وحدائق الأزهار، مثالي للقهوة وقصص الغروب.'},
-  {region:'UAE',budget:'Medium',moods:['Adventurous','Cozy'],place:'Alserkal Avenue Art Walk',city:'Dubai',rating:'4.5','source':'TikTok favorite',en:'Art galleries, outdoor coffee and a creative date in Dubai’s cultural district.',ar:'سير في المعارض وفنجان قهوة في قلب الحي الثقافي بدبي.'},
+  {region:'UAE',budget:'Medium',moods:['Adventurous','Cozy'],place:'Alserkal Avenue Art Walk',city:'Dubai',rating:'4.5','source':'TikTok favorite',en:'Art galleries, outdoor coffee and a creative date in Dubai cultural district.',ar:'سير في المعارض وفنجان قهوة في قلب الحي الثقافي بدبي.'},
   {region:'UAE',budget:'High',moods:['Luxury','Romantic'],place:'Iris Dubai',city:'Dubai',rating:'4.7','source':'Google review',en:'Rooftop sunset dining with skyline views, perfect for a landmark romantic night.',ar:'عشاء سقفي عند الغروب مع إطلالة على أفق دبي، مناسب لليلة رومانسية راقية.'},
   {region:'UAE',budget:'Medium',moods:['Adventurous','Romantic'],place:'Qasr Al Sarab Desert Dinner',city:'Abu Dhabi',rating:'4.8','source':'Travel review',en:'A desert resort dinner in royal tents, luxury tea and private dune walk.',ar:'عشاء في صحراء أبوظبي داخل خيام ملكية مع شاي فاخر ومشي عبر الكثبان.'},
   {region:'KSA',budget:'Low',moods:['Cozy','Romantic'],place:'The Beach Road Walk',city:'Jeddah',rating:'4.6','source':'Google review',en:'A sunset corniche walk with dessert by the sea and soft lights.',ar:'تمشية على الكورنيش عند الغروب مع حلوى بجانب البحر.'},
@@ -2666,127 +2666,127 @@ function selectTonightMood(id,el){
   hap.tap();
 }
 // Tonight — psychological 2-question wizard + AI-powered personalised suggestion
-var _tnEnergy = ‘’, _tnNeed = ‘’;
+var _tnEnergy = '', _tnNeed = '';
 var _tnEnergyOptions = [
-  {id:’high’, en:’⚡ Full of energy’, ar:’⚡ مليء بالطاقة’},
-  {id:’medium’, en:’😊 Balanced & ready’, ar:’😊 متوازن ومستعد’},
-  {id:’cozy’, en:’🛋️ Cozy & relaxed’, ar:’🛋️ مرتاح وهادئ’},
-  {id:’tired’, en:’😴 A little tired’, ar:’😴 تعبان شوي’},
-  {id:’stressed’, en:’😤 Need to unwind’, ar:’😤 أحتاج للاسترخاء’},
-  {id:’excited’, en:’🎉 Excited & playful’, ar:’🎉 متحمس ومرح’}
+  {id:'high', en:'⚡ Full of energy', ar:'⚡ مليء بالطاقة'},
+  {id:'medium', en:'😊 Balanced & ready', ar:'😊 متوازن ومستعد'},
+  {id:'cozy', en:'🛋️ Cozy & relaxed', ar:'🛋️ مرتاح وهادئ'},
+  {id:'tired', en:'😴 A little tired', ar:'😴 تعبان شوي'},
+  {id:'stressed', en:'😤 Need to unwind', ar:'😤 أحتاج للاسترخاء'},
+  {id:'excited', en:'🎉 Excited & playful', ar:'🎉 متحمس ومرح'}
 ];
 var _tnNeedOptions = [
-  {id:’romance’, en:’💕 Deep romance’, ar:’💕 رومانسية عميقة’},
-  {id:’adventure’, en:’🌟 Excitement & adventure’, ar:’🌟 إثارة ومغامرة’},
-  {id:’calm’, en:’🌙 Peace & calm’, ar:’🌙 هدوء وسكينة’},
-  {id:’laugh’, en:’😂 Laughter & fun’, ar:’😂 ضحك ومرح’},
-  {id:’talk’, en:’💬 Deep conversation’, ar:’💬 حديث عميق’},
-  {id:’surprise’, en:’🎲 Surprise us!’, ar:’🎲 فاجئونا!’},
-  {id:’luxury’, en:’👑 Luxury experience’, ar:’👑 تجربة فاخرة’},
-  {id:’homey’, en:’🏠 Stay-in & cozy’, ar:’🏠 في البيت وهادئ’}
+  {id:'romance', en:'💕 Deep romance', ar:'💕 رومانسية عميقة'},
+  {id:'adventure', en:'🌟 Excitement & adventure', ar:'🌟 إثارة ومغامرة'},
+  {id:'calm', en:'🌙 Peace & calm', ar:'🌙 هدوء وسكينة'},
+  {id:'laugh', en:'😂 Laughter & fun', ar:'😂 ضحك ومرح'},
+  {id:'talk', en:'💬 Deep conversation', ar:'💬 حديث عميق'},
+  {id:'surprise', en:'🎲 Surprise us!', ar:'🎲 فاجئونا!'},
+  {id:'luxury', en:'👑 Luxury experience', ar:'👑 تجربة فاخرة'},
+  {id:'homey', en:'🏠 Stay-in & cozy', ar:'🏠 في البيت وهادئ'}
 ];
 function _tnSelectBtn(cls, id) {
-  document.querySelectorAll(‘.’+cls).forEach(function(b){
-    b.style.borderColor=’rgba(255,255,255,.1)’; b.style.background=’var(--card2)’; b.style.color=’var(--text-soft)’;
+  document.querySelectorAll('.'+cls).forEach(function(b){
+    b.style.borderColor='rgba(255,255,255,.1)'; b.style.background='var(--card2)'; b.style.color='var(--text-soft)';
   });
-  var sel = document.querySelector(‘.’+cls+’[data-id="’+id+’"]’);
-  if(sel){ sel.style.borderColor=’var(--rose)’; sel.style.background=’rgba(232,132,154,.12)’; sel.style.color=’var(--rose)’; }
+  var sel = document.querySelector('.'+cls+'[data-id="'+id+'"]');
+  if(sel){ sel.style.borderColor='var(--rose)'; sel.style.background='rgba(232,132,154,.12)'; sel.style.color='var(--rose)'; }
 }
 function openTonight() {
   if(_tonightLock) return;
-  _tnEnergy=’’; _tnNeed=’’; tonightHistory=[];
-  var sh = getSheet(‘tn-sh’);
-  sh.querySelector(‘.sheet’).innerHTML =
-    ‘<div class="sheet-handle"></div>’ +
-    ‘<div style="padding:8px 0 16px">’ +
-      ‘<div style="text-align:center;margin-bottom:20px">’ +
-        ‘<div style="font-size:44px;margin-bottom:10px">🎲</div>’ +
-        ‘<div style="font-family:\’Cormorant Garamond\’,serif;color:var(--rose);font-size:22px;font-weight:700;margin-bottom:6px">’+(isAr?’وش جوّكم الليلة؟’:’What\’s your vibe tonight?’)+’</div>’ +
-        ‘<div style="font-size:13px;color:var(--text-soft)">’+(isAr?’سؤالان فقط — واقترح الذكاء الاصطناعي ليلتكما المثالية’:’2 quick questions → AI crafts your perfect night’)+’</div>’ +
-      ‘</div>’ +
-      ‘<div style="font-size:12px;font-weight:800;color:var(--text-soft);letter-spacing:.06em;margin-bottom:10px">’+(isAr?’١. كيف طاقتكما الآن؟’:’1. HOW IS YOUR ENERGY RIGHT NOW?’)+’</div>’ +
-      ‘<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">’ +
+  _tnEnergy=''; _tnNeed=''; tonightHistory=[];
+  var sh = getSheet('tn-sh');
+  sh.querySelector('.sheet').innerHTML =
+    '<div class="sheet-handle"></div>' +
+    '<div style="padding:8px 0 16px">' +
+      '<div style="text-align:center;margin-bottom:20px">' +
+        '<div style="font-size:44px;margin-bottom:10px">🎲</div>' +
+        '<div style="font-family:\'Cormorant Garamond\',serif;color:var(--rose);font-size:22px;font-weight:700;margin-bottom:6px">'+(isAr?'وش جوّكم الليلة؟':'What\'s your vibe tonight?')+'</div>' +
+        '<div style="font-size:13px;color:var(--text-soft)">'+(isAr?'سؤالان فقط — واقترح الذكاء الاصطناعي ليلتكما المثالية':'2 quick questions → AI crafts your perfect night')+'</div>' +
+      '</div>' +
+      '<div style="font-size:12px;font-weight:800;color:var(--text-soft);letter-spacing:.06em;margin-bottom:10px">'+(isAr?'١. كيف طاقتكما الآن؟':'1. HOW IS YOUR ENERGY RIGHT NOW?')+'</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">' +
         _tnEnergyOptions.map(function(o){
-          return ‘<button class="tn-energy-btn" data-id="’+o.id+’" onclick="selectTnEnergy(\’’+o.id+’\’,this)" style="border:1.5px solid rgba(255,255,255,.1);border-radius:16px;padding:12px 8px;font-size:13px;cursor:pointer;background:var(--card2);color:var(--text-soft);font-family:inherit;text-align:center;transition:all .15s">’+(isAr?o.ar:o.en)+’</button>’;
-        }).join(‘’) +
-      ‘</div>’ +
-      ‘<div style="font-size:12px;font-weight:800;color:var(--text-soft);letter-spacing:.06em;margin-bottom:10px">’+(isAr?’٢. ما يحتاجه قلبكما الليلة؟’:’2. WHAT DOES YOUR HEART NEED TONIGHT?’)+’</div>’ +
-      ‘<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:22px">’ +
+          return '<button class="tn-energy-btn" data-id="'+o.id+'" onclick="selectTnEnergy(\''+o.id+'\',this)" style="border:1.5px solid rgba(255,255,255,.1);border-radius:16px;padding:12px 8px;font-size:13px;cursor:pointer;background:var(--card2);color:var(--text-soft);font-family:inherit;text-align:center;transition:all .15s">'+(isAr?o.ar:o.en)+'</button>';
+        }).join('') +
+      '</div>' +
+      '<div style="font-size:12px;font-weight:800;color:var(--text-soft);letter-spacing:.06em;margin-bottom:10px">'+(isAr?'٢. ما يحتاجه قلبكما الليلة؟':'2. WHAT DOES YOUR HEART NEED TONIGHT?')+'</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:22px">' +
         _tnNeedOptions.map(function(o){
-          return ‘<button class="tn-need-btn" data-id="’+o.id+’" onclick="selectTnNeed(\’’+o.id+’\’,this)" style="border:1.5px solid rgba(255,255,255,.1);border-radius:16px;padding:12px 8px;font-size:13px;cursor:pointer;background:var(--card2);color:var(--text-soft);font-family:inherit;text-align:center;transition:all .15s">’+(isAr?o.ar:o.en)+’</button>’;
-        }).join(‘’) +
-      ‘</div>’ +
-      ‘<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px">’ +
+          return '<button class="tn-need-btn" data-id="'+o.id+'" onclick="selectTnNeed(\''+o.id+'\',this)" style="border:1.5px solid rgba(255,255,255,.1);border-radius:16px;padding:12px 8px;font-size:13px;cursor:pointer;background:var(--card2);color:var(--text-soft);font-family:inherit;text-align:center;transition:all .15s">'+(isAr?o.ar:o.en)+'</button>';
+        }).join('') +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px">' +
         TONIGHT_REGIONS.map(function(r){
-          return ‘<button class="tn-region" data-id="’+r.id+’" onclick="selectTonightRegion(\’’+r.id+’\’,this)" style="border:1.5px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 6px;font-size:11px;cursor:pointer;background:var(--card2);color:var(--text-soft);font-family:inherit;transition:all .15s">’+(isAr?r.ar:r.en)+’</button>’;
-        }).join(‘’) +
-      ‘</div>’ +
-      ‘<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:22px">’ +
+          return '<button class="tn-region" data-id="'+r.id+'" onclick="selectTonightRegion(\''+r.id+'\',this)" style="border:1.5px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 6px;font-size:11px;cursor:pointer;background:var(--card2);color:var(--text-soft);font-family:inherit;transition:all .15s">'+(isAr?r.ar:r.en)+'</button>';
+        }).join('') +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:22px">' +
         TONIGHT_BUDGETS.map(function(b){
-          return ‘<button class="tn-budget" data-id="’+b.id+’" onclick="selectTonightBudget(\’’+b.id+’\’,this)" style="border:1.5px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 6px;font-size:11px;cursor:pointer;background:var(--card2);color:var(--text-soft);font-family:inherit;transition:all .15s">’+(isAr?b.ar:b.en)+’</button>’;
-        }).join(‘’) +
-      ‘</div>’ +
-      ‘<button class="btn-gold" style="width:100%;padding:15px;font-size:15px;font-weight:800" onclick="generateTonightAI()">’+(isAr?’✨ اقترح ليلتنا’:’✨ Craft Our Night’)+’</button>’ +
-    ‘</div>’;
-  sh.classList.add(‘open’);
+          return '<button class="tn-budget" data-id="'+b.id+'" onclick="selectTonightBudget(\''+b.id+'\',this)" style="border:1.5px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 6px;font-size:11px;cursor:pointer;background:var(--card2);color:var(--text-soft);font-family:inherit;transition:all .15s">'+(isAr?b.ar:b.en)+'</button>';
+        }).join('') +
+      '</div>' +
+      '<button class="btn-gold" style="width:100%;padding:15px;font-size:15px;font-weight:800" onclick="generateTonightAI()">'+(isAr?'✨ اقترح ليلتنا':'✨ Craft Our Night')+'</button>' +
+    '</div>';
+  sh.classList.add('open');
   // Default selections
   setTimeout(function(){
-    selectTonightRegion(‘UAE’, document.querySelector(‘.tn-region[data-id="UAE"]’));
-    selectTonightBudget(‘Medium’, document.querySelector(‘.tn-budget[data-id="Medium"]’));
+    selectTonightRegion('UAE', document.querySelector('.tn-region[data-id="UAE"]'));
+    selectTonightBudget('Medium', document.querySelector('.tn-budget[data-id="Medium"]'));
   }, 80);
 }
 function selectTnEnergy(id, el) {
   _tnEnergy = id;
-  document.querySelectorAll(‘.tn-energy-btn’).forEach(function(b){
-    b.style.borderColor=’rgba(255,255,255,.1)’; b.style.background=’var(--card2)’; b.style.color=’var(--text-soft)’;
+  document.querySelectorAll('.tn-energy-btn').forEach(function(b){
+    b.style.borderColor='rgba(255,255,255,.1)'; b.style.background='var(--card2)'; b.style.color='var(--text-soft)';
   });
-  if(el){ el.style.borderColor=’var(--gold)’; el.style.background=’rgba(240,204,112,.12)’; el.style.color=’var(--gold)’; }
+  if(el){ el.style.borderColor='var(--gold)'; el.style.background='rgba(240,204,112,.12)'; el.style.color='var(--gold)'; }
   hap.tap();
 }
 function selectTnNeed(id, el) {
   _tnNeed = id;
-  document.querySelectorAll(‘.tn-need-btn’).forEach(function(b){
-    b.style.borderColor=’rgba(255,255,255,.1)’; b.style.background=’var(--card2)’; b.style.color=’var(--text-soft)’;
+  document.querySelectorAll('.tn-need-btn').forEach(function(b){
+    b.style.borderColor='rgba(255,255,255,.1)'; b.style.background='var(--card2)'; b.style.color='var(--text-soft)';
   });
-  if(el){ el.style.borderColor=’var(--rose)’; el.style.background=’rgba(232,132,154,.12)’; el.style.color=’var(--rose)’; }
+  if(el){ el.style.borderColor='var(--rose)'; el.style.background='rgba(232,132,154,.12)'; el.style.color='var(--rose)'; }
   hap.tap();
 }
 async function generateTonightAI() {
   if(_tonightLock) return;
-  if(!_tnEnergy || !_tnNeed) { T(isAr?’اختر الطاقة والحاجة أولاً’:’Please answer both questions first’); hap.error(); return; }
+  if(!_tnEnergy || !_tnNeed) { T(isAr?'اختر الطاقة والحاجة أولاً':'Please answer both questions first'); hap.error(); return; }
   _tonightLock = true;
-  var sh = getSheet(‘tn-sh’);
-  sh.querySelector(‘.sheet’).innerHTML =
-    ‘<div class="sheet-handle"></div>’ +
-    ‘<div style="text-align:center;padding:40px 20px">’ +
-      ‘<div style="font-size:52px;margin-bottom:16px;animation:pulse 1.2s ease infinite">✨</div>’ +
-      ‘<div style="font-family:\’Cormorant Garamond\’,serif;color:var(--rose);font-size:20px;font-weight:700">’+(isAr?’يُصمَّم اقتراحكما...’:’Crafting your perfect night...’)+’</div>’ +
-      ‘<div style="font-size:13px;color:var(--text-soft);margin-top:8px">’+(isAr?’الذكاء الاصطناعي يحلل مزاجكما 🧠’:’AI is reading your vibe 🧠’)+’</div>’ +
-    ‘</div>’;
-  sh.classList.add(‘open’);
+  var sh = getSheet('tn-sh');
+  sh.querySelector('.sheet').innerHTML =
+    '<div class="sheet-handle"></div>' +
+    '<div style="text-align:center;padding:40px 20px">' +
+      '<div style="font-size:52px;margin-bottom:16px;animation:pulse 1.2s ease infinite">✨</div>' +
+      '<div style="font-family:\'Cormorant Garamond\',serif;color:var(--rose);font-size:20px;font-weight:700">'+(isAr?'يُصمَّم اقتراحكما...':'Crafting your perfect night...')+'</div>' +
+      '<div style="font-size:13px;color:var(--text-soft);margin-top:8px">'+(isAr?'الذكاء الاصطناعي يحلل مزاجكما 🧠':'AI is reading your vibe 🧠')+'</div>' +
+    '</div>';
+  sh.classList.add('open');
   var p = profile || {};
   var energyLabel = _tnEnergyOptions.find(function(o){return o.id===_tnEnergy;});
   var needLabel = _tnNeedOptions.find(function(o){return o.id===_tnNeed;});
   var budgetLabel = TONIGHT_BUDGETS.find(function(b){return b.id===tonightBudget;});
   var regionLabel = TONIGHT_REGIONS.find(function(r){return r.id===tonightRegion;});
-  var prompt = ‘You are a luxury couples experience curator for Gulf families. Create ONE perfect, highly specific date night idea.\n\nCOUPLE PROFILE:\n- Names: ‘+(p.n1||’Partner A’)+’ & ‘+(p.n2||’Partner B’)+’\n- Vibe preference: ‘+(p.vibe||’Romantic’)+’\n- Region: ‘+(regionLabel?(isAr?regionLabel.ar:regionLabel.en):’UAE’)+’\n- Budget: ‘+(budgetLabel?(isAr?budgetLabel.ar:budgetLabel.en):’Medium’)+’\n\nTONIGHT\’S MOOD ASSESSMENT:\n- Energy level: ‘+(energyLabel?(isAr?energyLabel.ar:energyLabel.en):_tnEnergy)+’\n- Heart\’s need: ‘+(needLabel?(isAr?needLabel.ar:needLabel.en):_tnNeed)+’\n\nDeliver in ‘+(isAr?’Arabic (العربية)’:’English’)+’ using this EXACT format:\n🌹 [Specific place/activity name]\n📍 [Exact location/area]\n⏰ [Best time to go]\n💰 [Estimated cost in AED]\n✨ [One romantic sentence to say to your partner]\n💕 [Why this is PERFECT for their exact energy+need tonight — 2 sentences max]\n\nBe VERY specific. Name real places if UAE/KSA/Qatar. Never repeat previous suggestions. Make it feel like a top-tier concierge recommendation.’;
+  var prompt = 'You are a luxury couples experience curator for Gulf families. Create ONE perfect, highly specific date night idea.\n\nCOUPLE PROFILE:\n- Names: '+(p.n1||'Partner A')+' & '+(p.n2||'Partner B')+'\n- Vibe preference: '+(p.vibe||'Romantic')+'\n- Region: '+(regionLabel?(isAr?regionLabel.ar:regionLabel.en):'UAE')+'\n- Budget: '+(budgetLabel?(isAr?budgetLabel.ar:budgetLabel.en):'Medium')+'\n\nTONIGHT\'S MOOD ASSESSMENT:\n- Energy level: '+(energyLabel?(isAr?energyLabel.ar:energyLabel.en):_tnEnergy)+'\n- Heart\'s need: '+(needLabel?(isAr?needLabel.ar:needLabel.en):_tnNeed)+'\n\nDeliver in '+(isAr?'Arabic (العربية)':'English')+' using this EXACT format:\n🌹 [Specific place/activity name]\n📍 [Exact location/area]\n⏰ [Best time to go]\n💰 [Estimated cost in AED]\n✨ [One romantic sentence to say to your partner]\n💕 [Why this is PERFECT for their exact energy+need tonight — 2 sentences max]\n\nBe VERY specific. Name real places if UAE/KSA/Qatar. Never repeat previous suggestions. Make it feel like a top-tier concierge recommendation.';
   try {
-    var reply = await callAI([{role:’user’,content:prompt}], ‘claude-haiku-4-5-20251001’);
-    sh.querySelector(‘.sheet’).innerHTML =
-      ‘<div class="sheet-handle"></div>’ +
-      ‘<div style="padding:12px 0">’ +
-        ‘<div style="text-align:center;margin-bottom:18px">’ +
-          ‘<div style="font-size:44px;margin-bottom:10px">✨</div>’ +
-          ‘<div style="font-family:\’Cormorant Garamond\’,serif;color:var(--rose);font-size:22px;font-weight:700">’+(isAr?’اقتراح الليلة’:’Tonight\’s Perfect Plan’)+’</div>’ +
-        ‘</div>’ +
-        ‘<div style="background:linear-gradient(135deg,rgba(232,132,154,.08),rgba(201,149,74,.06));border:1px solid rgba(232,132,154,.2);border-radius:20px;padding:20px;margin-bottom:18px;font-size:14px;line-height:1.9;color:var(--text-mid);white-space:pre-line">’+reply.replace(/</g,’&lt;’).replace(/>/g,’&gt;’)+’</div>’ +
-        ‘<div style="display:flex;gap:10px;margin-bottom:10px">’ +
-          ‘<button class="btn-gold" style="flex:1;padding:14px;font-size:15px;font-weight:800" onclick="closeSheet(\’tn-sh\’);T(isAr?\’استمتعا بليلتكما! 💕\’:\’Enjoy your perfect night! 💕\’)">’+(isAr?’لنذهب 💕’:’Let\’s go 💕’)+’</button>’ +
-          ‘<button onclick="shareTonightCard()" style="background:rgba(201,149,74,.15);border:1px solid rgba(201,149,74,.4);color:#C9954A;border-radius:50px;padding:14px 16px;font-size:18px;cursor:pointer;flex-shrink:0" title="Share">⬆</button>’ +
-        ‘</div>’ +
-        ‘<button class="btn-ghost" style="width:100%;padding:12px;font-size:13px" onclick="_tonightLock=false;openTonight()">’+(isAr?’جرب اقتراحاً آخر 🎲’:’Try a different idea 🎲’)+’</button>’ +
-      ‘</div>’;
-    sh.classList.add(‘open’);
+    var reply = await callAI([{role:'user',content:prompt}], 'claude-haiku-4-5-20251001');
+    sh.querySelector('.sheet').innerHTML =
+      '<div class="sheet-handle"></div>' +
+      '<div style="padding:12px 0">' +
+        '<div style="text-align:center;margin-bottom:18px">' +
+          '<div style="font-size:44px;margin-bottom:10px">✨</div>' +
+          '<div style="font-family:\'Cormorant Garamond\',serif;color:var(--rose);font-size:22px;font-weight:700">'+(isAr?'اقتراح الليلة':'Tonight\'s Perfect Plan')+'</div>' +
+        '</div>' +
+        '<div style="background:linear-gradient(135deg,rgba(232,132,154,.08),rgba(201,149,74,.06));border:1px solid rgba(232,132,154,.2);border-radius:20px;padding:20px;margin-bottom:18px;font-size:14px;line-height:1.9;color:var(--text-mid);white-space:pre-line">'+reply.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>' +
+        '<div style="display:flex;gap:10px;margin-bottom:10px">' +
+          '<button class="btn-gold" style="flex:1;padding:14px;font-size:15px;font-weight:800" onclick="closeSheet(\'tn-sh\');T(isAr?\'استمتعا بليلتكما! 💕\':\'Enjoy your perfect night! 💕\')">'+(isAr?'لنذهب 💕':'Let\'s go 💕')+'</button>' +
+          '<button onclick="shareTonightCard()" style="background:rgba(201,149,74,.15);border:1px solid rgba(201,149,74,.4);color:#C9954A;border-radius:50px;padding:14px 16px;font-size:18px;cursor:pointer;flex-shrink:0" title="Share">⬆</button>' +
+        '</div>' +
+        '<button class="btn-ghost" style="width:100%;padding:12px;font-size:13px" onclick="_tonightLock=false;openTonight()">'+(isAr?'جرب اقتراحاً آخر 🎲':'Try a different idea 🎲')+'</button>' +
+      '</div>';
+    sh.classList.add('open');
     hap.celebrate();
   } catch(e) {
     // Fallback to curated venues if AI fails
@@ -2797,18 +2797,18 @@ async function generateTonightAI() {
     if(!available.length){ tonightHistory=[]; available=candidates; }
     var choice = available[Math.floor(Math.random()*available.length)];
     tonightHistory.push(choice.place);
-    sh.querySelector(‘.sheet’).innerHTML =
-      ‘<div class="sheet-handle"></div>’ +
-      ‘<div style="padding:12px 0">’ +
-        ‘<div style="text-align:center;margin-bottom:16px"><div style="font-size:44px">✨</div><div style="font-family:\’Cormorant Garamond\’,serif;color:var(--rose);font-size:22px;font-weight:700">’+(isAr?’اقتراح الليلة’:’Tonight\’s Suggestion’)+’</div></div>’ +
-        ‘<div style="background:rgba(255,255,255,.04);border:1px solid rgba(232,132,154,.14);border-radius:20px;padding:18px;margin-bottom:16px">’ +
-          ‘<div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px">’+choice.place+’ · ‘+choice.city+’</div>’ +
-          ‘<div style="font-size:14px;color:var(--text-soft);line-height:1.7">’+(isAr?choice.ar:choice.en)+’</div>’ +
-        ‘</div>’ +
-        ‘<button class="btn-gold" style="width:100%;padding:14px;margin-bottom:10px" onclick="closeSheet(\’tn-sh\’)">’+(isAr?’لنذهب 💕’:’Let\’s go 💕’)+’</button>’ +
-        ‘<button class="btn-ghost" style="width:100%;padding:12px" onclick="_tonightLock=false;generateTonightAI()">’+(isAr?’جرب آخر’:’Try another’)+’</button>’ +
-      ‘</div>’;
-    sh.classList.add(‘open’);
+    sh.querySelector('.sheet').innerHTML =
+      '<div class="sheet-handle"></div>' +
+      '<div style="padding:12px 0">' +
+        '<div style="text-align:center;margin-bottom:16px"><div style="font-size:44px">✨</div><div style="font-family:\'Cormorant Garamond\',serif;color:var(--rose);font-size:22px;font-weight:700">'+(isAr?'اقتراح الليلة':'Tonight\'s Suggestion')+'</div></div>' +
+        '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(232,132,154,.14);border-radius:20px;padding:18px;margin-bottom:16px">' +
+          '<div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px">'+choice.place+' · '+choice.city+'</div>' +
+          '<div style="font-size:14px;color:var(--text-soft);line-height:1.7">'+(isAr?choice.ar:choice.en)+'</div>' +
+        '</div>' +
+        '<button class="btn-gold" style="width:100%;padding:14px;margin-bottom:10px" onclick="closeSheet(\'tn-sh\')">'+(isAr?'لنذهب 💕':'Let\'s go 💕')+'</button>' +
+        '<button class="btn-ghost" style="width:100%;padding:12px" onclick="_tonightLock=false;generateTonightAI()">'+(isAr?'جرب آخر':'Try another')+'</button>' +
+      '</div>';
+    sh.classList.add('open');
     hap.celebrate();
   }
   _tonightLock = false;
