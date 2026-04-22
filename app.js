@@ -2368,10 +2368,21 @@ function toggleTheme() {
 }
 async function requestNotifications(){
   if(!('Notification' in window)){ T(isAr?'جهازك لا يدعم الإشعارات':'Your device does not support notifications'); return; }
+  if(Notification.permission === 'denied'){
+    T(isAr?'الإشعارات محظورة — فعّلها من إعدادات المتصفح':'Notifications blocked — enable in browser Settings'); return;
+  }
+  if(Notification.permission === 'granted'){
+    scheduleRitualPush();
+    T(isAr?'التذكيرات مفعّلة بالفعل ✓':'Reminders already enabled ✓'); return;
+  }
   const permission = await Notification.requestPermission();
-  if(permission === 'granted'){ T(isAr?'تم تفعيل تذكيرات المناسبات 💌':'Occasion reminders enabled 💌'); }
-  else if(permission === 'denied'){ T(isAr?'تم حظر الإشعارات. غيّر إعدادات المتصفح':'Notifications blocked. Change browser settings'); }
-  else { T(isAr?'لم يتم تفعيل الإشعارات':'Notifications not enabled'); }
+  if(permission === 'granted'){
+    scheduleRitualPush();
+    LS.set('aw_notif_asked', true);
+    T(isAr?'تم تفعيل التذكيرات 💌':'Evening reminders enabled 💌');
+  } else if(permission === 'denied'){
+    T(isAr?'تم حظر الإشعارات. غيّر إعدادات المتصفح':'Notifications blocked. Change browser settings');
+  }
 }
 function toggleLang() {
   isAr = !isAr;
@@ -2497,17 +2508,16 @@ async function verifySignupCode(email) {
   T(isAr?'تم التحقق بنجاح 💕':'Verified successfully 💕');
   hap.celebrate();
   document.getElementById('auth-screen').style.display = 'none';
+  // Names already collected pre-auth — go straight to anniversary step
   obMode = 'post';
-  obStep = 0;
+  obStep = 1; // skip names (already saved)
   document.getElementById('onboarding').style.display = 'block';
   ['ob-0','ob-1','ob-2','ob-3'].forEach(function(id){
     var el = document.getElementById(id); if(el) el.style.display = 'none';
   });
-  var ob1 = document.getElementById('ob-1');
-  if(ob1) ob1.style.display = 'flex';
-  var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '75%';
-  var n1el = document.getElementById('ob-n1'); if(n1el) n1el.value = profile.n1 || '';
-  var n2el = document.getElementById('ob-n2'); if(n2el) n2el.value = profile.n2 || '';
+  var ob3 = document.getElementById('ob-3');
+  if(ob3) ob3.style.display = 'flex';
+  var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '90%';
 }
 async function resendVerificationCode(email) {
   var accounts = LS.get('aw_accounts', []);
@@ -2537,7 +2547,8 @@ async function doSignUp() {
   var fam   = (document.getElementById('su-fam')||{}).value || 'couple';
   var btn   = document.getElementById('su-btn');
   var btnLabel = '<span class="en">Create Your Private World 💕</span><span class="ar">افتح عالمكما الخاص 💕</span>';
-  if(!n1||!n2||!email||!pass){ T(isAr?'أكمل جميع الحقول':'Fill all fields'); hap.error(); return; }
+  if(!n1){ T(isAr?'أدخل اسمك':'Enter your name'); hap.error(); return; }
+  if(!email||!pass){ T(isAr?'البريد الإلكتروني وكلمة المرور مطلوبان':'Email and password required'); hap.error(); return; }
   if(pass.length < 6){ T(isAr?'كلمة المرور قصيرة (6+ أحرف)':'Password too short (6+ chars)'); hap.error(); return; }
   if(!email.includes('@')){ T(isAr?'بريد إلكتروني غير صحيح':'Invalid email'); hap.error(); return; }
   if(btn) btn.innerHTML = '<span class="spinner"></span>';
@@ -2669,46 +2680,70 @@ function selectObWish(w,el){
   hap.tap();
 }
 function nextObStep(){
-  // ── PRE-AUTH PHASE: two hook questions before sign-up ──
+  // ── PRE-AUTH PHASE: vibe → names → wish → signup (2 fields only) ──
   if(obMode === 'pre'){
+
     if(obStep === 0){
+      // Vibe done → show names (ob-1)
       if(!obVibe){ T(isAr?'اختر مزاج علاقتكما أولاً':'Choose your relationship vibe first'); hap.error(); return; }
       obStep = 1;
       var ob0 = document.getElementById('ob-0');
-      var ob2 = document.getElementById('ob-2'); // skip straight to wish selection
+      var ob1 = document.getElementById('ob-1');
       if(ob0) ob0.style.display = 'none';
+      if(ob1) ob1.style.display = 'flex';
+      var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '33%';
+      setTimeout(function(){ var f = document.getElementById('ob-n1'); if(f) f.focus(); }, 300);
+      return;
+    }
+
+    if(obStep === 1){
+      // Names done → show wish (ob-2)
+      var n1pre = ((document.getElementById('ob-n1')||{}).value||'').trim();
+      if(!n1pre){ T(isAr?'أدخل اسمك أولاً':'Enter your name first'); hap.error(); return; }
+      obStep = 2;
+      var ob1b = document.getElementById('ob-1');
+      var ob2 = document.getElementById('ob-2');
+      if(ob1b) ob1b.style.display = 'none';
       if(ob2) ob2.style.display = 'flex';
       var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '66%';
       return;
     }
-    if(obStep === 1){
+
+    if(obStep === 2){
+      // Wish done → show simplified auth (names hidden, pre-filled)
       if(!obWish){ T(isAr?'اختر طقسكما الأول':'Choose your first ritual'); hap.error(); return; }
-      // Hook questions done → show sign-up as the "gotcha"
-      var ob = document.getElementById('onboarding');
-      if(ob) ob.style.display = 'none';
-      var auth = document.getElementById('auth-screen');
-      if(auth) auth.style.display = 'block';
+      // Pre-fill name fields and hide them so signup only needs email + password
+      var n1v = ((document.getElementById('ob-n1')||{}).value||'').trim();
+      var n2v = ((document.getElementById('ob-n2')||{}).value||'').trim();
+      var suN1 = document.getElementById('su-n1'); if(suN1) suN1.value = n1v || 'You';
+      var suN2 = document.getElementById('su-n2'); if(suN2) suN2.value = n2v || 'Partner';
+      var namesRow = document.getElementById('su-names-row'); if(namesRow) namesRow.style.display = 'none';
+      var famRow = document.getElementById('su-fam-row'); if(famRow) famRow.style.display = 'none';
+      var ob = document.getElementById('onboarding'); if(ob) ob.style.display = 'none';
+      var auth = document.getElementById('auth-screen'); if(auth) auth.style.display = 'block';
       switchAuth('su');
       hap.celebrate();
-      T(isAr?'خطوة أخيرة — أنشئ عالمكما الخاص 💕':'One last step — create your private world 💕');
+      T(isAr?'مرحباً '+n1v+'! خطوتان فقط: بريدك وكلمة المرور 💕':'Hi '+n1v+'! Two steps: email + password 💕');
       return;
     }
   }
 
-  // ── POST-AUTH PHASE: anniversary only ──
+  // ── POST-AUTH PHASE: names already saved → go straight to anniversary ──
   if(obMode === 'post'){
     if(obStep === 0){
-      var n1 = (document.getElementById('ob-n1')||{}).value.trim();
-      var n2 = (document.getElementById('ob-n2')||{}).value.trim();
-      if(!n1 || !n2){ T(isAr?'أدخل اسميك واسم شريكك':'Enter both names'); hap.error(); return; }
-      profile.n1 = n1; profile.n2 = n2; LS.set('aw_profile', profile);
+      // Names came from pre-auth — just validate they're present
+      var n1 = ((document.getElementById('ob-n1')||{}).value||profile.n1||'').trim();
+      var n2 = ((document.getElementById('ob-n2')||{}).value||profile.n2||'').trim();
+      if(n1) { profile.n1 = n1; }
+      if(n2) { profile.n2 = n2; }
+      if(!profile.n1){ T(isAr?'أدخل اسمك':'Enter your name'); hap.error(); return; }
+      LS.set('aw_profile', profile);
       obStep = 1;
-      var ob1b = document.getElementById('ob-1');
+      var ob1c = document.getElementById('ob-1');
       var ob3 = document.getElementById('ob-3');
-      if(ob1b) ob1b.style.display = 'none';
+      if(ob1c) ob1c.style.display = 'none';
       if(ob3) ob3.style.display = 'flex';
       var fill = document.getElementById('ob-fill'); if(fill) fill.style.width = '100%';
-      T(isAr?'أضف تاريخ الذكرى أو تخطى':'Add your anniversary or skip');
       return;
     }
   }
@@ -2722,8 +2757,9 @@ function doGuest() {
 }
 function finishOb() {
   if(obMode === 'pre'){ nextObStep(); return; }
-  // post-auth: save anniversary → launch
+  // post-auth step 0: collect names (fallback for direct-signup path)
   if(obMode === 'post' && obStep === 0){ nextObStep(); return; }
+  // post-auth step 1 (or final): save anniversary → launch
   var ann = (document.getElementById('ob-ann')||{}).value;
   if(ann && profile){ profile.ann = ann; LS.set('aw_profile', profile); }
   launchApp();
@@ -2808,9 +2844,39 @@ function launchApp() {
   }
   setTimeout(showInstallBanner, 5000);
   // Show chat FAB if partner is linked
-  var _pc = LS.get('aw_partner_code','');
+  var _pc2 = LS.get('aw_partner_code','');
   var chatFab = document.getElementById('chat-fab');
-  if(chatFab) chatFab.classList.toggle('show', !!_pc);
+  if(chatFab) chatFab.classList.toggle('show', !!_pc2);
+  // Ask for notification permission after 90 seconds (warm first-session moment)
+  if(!LS.get('aw_notif_asked', false)) {
+    setTimeout(showNotifPermissionCard, 90000);
+  }
+}
+
+function showNotifPermissionCard(){
+  if(LS.get('aw_notif_asked', false)) return;
+  LS.set('aw_notif_asked', true);
+  if(!('Notification' in window)) return;
+  if(Notification.permission === 'granted') { scheduleRitualPush(); return; }
+  if(Notification.permission === 'denied') return;
+  // Show friendly permission card before triggering browser dialog
+  var div = document.createElement('div');
+  div.id = 'notif-card';
+  div.style.cssText = 'position:fixed;bottom:90px;left:16px;right:16px;max-width:440px;margin:0 auto;background:linear-gradient(135deg,rgba(232,132,154,.15),rgba(201,149,74,.1));border:1px solid rgba(232,132,154,.3);border-radius:20px;padding:18px 20px;z-index:990;box-shadow:0 8px 32px rgba(0,0,0,.15);animation:fadeUp .4s ease;backdrop-filter:blur(8px)';
+  div.innerHTML =
+    '<div style="display:flex;align-items:flex-start;gap:14px">' +
+      '<div style="font-size:32px;line-height:1">🌙</div>' +
+      '<div style="flex:1">' +
+        '<div style="font-size:14px;font-weight:800;color:var(--rose);margin-bottom:4px">' + (isAr?'تذكير الليلة 💕':'Evening reminder 💕') + '</div>' +
+        '<div style="font-size:12px;color:var(--text-soft);line-height:1.6;margin-bottom:12px">' + (isAr?'نُرسل لكما تذكيراً كل مساء في الساعة 8:30 — لتقضيا وقتاً إضافياً معاً.':'We\'ll remind you every evening at 8:30 PM to spend extra time together.') + '</div>' +
+        '<div style="display:flex;gap:8px">' +
+          '<button onclick="document.getElementById(\'notif-card\').remove();Notification.requestPermission().then(function(p){if(p===\'granted\'){scheduleRitualPush();T(isAr?\'تم تفعيل التذكيرات ✓\':\'Reminders enabled ✓\');}});hap.success()" style="flex:1;background:linear-gradient(135deg,var(--rose),var(--rose-deep));color:#fff;border:none;border-radius:12px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">' + (isAr?'فعّل التذكيرات':'Enable') + '</button>' +
+          '<button onclick="document.getElementById(\'notif-card\').remove();hap.tap()" style="background:none;border:1px solid var(--border);color:var(--text-soft);border-radius:12px;padding:10px 14px;font-size:12px;cursor:pointer;font-family:inherit">' + (isAr?'لاحقاً':'Later') + '</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(div);
+  setTimeout(function(){ if(div.parentNode) div.remove(); }, 20000);
 }
 
 // ══════════════════════════════════════════════════

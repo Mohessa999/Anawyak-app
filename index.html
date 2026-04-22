@@ -112,18 +112,21 @@
       <button class="btn-rose" onclick="doSignIn()" id="si-btn"><span class="en">Sign In 💕</span><span class="ar">دخول 💕</span></button>
       <div style="text-align:center;margin-top:14px"><button onclick="doGuest()" style="background:none;border:none;color:var(--text-soft);font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline"><span class="en">Continue as Guest</span><span class="ar">متابعة كضيف</span></button></div>
     </div>
-    <!-- SIGN UP -->
+    <!-- SIGN UP — minimal 2-field form (name fields pre-filled from onboarding) -->
     <div id="su-form" style="display:none">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <!-- Names row: hidden when collected during onboarding, shown if user arrives direct -->
+      <div id="su-names-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
         <div><label class="label"><span class="en">Your Name</span><span class="ar">اسمك</span></label><input type="text" id="su-n1" placeholder="Fatima"></div>
         <div><label class="label"><span class="en">Partner's Name</span><span class="ar">شريكك</span></label><input type="text" id="su-n2" placeholder="Ahmed"></div>
       </div>
-      <div style="margin-bottom:14px"><label class="label"><span class="en">Email</span><span class="ar">البريد</span></label><input type="email" id="su-email" placeholder="your@email.com" autocomplete="email"></div>
-      <div style="margin-bottom:14px"><label class="label"><span class="en">Password (6+ chars)</span><span class="ar">كلمة المرور (6+)</span></label><div style="position:relative"><input type="password" id="su-pass" placeholder="••••••••" autocomplete="new-password"><button onclick="togglePw('su-pass')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-soft)">👁</button></div></div>
-      <div style="margin-bottom:14px"><label class="label"><span class="en">Family Type</span><span class="ar">نوع الأسرة</span></label>
+      <!-- Email + Password: always shown -->
+      <div style="margin-bottom:14px"><label class="label"><span class="en">Email</span><span class="ar">البريد الإلكتروني</span></label><input type="email" id="su-email" placeholder="your@email.com" autocomplete="email"></div>
+      <div style="margin-bottom:16px"><label class="label"><span class="en">Password (6+ chars)</span><span class="ar">كلمة المرور (6+)</span></label><div style="position:relative"><input type="password" id="su-pass" placeholder="••••••••" autocomplete="new-password"><button onclick="togglePw('su-pass')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-soft)">👁</button></div></div>
+      <!-- Family type: hidden by default, shown only when arriving direct -->
+      <div id="su-fam-row" style="display:none;margin-bottom:14px"><label class="label"><span class="en">Family Type</span><span class="ar">نوع الأسرة</span></label>
         <select id="su-fam"><option value="couple">💑 Couple / زوجان</option><option value="parents">👨‍👩‍👧‍👦 Parents / عائلة</option><option value="expat">✈️ Expat Family</option><option value="extended">🏘️ Extended Family</option><option value="single">🌱 Finding My Path</option></select></div>
-      <div style="background:var(--rose-pale);border-radius:12px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--text-mid)">📧 <span class="en">A welcome confirmation will be sent to your email.</span><span class="ar">سيُرسل بريد ترحيب لبريدك.</span></div>
-      <button class="btn-rose" onclick="doSignUp()" id="su-btn"><span class="en">Create Your Private World 💕</span><span class="ar">افتح عالمكما الخاص 💕</span></button>
+      <div style="background:var(--rose-pale);border-radius:12px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--text-mid)">📧 <span class="en">Verification code sent to your email.</span><span class="ar">سيُرسل رمز تحقق لبريدك.</span></div>
+      <button class="btn-rose" onclick="doSignUp()" id="su-btn"><span class="en">Enter Our World 💕</span><span class="ar">ادخل عالمنا 💕</span></button>
     </div>
     <p style="text-align:center;font-size:11px;color:var(--text-soft);margin-top:16px;line-height:1.7"><span class="en">By continuing you agree to our <a href="terms.html" target="_blank" style="color:var(--rose)">Terms</a> & <a href="privacy.html" target="_blank" style="color:var(--rose)">Privacy Policy</a>.<br>Not a substitute for professional counseling.</span><span class="ar">بالمتابعة توافق على <a href="terms.html" target="_blank" style="color:var(--rose)">الشروط</a> و<a href="privacy.html" target="_blank" style="color:var(--rose)">سياسة الخصوصية</a>.<br>ليس بديلاً عن الإرشاد المهني.</span></p>
   </div>
@@ -137,16 +140,37 @@
   <div id="ob-preview">
     <div class="ob-preview-wrap" style="position:relative;width:100%;min-height:calc(100vh - 3px)">
 
-      <!-- Slide 1: AI Coach -->
+      <!-- Slide 1: Mission + Why — 5D Higher Purpose -->
       <div class="demo-slide active" id="demo-s1">
-        <div style="font-size:48px;margin-bottom:8px;animation:heartBurst 1s ease 1s both">💬</div>
-        <h2 style="font-family:'Cormorant Garamond',serif;font-size:30px;color:var(--rose);margin:0 0 6px">AI Relationship Coach</h2>
-        <p style="color:var(--text-mid);font-size:14px;line-height:1.7;margin:0 0 20px;max-width:300px;text-align:center">Ask anything. Your private couples therapist, 24/7.</p>
-        <div class="demo-feature-card">
-          <div style="font-size:12px;color:var(--text-soft);margin-bottom:8px">💑 You asked…</div>
-          <div style="font-size:13px;color:var(--text);margin-bottom:10px;font-style:italic">"We keep arguing about small things. How do we stop?"</div>
-          <div style="font-size:12px;color:var(--rose);font-weight:700;margin-bottom:6px">✦ Ana Wyak Coach</div>
-          <div style="font-size:13px;color:var(--text-mid);line-height:1.6">Small arguments often carry big unmet needs. Try the 24-hour rule: if it still matters tomorrow, talk it out with curiosity instead of blame…</div>
+        <div style="font-size:52px;margin-bottom:12px;animation:heartBurst 1s ease .6s both">💕</div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--rose);margin:0 0 6px;line-height:1.2">
+          <span class="en">Your love, elevated.</span><span class="ar">حبكما على مستوى أعلى.</span>
+        </h2>
+        <p style="color:var(--text-mid);font-size:13px;line-height:1.8;margin:0 0 18px;max-width:300px;text-align:center">
+          <span class="en">Ana Wyak was built for Arab couples who believe love deserves daily rituals, not just special occasions.</span>
+          <span class="ar">أنا وياك صُنع للأزواج العرب الذين يؤمنون أن الحب يستحق طقوساً يومية، لا مناسبات فقط.</span>
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:320px;margin-bottom:16px">
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;text-align:center">
+            <div style="font-size:24px">🤖</div>
+            <div style="font-size:11px;font-weight:700;color:var(--rose);margin-top:4px"><span class="en">AI Coach</span><span class="ar">مدرب AI</span></div>
+            <div style="font-size:10px;color:var(--text-soft);margin-top:2px"><span class="en">24/7 private</span><span class="ar">خاص دائماً</span></div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;text-align:center">
+            <div style="font-size:24px">🔗</div>
+            <div style="font-size:11px;font-weight:700;color:var(--gold);margin-top:4px"><span class="en">Partner Sync</span><span class="ar">مزامنة فورية</span></div>
+            <div style="font-size:10px;color:var(--text-soft);margin-top:2px"><span class="en">Live, real-time</span><span class="ar">حي ومباشر</span></div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;text-align:center">
+            <div style="font-size:24px">🔥</div>
+            <div style="font-size:11px;font-weight:700;color:var(--rose);margin-top:4px"><span class="en">Streak Rituals</span><span class="ar">طقوس يومية</span></div>
+            <div style="font-size:10px;color:var(--text-soft);margin-top:2px"><span class="en">Never forget</span><span class="ar">لا تنسَ أبداً</span></div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;text-align:center">
+            <div style="font-size:24px">📖</div>
+            <div style="font-size:11px;font-weight:700;color:var(--gold);margin-top:4px"><span class="en">Memories</span><span class="ar">الذكريات</span></div>
+            <div style="font-size:10px;color:var(--text-soft);margin-top:2px"><span class="en">Your story</span><span class="ar">قصتكما</span></div>
+          </div>
         </div>
       </div>
 
