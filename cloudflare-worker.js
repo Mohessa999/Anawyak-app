@@ -81,6 +81,7 @@ export default {
       if (path === '/paddle-webhook')    return handlePaddleWebhook(request, env, origin);
       if (path === '/request-code')      return handleRequestCode(request, env, origin);
       if (path === '/verify-code')       return handleVerifyCode(request, env, origin);
+      if (path === '/register-push')     return handleRegisterPush(request, env, origin);
       return json({ error: 'Not found' }, 404, origin);
     } catch (err) {
       console.error('[AW Worker]', err);
@@ -457,6 +458,26 @@ async function handleRequestCode(request, env, origin) {
   }
 
   return json({ ok: true, fallback: false }, 200, origin);
+}
+
+// ═══════════════════════════════════════════
+//  PUSH TOKEN REGISTRATION
+//  Stores FCM (Android) or APNs (iOS) tokens for background push
+//  POST /register-push  { token, platform: 'fcm'|'apns', code }
+// ═══════════════════════════════════════════
+async function handleRegisterPush(request, env, origin) {
+  if (!env.SYNC_STORE) {
+    return json({ ok: false, reason: 'kv_not_configured' }, 200, origin);
+  }
+  const { token, platform, code } = await request.json().catch(() => ({}));
+  if (!token || !platform) return json({ error: 'Missing token or platform' }, 400, origin);
+
+  const key = `push:${code ? code.toUpperCase() : token.slice(-16)}`;
+  await env.SYNC_STORE.put(key, JSON.stringify({
+    token, platform, code: code || null, updatedAt: new Date().toISOString()
+  }), { expirationTtl: 86400 * 90 });
+
+  return json({ ok: true }, 200, origin);
 }
 
 async function handleVerifyCode(request, env, origin) {

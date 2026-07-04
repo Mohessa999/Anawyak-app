@@ -106,13 +106,24 @@ let obWish    = '';
 let obMode    = 'pre'; // 'pre' = pre-auth questions, 'post' = post-signup anniversary
 
 // ══════════════════════════════════════════════════
-//  HAPTICS
+//  HAPTICS — browser vibrate + Capacitor native
 // ══════════════════════════════════════════════════
+function _capHap(type, style){
+  try{
+    var C=window.Capacitor;
+    if(C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.Haptics){
+      if(type==='impact') C.Plugins.Haptics.impact({style:style||'Light'});
+      else C.Plugins.Haptics.notification({type:style||'Success'});
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
 const hap={
-  tap:()=>navigator.vibrate&&navigator.vibrate(15),
-  success:()=>navigator.vibrate&&navigator.vibrate([15,30,15]),
-  celebrate:()=>navigator.vibrate&&navigator.vibrate([100,50,100,50,200]),
-  error:()=>navigator.vibrate&&navigator.vibrate([50,100,50])
+  tap:      function(){ if(!_capHap('impact','Light'))      navigator.vibrate&&navigator.vibrate(15); },
+  success:  function(){ if(!_capHap('impact','Medium'))     navigator.vibrate&&navigator.vibrate([15,30,15]); },
+  celebrate:function(){ if(!_capHap('notification','Success')) navigator.vibrate&&navigator.vibrate([100,50,100,50,200]); },
+  error:    function(){ if(!_capHap('notification','Error')) navigator.vibrate&&navigator.vibrate([50,100,50]); }
 };
 
 // ── RIPPLE EFFECT — adds Material-style ripple to any button click ──
@@ -1651,6 +1662,17 @@ function showPaywall(){
   pw=document.createElement('div');pw.id='pw';pw.className='pw-wrap';
   pw.onclick=function(e){if(e.target===pw){pw.classList.remove('open');hap.tap()}};
   var features=['✨ '+(isAr?'رسائل AI غير محدودة':'Unlimited AI messages'),'👨‍🍳 '+(isAr?'وصفات وقوائم مشتريات':'Unlimited recipes & grocery lists'),'🌹 '+(isAr?'خطط خروجات غير محدودة':'Unlimited date plans'),'📖 '+(isAr?'ذكريات غير محدودة':'Unlimited memories'),'🏆 '+(isAr?'أوسمة وإنجازات حصرية':'Exclusive badges')];
+  var isNative = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+  var isIOS    = isNative && /iphone|ipad|ipod/i.test(navigator.userAgent||'');
+  var nativeButtons = isNative
+    ? '<button class="btn-gold" onclick="'+( isIOS
+        ? 'window.open(\'https://apps.apple.com/app/id0000000000\',\'_system\')'
+        : 'window.open(\'https://play.google.com/store/apps/details?id=app.anawyak\',\'_system\')'
+      )+'" style="display:block;width:100%;margin-bottom:10px;cursor:pointer;font-family:inherit;font-size:15px;padding:14px;border-radius:50px;border:none">'+
+        (isIOS ? (isAr?'🍎 اشترك عبر App Store':'🍎 Subscribe on App Store') : (isAr?'🤖 اشترك عبر Google Play':'🤖 Subscribe on Google Play'))+
+      '</button>'
+    : '<button class="btn-gold" onclick="openPaddleCheckout(PADDLE_MONTHLY_PRICE)" style="display:block;width:100%;margin-bottom:10px;cursor:pointer;font-family:inherit;font-size:15px;padding:14px;border-radius:50px;border:none">'+(isAr?'ابدأ تجربتك المجانية 7 أيام 🚀':'Start 7-Day Free Trial 🚀')+'</button>'+
+      '<button onclick="openPaddleCheckout(PADDLE_ANNUAL_PRICE)" style="display:block;width:100%;background:none;border:1px solid var(--gold);color:var(--gold);border-radius:50px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:16px">'+(isAr?'السنوي 290 درهم — الأفضل قيمة 💛':'Annual AED 290 — Best Value 💛')+'</button>';
   pw.innerHTML='<div class="pw-sheet"><div class="sheet-handle"></div><div style="text-align:center">'+
     '<div style="font-size:52px;margin-bottom:10px" class="float">👑</div>'+
     '<div style="font-family:\'Cormorant Garamond\',serif;font-size:26px;font-weight:700;color:var(--rose);margin-bottom:4px">أنا وياك Pro</div>'+
@@ -1659,8 +1681,7 @@ function showPaywall(){
     '<div style="font-size:14px;color:var(--text-soft);margin-bottom:4px;margin-top:16px">'+(isAr?'عرض الإطلاق':'Launch offer')+'</div>'+
     '<div style="font-size:28px;font-weight:800;color:var(--rose);margin:12px 0 4px">'+(isAr?'':'AED ')+'29'+(isAr?' درهم':'')+'<span style="font-size:15px;font-weight:400;color:var(--text-soft)">/'+(isAr?'شهر':'month')+'</span></div>'+
     '<div style="font-size:14px;color:var(--text-soft);margin-bottom:16px">'+(isAr?'أو سنوي 290 درهم — وفر 17٪ · تجربة مجانية 7 أيام':'or annual AED 290 — save 17% · 7-day free trial')+'</div>'+
-    '<button class="btn-gold" onclick="openPaddleCheckout(PADDLE_MONTHLY_PRICE)" style="display:block;width:100%;margin-bottom:10px;cursor:pointer;font-family:inherit;font-size:15px;padding:14px;border-radius:50px;border:none">'+(isAr?'ابدأ تجربتك المجانية 7 أيام 🚀':'Start 7-Day Free Trial 🚀')+'</button>'+
-    '<button onclick="openPaddleCheckout(PADDLE_ANNUAL_PRICE)" style="display:block;width:100%;background:none;border:1px solid var(--gold);color:var(--gold);border-radius:50px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:16px">'+(isAr?'السنوي 290 درهم — الأفضل قيمة 💛':'Annual AED 290 — Best Value 💛')+'</button>'+
+    nativeButtons+
     '<button onclick="document.getElementById(\'pw\').classList.remove(\'open\')" style="background:none;border:none;color:var(--text-soft);font-size:14px;cursor:pointer;font-family:inherit">'+(isAr?'لاحقاً':'Maybe later')+'</button>'+
     '</div></div>';
   document.body.appendChild(pw);
@@ -2366,6 +2387,16 @@ function toggleTheme() {
   hap.tap();
   T(dark ? (isAr?'🌙 الوضع الداكن':'🌙 Dark mode on') : (isAr?'☀️ الوضع الفاتح':'☀️ Light mode on'));
 }
+function registerPushToken(token, platform){
+  if(!token || !DEFAULT_PROXY) return;
+  var code = profile ? profile.code : '';
+  fetch(DEFAULT_PROXY + '/register-push', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({token: token, platform: platform||'web', code: code})
+  }).catch(function(){});
+}
+
 async function requestNotifications(){
   if(!('Notification' in window)){ T(isAr?'جهازك لا يدعم الإشعارات':'Your device does not support notifications'); return; }
   if(Notification.permission === 'denied'){
@@ -2379,6 +2410,7 @@ async function requestNotifications(){
   if(permission === 'granted'){
     scheduleRitualPush();
     LS.set('aw_notif_asked', true);
+    registerPushToken('web-' + getFingerprint().slice(0,16), 'web');
     T(isAr?'تم تفعيل التذكيرات 💌':'Evening reminders enabled 💌');
   } else if(permission === 'denied'){
     T(isAr?'تم حظر الإشعارات. غيّر إعدادات المتصفح':'Notifications blocked. Change browser settings');

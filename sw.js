@@ -1,9 +1,9 @@
-/**
- * ANA WYAK Service Worker v3.3 — أنا وياك
- * v3.5: 30s→5s sync, real-time chat, timeline, demo preview, skeleton UI, ripple animations
+﻿/**
+ * ANA WYAK Service Worker v3.3 â€” Ø£Ù†Ø§ ÙˆÙŠØ§Ùƒ
+ * v3.5: 30sâ†’5s sync, real-time chat, timeline, demo preview, skeleton UI, ripple animations
  */
 
-const CACHE_NAME = 'ana-wyak-v3.9';
+const CACHE_NAME = 'ana-wyak-v4.0';
 const ASSETS = ['./', './index.html', './manifest.json', './pricing.html', './pricing-ar.html', './terms.html', './terms-ar.html', './privacy.html', './privacy-ar.html', './refund.html', './refund-ar.html', './subscribe.html', './offline.html', './styles.css', './app.js', './icons/icon-192.png', './icons/icon-512.png', 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Nunito:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap'];
 
 self.addEventListener('install', event => {
@@ -55,8 +55,8 @@ self.addEventListener('push', event => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch(e) {}
   event.waitUntil(
-    self.registration.showNotification(data.title || 'أنا وياك 💕', {
-      body: data.body || 'رسالة جديدة من شريكك 💕',
+    self.registration.showNotification(data.title || 'Ø£Ù†Ø§ ÙˆÙŠØ§Ùƒ ðŸ’•', {
+      body: data.body || 'Ø±Ø³Ø§Ù„Ø© Ø¬Ø¯ÙŠØ¯Ø© Ù…Ù† Ø´Ø±ÙŠÙƒÙƒ ðŸ’•',
       icon: './icons/icon-192.png',
       badge: './icons/icon-192.png',
       vibrate: [100, 50, 100],
